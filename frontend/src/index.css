@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  /* Khai báo font cho Tailwind v4 */
+  --font-sans: 'Roboto', system-ui, sans-serif;
+  --font-heading: 'Oswald', system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    /* Bảng màu Streetwear Light Mode: Nền trắng, Chữ đen đậm, Nhấn Đỏ Cam */
+    --bg: #ffffff;
+    --bg-secondary: #f4f4f5; /* Xám nhạt cho background khối/section */
+    --text: #3f3f46; /* Xám đậm cho chữ thường, dễ đọc */
+    --text-h: #000000; /* Đen tuyền cho tiêu đề */
+    --border: #e4e4e7;
+    
+    /* Màu Accent: Cam Đỏ (Orange Red) rực rỡ đặc trưng của đường phố */
+    --accent: #ff3300; 
+    --accent-hover: #000000; /* Nút hover chuyển sang đen ngầu */
+    --accent-text: #ffffff;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Bảng màu Streetwear Dark Mode: Đen tuyền, Nhấn Cam Đỏ */
+      --bg: #000000; /* Đen tuyền tuyệt đối */
+      --bg-secondary: #121212;
+      --text: #d4d4d8;
+      --text-h: #ffffff;
+      --border: #27272a;
+      
+      --accent: #ff3300; 
+      --accent-hover: #ffffff;
+      --accent-text: #000000; /* Chữ trên nút màu cam sẽ là đen khi hover */
+    }
+  }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    width: 100%;
+  }
+
+  /* Ghi đè font cho toàn bộ thẻ tiêu đề */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--text-h);
+    font-weight: 700; /* Oswald cần đậm mới đẹp */
+    text-transform: uppercase; /* Tiêu đề streetwear luôn in hoa */
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    @apply text-5xl md:text-7xl lg:text-8xl tracking-tight;
+  }
+
+  h2 {
+    @apply text-3xl md:text-5xl;
+  }
+
+  p {
+    @apply leading-relaxed;
+  }
+}
+
+@layer utilities {
+  .product-image-hover {
+    @apply transition-transform duration-500 ease-in-out hover:scale-105;
+  }
+
+  /* Nút bấm Streetwear: Vuông vức, chữ to, hiệu ứng chuyển màu mạnh */
+  .btn-primary {
+    background-color: var(--accent);
+    color: #ffffff; /* Luôn giữ chữ trắng trên nền accent cho nổi bật */
+    font-family: var(--font-heading);
+    @apply px-8 py-4 text-xl tracking-wider transition-colors duration-300 flex justify-center items-center uppercase font-bold;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--accent-hover);
+    color: var(--accent-text);
+  }
+  
+  .overlay-dark {
+    @apply absolute inset-0 bg-black/50;
+  }
+}
