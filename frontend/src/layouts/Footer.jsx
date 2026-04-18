@@ -1,66 +1,84 @@
 export default function Footer() {
   return (
-    <footer className="bg-black text-white pt-20 pb-10 border-t border-gray-900 mt-20">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 lg:gap-8 mb-16">
-          {/* Cột 1 */}
-          <div className="col-span-1 md:col-span-2 lg:col-span-1">
-            <h3 className="font-serif text-xl font-medium tracking-widest uppercase mb-6">MENSWEAR</h3>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6">
-              Định vị phong cách nam giới hiện đại với những thiết kế tối giản, tinh tế nhưng đầy mạnh mẽ. Chất lượng làm nên đẳng cấp thực sự.
-            </p>
-          </div>
-
-          {/* Cột 2 */}
-          <div>
-            <h4 className="font-medium tracking-widest uppercase text-sm mb-6 text-gray-200">Công Ty</h4>
-            <ul className="space-y-4 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Về chúng tôi</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Hệ thống cửa hàng</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Thành tựu</a></li>
-            </ul>
-          </div>
-
-          {/* Cột 3 */}
-          <div>
-            <h4 className="font-medium tracking-widest uppercase text-sm mb-6 text-gray-200">Hỗ Trợ</h4>
-            <ul className="space-y-4 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Kiểm tra đơn hàng</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Chính sách đổi trả</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Hỏi đáp (FAQ)</a></li>
-            </ul>
-          </div>
-
-          {/* Cột 4 - Newsletter */}
-          <div className="col-span-1 md:col-span-4 lg:col-span-1">
-            <h4 className="font-medium tracking-widest uppercase text-sm mb-6 text-gray-200">Đăng kí nhận tin</h4>
-            <p className="text-gray-400 text-sm mb-4">
-              Nhận thông tin sớm nhất về các bộ sưu tập giới hạn và ưu đãi độc quyền.
-            </p>
-            <form className="flex">
-              <input 
-                type="email" 
-                placeholder="Địa chỉ Email" 
-                className="bg-transparent border-b border-gray-600 py-2 w-full text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-white transition-colors rounded-none"
-              />
-              <button 
-                type="submit" 
-                className="border-b border-white py-2 px-4 text-sm uppercase tracking-widest hover:text-gray-300 transition-colors"
-              >
-                Gửi
-              </button>
-            </form>
-          </div>
+    <footer className="border-t border-black/10 bg-white">
+      <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-4 lg:px-10">
+        <div className="space-y-3">
+          <p className="text-xs font-extrabold uppercase tracking-tight text-[#2f2f2e]">
+            VIBE URBAN
+          </p>
+          <p className="max-w-xs text-[12px] leading-relaxed text-[#5c5b5b]">
+            Nền tảng thời trang đường phố dành cho người thích khác biệt, tối
+            giản và hiện đại.
+          </p>
         </div>
 
-        {/* Footer Bottom */}
-        <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 tracking-wider uppercase">
-          <p>&copy; {new Date().getFullYear()} MENSWEAR PROJECT GR1.</p>
-          <div className="flex gap-6 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white transition-colors">Điều khoản dịch vụ</a>
-            <a href="#" className="hover:text-white transition-colors">Chính sách bảo mật</a>
+        <div>
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#2f2f2e]">
+            Bộ sưu tập
+          </p>
+          <ul className="space-y-2 text-[12px] text-[#5c5b5b]">
+            <li>
+              <a href="/shop" className="hover:text-[#004be3]">
+                Hàng mới
+              </a>
+            </li>
+            <li>
+              <a href="/shop" className="hover:text-[#004be3]">
+                Nổi bật tuần này
+              </a>
+            </li>
+            <li>
+              <a href="/shop" className="hover:text-[#004be3]">
+                Streetwear Core
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#2f2f2e]">
+            Hỗ trợ
+          </p>
+          <ul className="space-y-2 text-[12px] text-[#5c5b5b]">
+            <li>
+              <a href="#" className="hover:text-[#004be3]">
+                Giao hàng & đổi trả
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#004be3]">
+                Chính sách bảo mật
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#004be3]">
+                Liên hệ
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#2f2f2e]">
+            Pulse Newsletter
+          </p>
+          <div className="flex overflow-hidden rounded-full border border-black/10 bg-[#f3f0ef] p-1">
+            <input
+              type="email"
+              placeholder="Email của bạn"
+              className="h-9 flex-1 bg-transparent px-3 text-[12px] text-[#2f2f2e] outline-none placeholder:text-[#afadac]"
+            />
+            <button className="rounded-full bg-[#004be3] px-4 text-[11px] font-semibold uppercase tracking-wide text-white">
+              Đăng ký
+            </button>
           </div>
         </div>
+      </div>
+
+      <div className="border-t border-black/5 py-3">
+        <p className="text-center text-[11px] text-[#afadac]">
+          © 2026 VIBE URBAN. All rights reserved.
+        </p>
       </div>
     </footer>
   );

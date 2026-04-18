@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import User from "../models/User.js";
-import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import Session from "../models/Session.js";
+import User from "../models/User.js";
 
 const ACCESS_TOKEN_TTL = "30m"; // 30 phút
 const REFRESH_TOKEN_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 ngày
@@ -10,8 +10,18 @@ const REFRESH_TOKEN_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 ngày
 export const signUp = async (req, res) => {
   try {
     const { username, password, email, firstName, lastName } = req.body;
+    const normalizedUsername = username?.trim().toLowerCase();
+    const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedFirstName = firstName?.trim();
+    const normalizedLastName = lastName?.trim();
 
-    if (!username || !password || !email || !firstName || !lastName) {
+    if (
+      !normalizedUsername ||
+      !password ||
+      !normalizedEmail ||
+      !normalizedFirstName ||
+      !normalizedLastName
+    ) {
       return res.status(400).json({
         message:
           "Không thể thiếu username, password, email, firstName, và lastName",
@@ -20,7 +30,7 @@ export const signUp = async (req, res) => {
 
     // Kiểm tra nếu username hoặc email đã tồn tại
     const existingUser = await User.findOne({
-      $or: [{ username }, { email }],
+      $or: [{ username: normalizedUsername }, { email: normalizedEmail }],
     });
     if (existingUser) {
       return res
@@ -31,10 +41,10 @@ export const signUp = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     // Tạo user mới
     await User.create({
-      username,
+      username: normalizedUsername,
       hashedPassword,
-      email,
-      displayName: `${firstName} ${lastName}`,
+      email: normalizedEmail,
+      displayName: `${normalizedFirstName} ${normalizedLastName}`,
     });
 
     //return
@@ -48,14 +58,22 @@ export const signUp = async (req, res) => {
 export const signIn = async (req, res) => {
   try {
     // lấy inputs
-    const { username, password } = req.body;
+    const { username, email, identifier, password } = req.body;
+    const loginIdentifier = (identifier || username || email || "")
+      .toString()
+      .trim()
+      .toLowerCase();
 
-    if (!username || !password) {
-      return res.status(400).json({ message: "Thiếu username và password" });
+    if (!loginIdentifier || !password) {
+      return res
+        .status(400)
+        .json({ message: "Thiếu email/username và password" });
     }
 
     // lấy hashedPassword trong db để so với password input
-    const user = await User.findOne({ username });
+    const user = await User.findOne({
+      $or: [{ username: loginIdentifier }, { email: loginIdentifier }],
+    });
     if (!user) {
       return res
         .status(401)
@@ -88,26 +106,29 @@ export const signIn = async (req, res) => {
     });
 
     // trả refresh token về trong cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true, // không cho client JS truy cập
-      secure: true,
-      sameSite: "none", // chống CSRF
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: REFRESH_TOKEN_TTL_MS,
+    };
+
+    res.cookie("refreshToken", refreshToken, {
+      ...cookieOptions,
     });
 
     // trả access token và bộ info về trong res
-    return res
-      .status(200)
-      .json({
-        message: `User ${user.username} logged in successfully`,
-        accessToken,
-        user: {
-          _id: user._id,
-          username: user.username,
-          displayName: user.displayName,
-          role: user.role,
-        }
-      });
+    return res.status(200).json({
+      message: `User ${user.username} logged in successfully`,
+      accessToken,
+      user: {
+        _id: user._id,
+        username: user.username,
+        displayName: user.displayName,
+        role: user.role,
+      },
+    });
   } catch (error) {
     console.error("Lỗi khi đăng nhập", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
@@ -123,7 +144,12 @@ export const signOut = async (req, res) => {
       await Session.deleteOne({ refreshToken: token });
 
       // xóa cookie
-      res.clearCookie("refreshToken");
+      const isProduction = process.env.NODE_ENV === "production";
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+      });
     }
     return res.sendStatus(204); // 204 No Content
   } catch (error) {
