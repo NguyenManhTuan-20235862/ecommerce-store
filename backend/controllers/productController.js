@@ -1,5 +1,6 @@
-import Product from "../models/Product.js";
+import mongoose from "mongoose";
 import Category from "../models/Category.js";
+import Product from "../models/Product.js";
 
 // Hàm tạo slug từ tên (hỗ trợ tiếng Việt)
 const generateSlug = (text) => {
@@ -28,6 +29,22 @@ const ensureUniqueSlug = async (baseSlug, excludeId = null) => {
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
+};
+
+const findProductByIdentifier = async (identifier, options = {}) => {
+  const baseFilter = { isActive: true, ...options };
+
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    return Product.findOne({ _id: identifier, ...baseFilter }).populate(
+      "category",
+      "name slug",
+    );
+  }
+
+  return Product.findOne({ slug: identifier, ...baseFilter }).populate(
+    "category",
+    "name slug",
+  );
 };
 
 // ============================================
@@ -69,7 +86,8 @@ export const getProducts = async (req, res) => {
 
     // Lọc theo biến thể (size, color)
     if (size) {
-      filter["variants.size"] = size.toUpperCase();
+      const sizesArray = size.split(",").map((s) => s.trim().toUpperCase());
+      filter["variants.size"] = { $in: sizesArray };
     }
     if (color) {
       filter["variants.color"] = { $regex: new RegExp(color, "i") };
@@ -142,10 +160,7 @@ export const getProducts = async (req, res) => {
 // GET /api/products/:slug — Chi tiết sản phẩm
 export const getProductBySlug = async (req, res) => {
   try {
-    const product = await Product.findOne({
-      slug: req.params.slug,
-      isActive: true,
-    }).populate("category", "name slug");
+    const product = await findProductByIdentifier(req.params.slug);
 
     if (!product) {
       return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
@@ -161,7 +176,7 @@ export const getProductBySlug = async (req, res) => {
 // GET /api/products/:slug/related — Sản phẩm liên quan (cùng danh mục)
 export const getRelatedProducts = async (req, res) => {
   try {
-    const product = await Product.findOne({ slug: req.params.slug });
+    const product = await findProductByIdentifier(req.params.slug);
     if (!product) {
       return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
     }
@@ -244,7 +259,9 @@ export const createProduct = async (req, res) => {
     // Populate category trước khi trả về
     await product.populate("category", "name slug");
 
-    return res.status(201).json({ message: "Tạo sản phẩm thành công", product });
+    return res
+      .status(201)
+      .json({ message: "Tạo sản phẩm thành công", product });
   } catch (error) {
     console.error("Lỗi khi tạo sản phẩm:", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
@@ -284,7 +301,8 @@ export const updateProduct = async (req, res) => {
 
     if (description !== undefined) product.description = description.trim();
     if (price !== undefined) product.price = Number(price);
-    if (compareAtPrice !== undefined) product.compareAtPrice = Number(compareAtPrice);
+    if (compareAtPrice !== undefined)
+      product.compareAtPrice = Number(compareAtPrice);
     if (category) {
       const categoryExists = await Category.findById(category);
       if (!categoryExists) {
@@ -297,14 +315,17 @@ export const updateProduct = async (req, res) => {
     if (images !== undefined) product.images = images;
     if (variants !== undefined) product.variants = variants;
     if (material !== undefined) product.material = material.trim();
-    if (careInstructions !== undefined) product.careInstructions = careInstructions.trim();
+    if (careInstructions !== undefined)
+      product.careInstructions = careInstructions.trim();
     if (isFeatured !== undefined) product.isFeatured = Boolean(isFeatured);
     if (isActive !== undefined) product.isActive = Boolean(isActive);
 
     await product.save();
     await product.populate("category", "name slug");
 
-    return res.status(200).json({ message: "Cập nhật sản phẩm thành công", product });
+    return res
+      .status(200)
+      .json({ message: "Cập nhật sản phẩm thành công", product });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({ message: "Slug sản phẩm đã tồn tại" });

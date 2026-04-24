@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuthStore } from "../store/authStore";
+import { useCartStore } from "../store/cartStore";
 
 const productMenu = [
   { label: "Tất cả sản phẩm", to: "/shop" },
@@ -34,9 +35,13 @@ const supportMenu = [
 
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuthStore();
+  const cartCount = useCartStore((state) =>
+    state.items.reduce((total, item) => total + Number(item.quantity || 0), 0),
+  );
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [activeDesktopSubmenu, setActiveDesktopSubmenu] = useState(null);
 
   const accountLink =
     isAuthenticated && user?.role === "admin" ? "/admin" : "/profile";
@@ -59,7 +64,7 @@ export default function Header() {
 
         <Link
           to="/"
-          className="text-sm font-extrabold uppercase tracking-tight text-[#004be3]"
+          className="text-[20px] font-extrabold uppercase tracking-tight text-[#004be3]"
         >
           VIBE URBAN
         </Link>
@@ -69,43 +74,67 @@ export default function Header() {
             Trang chủ
           </Link>
 
-          <div className="group relative">
+          <div
+            className="relative"
+            onMouseEnter={() => setActiveDesktopSubmenu("product")}
+            onMouseLeave={() => setActiveDesktopSubmenu(null)}
+          >
             <button
               type="button"
-              className="flex items-center gap-1 transition hover:text-[#004be3]"
+              className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-[#5c5b5b] transition hover:text-[#004be3]"
             >
               Sản phẩm <ChevronDown className="h-3.5 w-3.5" />
             </button>
-            <div className="invisible absolute left-0 top-full z-20 mt-3 w-52 rounded-xl border border-black/5 bg-white p-2 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100">
-              {productMenu.map((item) => (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  className="block rounded-lg px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-[#5c5b5b] hover:bg-[#f3f0ef] hover:text-[#004be3]"
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <div
+              className={`absolute left-0 top-full z-20 pt-2 transition ${
+                activeDesktopSubmenu === "product"
+                  ? "visible opacity-100"
+                  : "invisible opacity-0"
+              }`}
+            >
+              <div className="w-52 rounded-xl border border-black/5 bg-white p-2 shadow-lg">
+                {productMenu.map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.to}
+                    className="block rounded-lg px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-[#5c5b5b] hover:bg-[#f3f0ef] hover:text-[#004be3]"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="group relative">
+          <div
+            className="relative"
+            onMouseEnter={() => setActiveDesktopSubmenu("collection")}
+            onMouseLeave={() => setActiveDesktopSubmenu(null)}
+          >
             <button
               type="button"
-              className="flex items-center gap-1 transition hover:text-[#004be3]"
+              className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-[#5c5b5b] transition hover:text-[#004be3]"
             >
               Bộ sưu tập <ChevronDown className="h-3.5 w-3.5" />
             </button>
-            <div className="invisible absolute left-0 top-full z-20 mt-3 w-52 rounded-xl border border-black/5 bg-white p-2 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100">
-              {collectionMenu.map((item) => (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  className="block rounded-lg px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-[#5c5b5b] hover:bg-[#f3f0ef] hover:text-[#004be3]"
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <div
+              className={`absolute left-0 top-full z-20 pt-2 transition ${
+                activeDesktopSubmenu === "collection"
+                  ? "visible opacity-100"
+                  : "invisible opacity-0"
+              }`}
+            >
+              <div className="w-52 rounded-xl border border-black/5 bg-white p-2 shadow-lg">
+                {collectionMenu.map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.to}
+                    className="block rounded-lg px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-[#5c5b5b] hover:bg-[#f3f0ef] hover:text-[#004be3]"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -125,23 +154,35 @@ export default function Header() {
             Về thương hiệu
           </Link>
 
-          <div className="group relative">
+          <div
+            className="relative"
+            onMouseEnter={() => setActiveDesktopSubmenu("support")}
+            onMouseLeave={() => setActiveDesktopSubmenu(null)}
+          >
             <button
               type="button"
-              className="flex items-center gap-1 transition hover:text-[#004be3]"
+              className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-[#5c5b5b] transition hover:text-[#004be3]"
             >
               Hỗ trợ <ChevronDown className="h-3.5 w-3.5" />
             </button>
-            <div className="invisible absolute right-0 top-full z-20 mt-3 w-52 rounded-xl border border-black/5 bg-white p-2 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100">
-              {supportMenu.map((item) => (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  className="block rounded-lg px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-[#5c5b5b] hover:bg-[#f3f0ef] hover:text-[#004be3]"
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <div
+              className={`absolute right-0 top-full z-20 pt-2 transition ${
+                activeDesktopSubmenu === "support"
+                  ? "visible opacity-100"
+                  : "invisible opacity-0"
+              }`}
+            >
+              <div className="w-52 rounded-xl border border-black/5 bg-white p-2 shadow-lg">
+                {supportMenu.map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.to}
+                    className="block rounded-lg px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-[#5c5b5b] hover:bg-[#f3f0ef] hover:text-[#004be3]"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </nav>
@@ -253,7 +294,7 @@ export default function Header() {
           >
             <ShoppingBag strokeWidth={1.9} className="h-4 w-4" />
             <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#004be3] px-1 text-[9px] font-bold text-white">
-              0
+              {cartCount > 99 ? "99+" : cartCount}
             </span>
           </Link>
         </div>

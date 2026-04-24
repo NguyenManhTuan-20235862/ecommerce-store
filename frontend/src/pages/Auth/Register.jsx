@@ -8,6 +8,8 @@ import { useAuthStore } from "../../store/authStore";
 
 const registerVisualImage =
   "http://localhost:3845/assets/aec4604bd250f33c1be4b439a65cba03f14008f2.png";
+const appleIconImage =
+  "http://localhost:3845/assets/b54c8fa45987f5a1e48251579a1dad9f54367584.svg";
 
 const registerSchema = z
   .object({
@@ -57,19 +59,17 @@ function FacebookIcon({ className = "h-5 w-5" }) {
 }
 
 function AppleIcon({ className = "h-5 w-5" }) {
-  return (
-    <svg viewBox="0 0 16 16" className={className} aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M11.182.008c.106 1.242-.373 2.356-1.082 3.106-.71.75-1.86 1.33-3.007 1.242-.145-1.13.435-2.333 1.123-3.04.73-.76 1.96-1.332 2.966-1.308Zm3.511 11.748c-.44 1.01-.96 1.943-1.574 2.838-.799 1.16-1.45 1.966-1.96 2.433-.78.72-1.615 1.083-2.507 1.104-.634 0-1.398-.184-2.293-.553-.895-.37-1.717-.553-2.464-.553-.789 0-1.636.183-2.542.553-.911.37-1.647.56-2.213.58-.858.036-1.703-.338-2.536-1.125-.534-.49-1.223-1.33-2.066-2.514-.905-1.271-1.643-2.743-2.214-4.42C.292 8.624 0 7.118 0 5.673c0-1.654.356-3.08 1.069-4.273.558-.96 1.303-1.718 2.234-2.275.931-.557 1.937-.847 3.019-.87.596 0 1.378.202 2.348.607.97.405 1.593.607 1.868.607.206 0 .898-.219 2.076-.656 1.113-.405 2.05-.573 2.81-.506 2.061.167 3.61.982 4.643 2.445-1.845 1.118-2.766 2.694-2.753 4.728.013 1.584.593 2.899 1.742 3.945.523.484 1.106.86 1.753 1.133-.136.394-.278.77-.426 1.133Z"
-      />
-    </svg>
-  );
+  return <img src={appleIconImage} alt="" className={className} />;
 }
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register: registerApi, isLoading, isAuthenticated } = useAuthStore();
+  const {
+    register: registerApi,
+    login,
+    isLoading,
+    isAuthenticated,
+  } = useAuthStore();
 
   const {
     register,
@@ -88,7 +88,7 @@ export default function Register() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/", { replace: true });
+      navigate("/home", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -108,7 +108,16 @@ export default function Register() {
     });
 
     if (success) {
-      navigate("/login", { replace: true });
+      const loginSuccess = await login({
+        identifier: data.email.trim(),
+        password: data.password,
+      });
+
+      if (loginSuccess) {
+        navigate("/home", { replace: true });
+      } else {
+        navigate("/login", { replace: true });
+      }
     }
   };
 
@@ -183,7 +192,7 @@ export default function Register() {
                 type="button"
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#09090b] px-3 text-[11px] font-semibold text-white shadow-sm transition hover:brightness-110 sm:h-11 sm:text-xs"
               >
-                <AppleIcon className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+                <AppleIcon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                 Apple
               </button>
             </div>

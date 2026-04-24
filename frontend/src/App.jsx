@@ -16,7 +16,10 @@ import Register from "./pages/Auth/Register";
 import Landing from "./pages/Landing";
 
 // Customer Pages
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import Home from "./pages/Home";
+import Product from "./pages/Product";
 import Shop from "./pages/Shop";
 
 // Admin Pages
@@ -38,7 +41,6 @@ function App() {
         {/* Auth Pages đi một mình (Không Header Footer) */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/landing" element={<Landing />} />
 
         {/* ====== ADMIN PANEL ====== */}
         <Route
@@ -110,16 +112,13 @@ function App() {
 
         {/* ====== CUSTOMER PAGES (có Header, Footer) ====== */}
         <Route element={<RootLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/landing" element={<Landing />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
-          <Route
-            path="/cart"
-            element={
-              <div className="min-h-[50vh] flex items-center justify-center">
-                <h1 className="text-2xl pt-32">Giỏ hàng (Bản nháp)</h1>
-              </div>
-            }
-          />
+          <Route path="/product/:productId" element={<Product />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route
             path="/profile"
             element={

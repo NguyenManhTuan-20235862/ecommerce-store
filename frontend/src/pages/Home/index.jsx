@@ -1,1 +1,5 @@
-export { default } from "../Landing";
+import HomePage from "./HomePage";
+
+export default function Home() {
+  return <HomePage />;
+}

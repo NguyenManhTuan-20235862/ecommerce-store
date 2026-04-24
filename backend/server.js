@@ -1,16 +1,17 @@
-import express from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import dotenv from "dotenv";
+import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { connectDB } from "./libs/db.js";
-import authRoute from "./routes/authRoute.js";
-import userRoute from "./routes/userRoute.js";
-import productRoute from "./routes/productRoute.js";
-import categoryRoute from "./routes/categoryRoute.js";
-import uploadRoute from "./routes/uploadRoute.js";
-import cookieParser from "cookie-parser";
-import cors from "cors";
 import { protectedRoute } from "./middlewares/authMiddleware.js";
+import authRoute from "./routes/authRoute.js";
+import cartRoute from "./routes/cartRoute.js";
+import categoryRoute from "./routes/categoryRoute.js";
+import productRoute from "./routes/productRoute.js";
+import uploadRoute from "./routes/uploadRoute.js";
+import userRoute from "./routes/userRoute.js";
 
 dotenv.config();
 
@@ -21,11 +22,41 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const defaultAllowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+];
+
+const envAllowedOrigins = [
+  ...(process.env.CORS_ORIGINS || "").split(","),
+  process.env.FRONTEND_URL || "",
+]
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = new Set([
+  ...defaultAllowedOrigins,
+  ...envAllowedOrigins,
+]);
+
+const corsOrigin = (origin, callback) => {
+  // Allow non-browser clients/tools that do not send Origin header.
+  if (!origin || allowedOrigins.has(origin)) {
+    callback(null, true);
+    return;
+  }
+
+  callback(new Error(`CORS blocked for origin: ${origin}`));
+};
+
 // Middlewares
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: corsOrigin,
+    credentials: true,
+  }),
+);
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
@@ -43,6 +74,7 @@ app.use("/api/categories", categoryRoute);
 app.use(protectedRoute);
 app.use("/api/users", userRoute);
 app.use("/api/upload", uploadRoute);
+app.use("/api/cart", cartRoute);
 
 connectDB().then(() => {
   app.listen(PORT, () => {
