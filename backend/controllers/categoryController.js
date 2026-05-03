@@ -1,19 +1,5 @@
 import Category from "../models/Category.js";
-
-// Hàm tạo slug từ tên (hỗ trợ tiếng Việt)
-const generateSlug = (text) => {
-  return text
-    .toString()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // bỏ dấu tiếng Việt
-    .toLowerCase()
-    .trim()
-    .replace(/đ/g, "d")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/[\s_]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-};
+import { generateSlug } from "../utils/slugUtils.js";
 
 // GET /api/categories — Lấy tất cả danh mục
 export const getAllCategories = async (req, res) => {
@@ -26,7 +12,7 @@ export const getAllCategories = async (req, res) => {
   }
 };
 
-// GET /api/categories/:slug — Lấy chi tiết 1 danh mục
+// GET /api/categories/:slug — Chi tiết 1 danh mục
 export const getCategoryBySlug = async (req, res) => {
   try {
     const category = await Category.findOne({ slug: req.params.slug });
@@ -51,7 +37,6 @@ export const createCategory = async (req, res) => {
 
     const slug = generateSlug(name);
 
-    // Kiểm tra slug trùng
     const existing = await Category.findOne({ slug });
     if (existing) {
       return res.status(409).json({ message: "Danh mục này đã tồn tại" });
@@ -86,13 +71,12 @@ export const updateCategory = async (req, res) => {
       category.slug = generateSlug(name);
     }
     if (description !== undefined) category.description = description.trim();
-    if (image !== undefined) category.image = image;
-    if (isActive !== undefined) category.isActive = isActive;
+    if (image !== undefined)       category.image       = image;
+    if (isActive !== undefined)    category.isActive    = isActive;
 
     await category.save();
     return res.status(200).json({ message: "Cập nhật danh mục thành công", category });
   } catch (error) {
-    // Xử lý lỗi duplicate slug
     if (error.code === 11000) {
       return res.status(409).json({ message: "Slug danh mục đã tồn tại" });
     }

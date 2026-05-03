@@ -2,6 +2,7 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import api, { setAccessToken } from "../services/api";
+import { useCartStore } from "./cartStore.js";
 
 export const useAuthStore = create(
   persist(
@@ -11,6 +12,10 @@ export const useAuthStore = create(
       isAuthenticated: false,
       isLoading: false,
       isHydrating: false,
+
+      clearCartState: () => {
+        useCartStore.setState({ items: [], couponCode: null, shippingFee: 0 });
+      },
 
       register: async (credentials) => {
         set({ isLoading: true });
@@ -48,6 +53,13 @@ export const useAuthStore = create(
             user,
           });
 
+          // Fetch cart sau khi login thành công
+          try {
+            await useCartStore.getState().fetchCart();
+          } catch (cartError) {
+            console.error("Error fetching cart after login:", cartError);
+          }
+
           toast.success("Đăng nhập thành công!");
           return true;
         } catch (error) {
@@ -63,6 +75,7 @@ export const useAuthStore = create(
         const token = get().accessToken;
         if (!token) {
           setAccessToken(null);
+          get().clearCartState();
           return;
         }
 
@@ -76,8 +89,15 @@ export const useAuthStore = create(
             isAuthenticated: Boolean(response.data?.user),
             isHydrating: false,
           });
+          // Fetch cart sau khi hydrate phiên thành công
+          try {
+            await useCartStore.getState().fetchCart();
+          } catch (cartError) {
+            console.error("Error fetching cart during hydration:", cartError);
+          }
         } catch {
           setAccessToken(null);
+          get().clearCartState();
           set({
             user: null,
             accessToken: null,
@@ -92,6 +112,7 @@ export const useAuthStore = create(
         try {
           await api.post("/auth/signout");
           setAccessToken(null);
+          get().clearCartState();
           set({
             user: null,
             accessToken: null,

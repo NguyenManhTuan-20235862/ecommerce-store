@@ -99,6 +99,19 @@ Code phải được quản lý bằng Git, commit đều đặn.
 Triển khai lên nền tảng cloud miễn phí (Render, Vercel, Railway, hoặc local kèm hướng dẫn).
 
 3. Yêu cầu chức năng (Functional Requirements)
+
+   Phân loại mức độ ưu tiên:
+   - Cao = MVP (bắt buộc hoàn thành để đạt điểm tối thiểu)
+   - Trung bình = Nên có nếu còn thời gian
+   - Thấp / điểm cộng = Ngoài scope MVP, không bắt buộc
+
+   Giới hạn phạm vi MVP:
+   - Guest cart (FR-32): nằm ngoài MVP — giỏ hàng chỉ hoạt động khi đã đăng nhập.
+   - Email xác nhận (FR-37): dùng dịch vụ giả lập Mailtrap hoặc bỏ qua nếu hết thời gian.
+   - Thanh toán (FR-34): COD bắt buộc; VNPAY/Momo là điểm cộng.
+   - Import/Export Excel (FR-47, FR-48): điểm cộng.
+   - Size Guide (FR-21b), Complete the Look (FR-22b): đặc thù menswear, nên có để ghi điểm giao diện.
+
    3.1. Module: Xác thực & Tài khoản (Authentication & User)
    ID Tên yêu cầu Mô tả Ưu tiên
    FR-01 Đăng ký tài khoản Người dùng đăng ký bằng email, mật khẩu, họ tên. Mật khẩu được mã hóa bằng bcrypt. Cao
@@ -114,18 +127,21 @@ Triển khai lên nền tảng cloud miễn phí (Render, Vercel, Railway, hoặ
    ID Tên yêu cầu Mô tả Ưu tiên
    FR-10 Hiển thị danh sách sản phẩm Dạng grid/lưới, mỗi sản phẩm hiển thị ảnh, tên, giá. Cao
    FR-11 Phân trang Hỗ trợ phân trang với số lượng sản phẩm mỗi trang có thể cấu hình (mặc định 12). Cao
-   FR-12 Lọc theo danh mục Lọc sản phẩm theo danh mục (Áo, Quần, Váy, Phụ kiện...). Cao
-   FR-13 Lọc theo kích thước Lọc theo size (S, M, L, XL...). Cao
-   FR-14 Lọc theo màu sắc Lọc theo màu (Đỏ, Xanh, Đen, Trắng...). Cao
-   FR-15 Lọc theo khoảng giá Lọc theo giá (ví dụ: dưới 200k, 200k-500k, trên 500k). Cao
-   FR-16 Lọc theo thương hiệu Lọc theo thương hiệu (nếu có). Trung bình
+   FR-12 Lọc theo danh mục Lọc sản phẩm theo danh mục (Áo, Quần, Hoodie & Sweater, Phụ kiện, Giày). Cao
+   FR-13 Lọc theo kích thước Lọc theo size quần áo (S, M, L, XL, XXL) hoặc size giày (39–44). Cao
+   FR-13b Lọc theo kiểu dáng (Fit Type) Lọc theo kiểu dáng: Slim Fit, Regular Fit, Relaxed Fit, Oversized — đặc thù thời trang nam. Trung bình
+   FR-14 Lọc theo màu sắc Lọc theo màu (Đen, Trắng, Xanh navy, Xám, Be, Olive...). Cao
+   FR-15 Lọc theo khoảng giá Lọc theo giá (dưới 200k, 200k–500k, 500k–1 triệu, trên 1 triệu). Cao
+   FR-16 Lọc theo thương hiệu Lọc theo thương hiệu. Trung bình
    FR-17 Sắp xếp Sắp xếp theo: giá tăng dần, giá giảm dần, mới nhất, tên A-Z. Cao
    FR-18 Tìm kiếm Tìm kiếm theo tên sản phẩm, mô tả, hoặc SKU. Cao
-   FR-19 Xem chi tiết sản phẩm Trang riêng hiển thị đầy đủ thông tin sản phẩm. Cao
-   FR-20 Thư viện ảnh Sản phẩm có nhiều ảnh, hỗ trợ xoay/zoom (cơ bản). Cao
-   FR-21 Chọn biến thể Cho phép chọn màu, size, hiển thị tồn kho theo biến thể. Cao
-   FR-22 Sản phẩm liên quan Hiển thị sản phẩm cùng danh mục. Trung bình
-   FR-23 Đánh giá & bình luận Khách hàng đã mua có thể đánh giá (sao) và viết bình luận. Trung bình
+   FR-19 Xem chi tiết sản phẩm Trang riêng hiển thị đầy đủ thông tin: tên, mô tả, giá, thành phần vải, hướng dẫn giặt. Cao
+   FR-20 Thư viện ảnh Sản phẩm có nhiều ảnh (tối thiểu 2), xem theo thumbnail, hỗ trợ zoom cơ bản. Cao
+   FR-21 Chọn biến thể Cho phép chọn màu, size; hiển thị tồn kho theo từng biến thể đã chọn. Cao
+   FR-21b Hướng dẫn chọn size (Size Guide) Mỗi sản phẩm hiển thị bảng đo kích thước (vai, ngực, eo, dài tay/quần) theo từng size — giúp khách nam chọn đúng không cần mặc thử. Cao
+   FR-22 Sản phẩm liên quan Hiển thị tối đa 4 sản phẩm cùng danh mục. Trung bình
+   FR-22b Gợi ý phối đồ (Complete the Look) Trên trang chi tiết, hiển thị gợi ý mix-match phụ kiện + áo + quần thành outfit hoàn chỉnh. Thấp (điểm cộng)
+   FR-23 Đánh giá & bình luận Khách hàng đã mua có thể đánh giá (sao 1–5) và viết bình luận ngắn. Trung bình
    3.3. Module: Giỏ hàng (Cart)
    ID Tên yêu cầu Mô tả Ưu tiên
    FR-24 Thêm vào giỏ Thêm sản phẩm với số lượng, size, màu đã chọn. Cao
@@ -136,7 +152,7 @@ Triển khai lên nền tảng cloud miễn phí (Render, Vercel, Railway, hoặ
    FR-29 Tính tạm tính Tự động tính tổng tiền các sản phẩm trong giỏ. Cao
    FR-30 Tính phí vận chuyển Tính phí vận chuyển dựa trên địa chỉ (dạng giả định: cố định 30k hoặc miễn phí > 500k). Cao
    FR-31 Áp mã giảm giá Nhập mã coupon, kiểm tra hợp lệ, tính lại tổng tiền. Cao
-   FR-32 Lưu giỏ hàng Giỏ hàng được lưu trong localStorage (guest) hoặc database (đã đăng nhập). Cao
+   FR-32 Lưu giỏ hàng Giỏ hàng của user đã đăng nhập được lưu trên server (database). Phạm vi MVP không bao gồm guest cart. Cao
    3.4. Module: Thanh toán (Checkout)
    ID Tên yêu cầu Mô tả Ưu tiên
    FR-33 Form thông tin nhận hàng Thu thập họ tên, email, số điện thoại, địa chỉ (tỉnh/huyện/xã). Cao
@@ -145,6 +161,7 @@ Triển khai lên nền tảng cloud miễn phí (Render, Vercel, Railway, hoặ
    FR-36 Xác nhận đơn hàng Tạo đơn hàng trong database, chuyển trạng thái sang "Chờ xử lý". Cao
    FR-37 Gửi email xác nhận Gửi email xác nhận đơn hàng đến khách hàng (mô phỏng). Trung bình
    FR-38 Xóa giỏ sau khi đặt hàng Sau khi đặt hàng thành công, giỏ hàng được xóa. Cao
+   FR-38b Hủy đơn hàng (Customer) Khách hàng có thể tự hủy đơn khi trạng thái vẫn là "Chờ xử lý". Sau khi admin xác nhận, khách không thể hủy. Trung bình
    3.5. Module: Trang chủ & Tiện ích (Home & Utilities)
    ID Tên yêu cầu Mô tả Ưu tiên
    FR-39 Banner slider Slider hiển thị ảnh quảng cáo bộ sưu tập mới, khuyến mãi. Cao
@@ -195,12 +212,13 @@ Triển khai lên nền tảng cloud miễn phí (Render, Vercel, Railway, hoặ
    Dự kiến, sẽ chi tiết hóa trong quá trình phát triển
 
 5.1. Xác thực (Auth)
-Method Endpoint Mô tả Auth
-POST /api/auth/register Đăng ký tài khoản No
-POST /api/auth/login Đăng nhập, trả về access token + set refresh token HttpOnly cookie No
-POST /api/auth/logout Đăng xuất Yes
-POST /api/auth/forgot-password Gửi link reset No
-POST /api/auth/reset-password Đặt lại mật khẩu No (token)
+Method Endpoint Mô tả Auth Trạng thái
+POST /api/auth/signup Đăng ký tài khoản No ✅
+POST /api/auth/signin Đăng nhập — trả về accessToken trong body; refreshToken set vào HttpOnly cookie No ✅
+POST /api/auth/signout Đăng xuất — xóa refreshToken khỏi DB và cookie No ✅
+POST /api/auth/forgot-password Gửi email chứa link reset mật khẩu (token có thời hạn) No 📋
+POST /api/auth/reset-password Đặt lại mật khẩu bằng token No 📋
+POST /api/auth/refresh-token Làm mới accessToken bằng refreshToken cookie Bearer 📋
 5.2. Người dùng (User)
 Method Endpoint Mô tả Auth
 GET /api/users/me Lấy thông tin cá nhân Yes
@@ -211,28 +229,36 @@ POST /api/users/me/addresses Thêm địa chỉ mới Yes
 PUT /api/users/me/addresses/:id Cập nhật địa chỉ Yes
 DELETE /api/users/me/addresses/:id Xóa địa chỉ Yes
 5.3. Sản phẩm (Product)
-Method Endpoint Mô tả Auth
-GET /api/products Lấy danh sách sản phẩm (có phân trang, lọc, sắp xếp) No
-GET /api/products/:id Lấy chi tiết sản phẩm No
-GET /api/products/categories Lấy danh sách danh mục No
-GET /api/products/search?q= Tìm kiếm sản phẩm No
-POST /api/admin/products Thêm sản phẩm (admin) Admin
-PUT /api/admin/products/:id Sửa sản phẩm (admin) Admin
-DELETE /api/admin/products/:id Xóa sản phẩm (admin) Admin
+Method Endpoint Mô tả Auth Trạng thái
+GET /api/products Lấy danh sách SP (filter/sort/search/pagination) No ✅
+GET /api/products/:slug Chi tiết SP theo slug (SEO-friendly, hỗ trợ cả ObjectId) No ✅
+GET /api/products/:slug/related 4 SP cùng danh mục No ✅
+GET /api/products/admin/all Danh sách SP cho admin (kể cả inactive) Admin ✅
+POST /api/products Tạo sản phẩm mới Admin ✅
+PUT /api/products/:id Cập nhật sản phẩm Admin ✅
+DELETE /api/products/:id Xóa sản phẩm Admin ✅
+GET /api/categories Lấy tất cả danh mục No ✅
+GET /api/categories/:slug Chi tiết danh mục No ✅
+POST /api/categories Tạo danh mục Admin ✅
+PUT /api/categories/:id Cập nhật danh mục Admin ✅
+DELETE /api/categories/:id Xóa danh mục Admin ✅
+POST /api/admin/products/import Import sản phẩm từ file Excel Admin 📋
+GET /api/admin/products/export Export danh sách sản phẩm ra Excel Admin 📋
 5.4. Giỏ hàng (Cart)
-Method Endpoint Mô tả Auth
-GET /api/cart Lấy giỏ hàng Yes (hoặc session)
-POST /api/cart/items Thêm sản phẩm vào giỏ Yes
-PUT /api/cart/items/:id Cập nhật số lượng Yes
-DELETE /api/cart/items/:id Xóa sản phẩm khỏi giỏ Yes
-DELETE /api/cart Xóa toàn bộ giỏ Yes
-POST /api/cart/apply-coupon Áp dụng mã giảm giá Yes
+Method Endpoint Mô tả Auth Trạng thái
+GET /api/cart Lấy giỏ hàng (tự tạo nếu chưa có) Bearer ✅
+POST /api/cart/add Thêm SP vào giỏ (productId, quantity, size, color) Bearer ✅
+PUT /api/cart/update-quantity Cập nhật số lượng (itemId, quantity) Bearer ✅
+DELETE /api/cart/remove Xóa một item khỏi giỏ (itemId) Bearer ✅
+DELETE /api/cart/clear Xóa toàn bộ giỏ Bearer ✅
+POST /api/cart/apply-coupon Áp dụng mã giảm giá (couponCode) Bearer 📋 (chưa có logic validate)
 5.5. Đơn hàng (Order)
-Method Endpoint Mô tả Auth
-POST /api/orders Tạo đơn hàng mới Yes
-GET /api/orders Lấy danh sách đơn hàng (admin: tất cả, user: của mình) Yes
-GET /api/orders/:id Lấy chi tiết đơn hàng Yes
-PUT /api/orders/:id/status Cập nhật trạng thái (admin) Admin
+Method Endpoint Mô tả Auth Trạng thái
+POST /api/orders Tạo đơn hàng từ giỏ hàng + thông tin nhận hàng Bearer 📋
+GET /api/orders Danh sách đơn (user: của mình; admin: tất cả) Bearer 📋
+GET /api/orders/:id Chi tiết đơn hàng Bearer 📋
+PUT /api/orders/:id/status Cập nhật trạng thái đơn Admin 📋
+PUT /api/orders/:id/cancel Khách hủy đơn khi còn trạng thái "pending" Bearer 📋
 5.6. Mã giảm giá (Coupon) – Admin
 Method Endpoint Mô tả Auth
 GET /api/admin/coupons Lấy danh sách mã giảm giá Admin
@@ -261,10 +287,12 @@ GET /api/admin/stats/top-products Top sản phẩm bán chạy Admin
 - avatarUrl: String, optional
 - createdAt, updatedAt: Date
 
-  6.2. Collection addresses
+  6.2. Địa chỉ giao hàng — Embedded trong Collection users
 
-- \_id: ObjectId
-- userId: ObjectId (ref users), required
+  Thay vì collection riêng, địa chỉ được nhúng trực tiếp vào document user dưới dạng mảng `addresses`.
+  Phù hợp với scope đồ án (mỗi user tối đa 3–5 địa chỉ, không cần query độc lập).
+
+  Cấu trúc mảng `addresses[]` trong User:
 - fullName: String, required
 - phone: String, required
 - province: String, required
@@ -272,7 +300,6 @@ GET /api/admin/stats/top-products Top sản phẩm bán chạy Admin
 - ward: String, required
 - detail: String, required
 - isDefault: Boolean, default false
-- createdAt, updatedAt: Date
 
   6.3. Collection categories
 

@@ -1,6 +1,6 @@
 # API Document — Men Fashion E-commerce
 
-> **Phiên bản:** 2.0 — Cập nhật ngày 19/04/2026
+> **Phiên bản:** 2.1 — Cập nhật ngày 03/05/2026
 > **Đối chiếu với:** `docs/topic/TOPIC GR1.md`, `docs/topic/SRS.md`, source code backend hiện tại.
 
 ---
@@ -89,6 +89,12 @@ Tất cả lỗi trả về dạng JSON:
 | 15 | PUT | `/api/categories/:id` | Admin | FR-49 | Cập nhật danh mục |
 | 16 | DELETE | `/api/categories/:id` | Admin | FR-49 | Xóa danh mục |
 | 17 | POST | `/api/upload` | Admin | FR-44 | Upload ảnh (tối đa 5 file) |
+| 18 | GET | `/api/cart` | Bearer | FR-25 | Lấy giỏ hàng (tự tạo nếu chưa có) |
+| 19 | POST | `/api/cart/add` | Bearer | FR-24 | Thêm sản phẩm vào giỏ |
+| 20 | PUT | `/api/cart/update-quantity` | Bearer | FR-26 | Cập nhật số lượng item |
+| 21 | DELETE | `/api/cart/remove` | Bearer | FR-27 | Xóa một item khỏi giỏ |
+| 22 | DELETE | `/api/cart/clear` | Bearer | FR-28 | Xóa toàn bộ giỏ |
+| 23 | POST | `/api/cart/apply-coupon` | Bearer | FR-31 | Áp mã giảm giá (placeholder) |
 
 ---
 
@@ -581,6 +587,125 @@ Upload tối đa 5 ảnh cùng lúc. *(SRS: FR-44 — Hỗ trợ upload ảnh s�
 
 ---
 
+#### 3.2.5. Giỏ hàng (Cart)
+
+---
+
+##### GET `/api/cart`
+
+Lấy giỏ hàng của user hiện tại. Tự tạo giỏ trống nếu chưa tồn tại. *(SRS: FR-25)*
+
+**Auth:** Bearer token
+
+**Response `200 OK`:**
+
+```json
+{
+  "cart": {
+    "_id": "...",
+    "userId": "...",
+    "items": [
+      {
+        "_id": "item-id",
+        "productId": "...",
+        "name": "Áo thun Urban",
+        "image": "/uploads/...",
+        "price": 450000,
+        "quantity": 2,
+        "selectedSize": "M",
+        "selectedColor": "Đen"
+      }
+    ],
+    "couponCode": null,
+    "shippingFee": 0
+  }
+}
+```
+
+---
+
+##### POST `/api/cart/add`
+
+Thêm sản phẩm vào giỏ. Nếu cùng productId + size + color đã có, tăng số lượng. *(SRS: FR-24)*
+
+**Request body:**
+
+```json
+{
+  "productId": "6620a...",
+  "quantity": 1,
+  "selectedSize": "M",
+  "selectedColor": "Đen"
+}
+```
+
+> Cũng chấp nhận `slug` thay cho `productId`.
+
+**Responses:**
+
+| Status | Mô tả |
+| --- | --- |
+| `200` | `{ "message": "Thêm vào giỏ hàng thành công", "cart": {...} }` |
+| `400` | Thiếu productId/slug |
+| `404` | Sản phẩm không tồn tại |
+| `500` | Lỗi hệ thống |
+
+---
+
+##### PUT `/api/cart/update-quantity`
+
+Cập nhật số lượng một item trong giỏ. *(SRS: FR-26)*
+
+**Request body:**
+
+```json
+{ "itemId": "item-id", "quantity": 3 }
+```
+
+> `quantity` phải ≥ 1.
+
+**Responses:**
+
+| Status | Mô tả |
+| --- | --- |
+| `200` | `{ "message": "Cập nhật số lượng thành công", "cart": {...} }` |
+| `400` | quantity < 1 hoặc thiếu itemId |
+| `404` | Item không tồn tại trong giỏ |
+
+---
+
+##### DELETE `/api/cart/remove`
+
+Xóa một item khỏi giỏ. *(SRS: FR-27)*
+
+**Request body:**
+
+```json
+{ "itemId": "item-id" }
+```
+
+---
+
+##### DELETE `/api/cart/clear`
+
+Xóa toàn bộ giỏ hàng và reset coupon. *(SRS: FR-28)*
+
+---
+
+##### POST `/api/cart/apply-coupon`
+
+Áp dụng mã giảm giá. *(SRS: FR-31)*
+
+> **Lưu ý:** Endpoint đã có route và controller, nhưng logic validate coupon từ DB chưa được implement — hiện chỉ lưu `couponCode` vào cart mà không kiểm tra hợp lệ. Cần implement sau khi có model `Coupon`.
+
+**Request body:**
+
+```json
+{ "couponCode": "SALE10" }
+```
+
+---
+
 ## 4. API chưa triển khai (📋 Planned)
 
 Theo yêu cầu trong `TOPIC GR1.md` và `SRS.md` (FR-04 → FR-61), các nhóm API sau cần được xây dựng trong các phase tiếp theo.
@@ -605,20 +730,7 @@ Theo yêu cầu trong `TOPIC GR1.md` và `SRS.md` (FR-04 → FR-61), các nhóm 
 | PUT | `/api/users/me/addresses/:id` | FR-07 | Cập nhật địa chỉ | Trung bình |
 | DELETE | `/api/users/me/addresses/:id` | FR-07 | Xóa địa chỉ | Trung bình |
 
-### 4.3. Giỏ hàng (Cart)
-
-| Method | Endpoint | SRS | Mô tả | Ưu tiên |
-| --- | --- | --- | --- | --- |
-| GET | `/api/cart` | FR-25 | Lấy giỏ hàng (user đã đăng nhập) | Cao |
-| POST | `/api/cart/items` | FR-24 | Thêm sản phẩm vào giỏ (productId, variantId, quantity) | Cao |
-| PUT | `/api/cart/items/:id` | FR-26 | Cập nhật số lượng | Cao |
-| DELETE | `/api/cart/items/:id` | FR-27 | Xóa sản phẩm khỏi giỏ | Cao |
-| DELETE | `/api/cart` | FR-28 | Xóa toàn bộ giỏ | Trung bình |
-| POST | `/api/cart/apply-coupon` | FR-31 | Áp dụng mã giảm giá | Cao |
-
-> Guest lưu giỏ ở localStorage; user đã đăng nhập lưu trên server (FR-32).
-
-### 4.4. Đơn hàng (Order)
+### 4.3. Đơn hàng (Order) — Cần implement tiếp theo
 
 | Method | Endpoint | SRS | Mô tả | Ưu tiên |
 | --- | --- | --- | --- | --- |
@@ -763,7 +875,7 @@ Dưới đây là các MongoDB collection hỗ trợ toàn bộ API:
 | FR-19→21 | Product | `GET /api/products/:slug` | products | Product detail | ✅ |
 | FR-22 | Product | `GET /api/products/:slug/related` | products | Product detail | ✅ |
 | FR-23 | Review | `GET/POST /api/products/:id/reviews` | reviews | Product detail | 📋 |
-| FR-24→32 | Cart | `/api/cart/*` | localStorage / cart | Cart page | 📋 |
+| FR-24→32 | Cart | `GET/POST/PUT/DELETE /api/cart/*` | cart | Cart page | ✅ (apply-coupon: 📋) |
 | FR-33→38 | Order | `POST /api/orders` | orders | Checkout page | 📋 |
 | FR-39→40 | Home | `GET /api/products?featured=true` | products | Home page | ✅ |
 | FR-41 | Wishlist | `/api/wishlist/*` | wishlists | Wishlist page | 📋 |
