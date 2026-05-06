@@ -1,8 +1,9 @@
 export const categoryFilters = [
-  { key: "tops", label: "TOPS", icon: "shirt" },
-  { key: "bottoms", label: "BOTTOMS", icon: "pants" },
-  { key: "sneakers", label: "FOOTWEAR", icon: "shoe" },
-  { key: "accessories", label: "ACCESSORIES", icon: "gem" },
+  { key: "ao", label: "ÁO", icon: "shirt" },
+  { key: "quan", label: "QUẦN", icon: "pants" },
+  { key: "hoodie-sweater", label: "HOODIE & SWEATER", icon: "shirt" },
+  { key: "giay", label: "FOOTWEAR", icon: "shoe" },
+  { key: "phu-kien", label: "ACCESSORIES", icon: "gem" },
 ];
 
 export const sizeFilters = ["S", "M", "L", "XL", "XXL", "OS"];

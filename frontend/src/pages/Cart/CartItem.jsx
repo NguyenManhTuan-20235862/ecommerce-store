@@ -1,5 +1,5 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { formatUSD } from "./cartUtils";
+import { formatVND } from "./cartUtils";
 
 export default function CartItem({ item, onQuantityChange, onRemove }) {
   return (
@@ -27,7 +27,7 @@ export default function CartItem({ item, onQuantityChange, onRemove }) {
                 {item.title}
               </h3>
               <p className="font-body text-xl font-bold text-[#004be3] sm:text-2xl sm:leading-8">
-                {formatUSD(item.price)}
+                {formatVND(item.price)}
               </p>
             </div>
 
@@ -49,7 +49,7 @@ export default function CartItem({ item, onQuantityChange, onRemove }) {
               <button
                 type="button"
                 onClick={() =>
-                  onQuantityChange(item.productId, item.quantity - 1)
+                  onQuantityChange(item.cartItemId ?? item.productId, item.quantity - 1)
                 }
                 className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#2f2f2e] transition hover:bg-black/5"
                 aria-label="Giảm số lượng"
@@ -62,7 +62,7 @@ export default function CartItem({ item, onQuantityChange, onRemove }) {
               <button
                 type="button"
                 onClick={() =>
-                  onQuantityChange(item.productId, item.quantity + 1)
+                  onQuantityChange(item.cartItemId ?? item.productId, item.quantity + 1)
                 }
                 className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#2f2f2e] transition hover:bg-black/5"
                 aria-label="Tăng số lượng"
@@ -74,7 +74,7 @@ export default function CartItem({ item, onQuantityChange, onRemove }) {
             {/* Remove Button */}
             <button
               type="button"
-              onClick={() => onRemove(item.productId)}
+              onClick={() => onRemove(item.cartItemId ?? item.productId)}
               className="inline-flex items-center gap-1.5 self-end text-xs font-bold uppercase tracking-widest text-[#5c5b5b] transition hover:text-[#2f2f2e] sm:self-auto"
             >
               <Trash2 className="h-3.5 w-3.5" />

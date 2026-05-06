@@ -17,6 +17,8 @@ export const useAuthStore = create(
         useCartStore.setState({ items: [], couponCode: null, shippingFee: 0 });
       },
 
+      setUser: (userData) => set((state) => ({ user: { ...state.user, ...userData } })),
+
       register: async (credentials) => {
         set({ isLoading: true });
         try {

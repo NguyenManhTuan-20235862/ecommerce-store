@@ -23,6 +23,11 @@ export const productService = {
     return api.get("/products/admin/all", { params });
   },
 
+  // Lấy chi tiết sản phẩm theo ID (admin — bao gồm cả inactive)
+  getById(id) {
+    return api.get(`/products/admin/${id}`);
+  },
+
   // Tạo sản phẩm mới
   create(data) {
     return api.post("/products", data);

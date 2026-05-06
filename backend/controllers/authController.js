@@ -4,6 +4,7 @@ import {
   generateTokens,
   getCookieOptions,
   invalidateSession,
+  rotateRefreshToken,
 } from "../services/authService.js";
 
 export const signUp = async (req, res) => {
@@ -18,6 +19,10 @@ export const signUp = async (req, res) => {
       return res.status(400).json({
         message: "Không thể thiếu username, password, email, firstName, và lastName",
       });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Mật khẩu phải có ít nhất 8 ký tự" });
     }
 
     const existingUser = await User.findOne({
@@ -75,6 +80,7 @@ export const signIn = async (req, res) => {
       user: {
         _id: user._id,
         username: user.username,
+        email: user.email,
         displayName: user.displayName,
         role: user.role,
       },
@@ -82,6 +88,29 @@ export const signIn = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi đăng nhập", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const refresh = async (req, res) => {
+  try {
+    const oldRefreshToken = req.cookies?.refreshToken;
+    const { accessToken, refreshToken, user } = await rotateRefreshToken(oldRefreshToken);
+
+    res.cookie("refreshToken", refreshToken, getCookieOptions());
+    return res.status(200).json({
+      accessToken,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        displayName: user.displayName,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi refresh token:", error);
+    res.clearCookie("refreshToken", getCookieOptions());
+    return res.status(401).json({ message: error.message || "Phiên đăng nhập hết hạn" });
   }
 };
 

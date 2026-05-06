@@ -1,14 +1,16 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router";
-import { formatUSD } from "./cartUtils";
+import { formatVND } from "./cartUtils";
 
 export default function CartSummary({
   subtotal,
   shipping,
-  tax,
   total,
   couponCode,
   onCouponChange,
+  onApplyCoupon,
+  couponDiscount,
+  couponLoading,
 }) {
   return (
     <div className="rounded-xl bg-white p-6 shadow-[0_12px_24px_rgba(0,75,227,0.08)] sm:p-8">
@@ -26,7 +28,7 @@ export default function CartSummary({
             Subtotal
           </span>
           <span className="text-base text-[#5c5b5b]">
-            {formatUSD(subtotal)}
+            {formatVND(subtotal)}
           </span>
         </div>
         <div className="flex items-center justify-between">
@@ -34,15 +36,17 @@ export default function CartSummary({
             Standard Transit
           </span>
           <span className="text-base text-[#5c5b5b]">
-            {formatUSD(shipping)}
+            {shipping === 0 ? "Miễn phí" : formatVND(shipping)}
           </span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#5c5b5b]">
-            Urban Tax
-          </span>
-          <span className="text-base text-[#5c5b5b]">{formatUSD(tax)}</span>
-        </div>
+        {couponDiscount > 0 && (
+          <div className="flex items-center justify-between text-emerald-600">
+            <span className="text-xs font-bold uppercase tracking-[0.14em]">
+              Discount
+            </span>
+            <span className="text-base">−{formatVND(couponDiscount)}</span>
+          </div>
+        )}
       </div>
 
       {/* Coupon Code Section */}
@@ -59,21 +63,23 @@ export default function CartSummary({
           />
           <button
             type="button"
-            className="h-11 rounded-full bg-[#2f2f2e] px-5 text-xs font-bold uppercase tracking-[0.12em] text-[#f9f6f5] sm:shrink-0"
+            onClick={onApplyCoupon}
+            disabled={couponLoading}
+            className="h-11 rounded-full bg-[#2f2f2e] px-5 text-xs font-bold uppercase tracking-[0.12em] text-[#f9f6f5] sm:shrink-0 disabled:opacity-60"
           >
-            Apply
+            {couponLoading ? "..." : "Apply"}
           </button>
         </div>
       </div>
 
       {/* Total */}
       <div className="mt-8 border-t-2 border-dashed border-[#eae7e7] pt-6">
-        <div className="flex items-end justify-between gap-4">
-          <span className="text-2xl font-bold italic uppercase tracking-[-0.04em] text-[#2f2f2e] sm:text-[28px] sm:leading-8">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#5c5b5b]">
             Total Velocity
           </span>
-          <span className="font-body text-3xl font-bold leading-10 text-[#004be3] sm:text-4xl">
-            {formatUSD(total)}
+          <span className="font-body text-3xl font-bold leading-tight text-[#004be3] sm:text-4xl">
+            {formatVND(total)}
           </span>
         </div>
       </div>

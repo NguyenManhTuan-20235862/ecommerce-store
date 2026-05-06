@@ -5,21 +5,19 @@
     "source.addMissingImports": "explicit",
     "source.organizeImports": "explicit"
   },
-
   // ==================== CẤU HÌNH GỢI Ý IMPORT ====================
   // Bật gợi ý auto import cho JavaScript/TypeScript (key mới)
   "js/ts.suggest.autoImports": true,
   "js/ts.suggest.paths": true,
   "js/ts.preferences.importModuleSpecifier": "non-relative",
-
   // Bật gợi ý nhanh khi gõ code
   "editor.quickSuggestions": {
     "other": true,
     "comments": false,
     "strings": false
   },
-
   // ==================== CẤU HÌNH FORMATTING ====================
   // Tự động format khi lưu (khuyến nghị)
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "git.ignoreLimitWarning": true
 }

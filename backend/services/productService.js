@@ -18,6 +18,11 @@ export const generateProductSlug = async (name, excludeId = null) => {
   return ensureUniqueSlug(Product, base, excludeId);
 };
 
+// Tìm sản phẩm bằng ID (dùng cho admin — bao gồm cả inactive)
+export const findById = async (id) => {
+  return Product.findById(id).populate("category", "name slug");
+};
+
 // Xây dựng filter query cho getProducts từ req.query
 export const buildProductFilter = async (query) => {
   const { category, minPrice, maxPrice, size, color, brand, search, featured } = query;
@@ -39,11 +44,13 @@ export const buildProductFilter = async (query) => {
   }
 
   if (color) {
-    filter["variants.color"] = { $regex: new RegExp(color, "i") };
+    const safeColor = color.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter["variants.color"] = { $regex: safeColor, $options: "i" };
   }
 
   if (brand) {
-    filter.brand = { $regex: new RegExp(brand, "i") };
+    const safeBrand = brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter.brand = { $regex: safeBrand, $options: "i" };
   }
 
   if (search) {

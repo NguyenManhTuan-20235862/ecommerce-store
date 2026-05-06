@@ -19,7 +19,7 @@ export default function Shop() {
   const [activeCategory, setActiveCategory] = useState(
     searchParams.get("category") || "",
   );
-  const [selectedSizes, setSelectedSizes] = useState(["M"]);
+  const [selectedSizes, setSelectedSizes] = useState([]);
   const [priceLimit, setPriceLimit] = useState(maxPrice);
   const [sortBy, setSortBy] = useState("newest");
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);

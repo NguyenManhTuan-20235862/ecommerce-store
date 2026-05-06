@@ -43,8 +43,7 @@ export default function Header() {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [activeDesktopSubmenu, setActiveDesktopSubmenu] = useState(null);
 
-  const accountLink =
-    isAuthenticated && user?.role === "admin" ? "/admin" : "/profile";
+  const accountLink = "/profile/info";
 
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-white/95 backdrop-blur">
@@ -245,7 +244,7 @@ export default function Header() {
                       Tài khoản
                     </Link>
                     <Link
-                      to="/profile"
+                      to="/profile/orders"
                       onClick={() => setIsAccountMenuOpen(false)}
                       className="block rounded-lg px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-[#5c5b5b] hover:bg-[#f3f0ef] hover:text-[#004be3]"
                     >

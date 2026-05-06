@@ -1,12 +1,544 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ImageOff, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { Link, useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
+import { categoryService } from "../../../services/category.service";
+import { productService } from "../../../services/product.service";
+import { cn } from "../../../utils/cn";
+import { productSchema } from "./schemas";
+
 export default function ProductForm() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isEdit = Boolean(id);
+  const fileInputRef = useRef(null);
+
+  const [images, setImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loadingProduct, setLoadingProduct] = useState(isEdit);
+  const [submitting, setSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      price: "",
+      compareAtPrice: "",
+      category: "",
+      brand: "",
+      sku: "",
+      material: "",
+      careInstructions: "",
+      isFeatured: false,
+      isActive: true,
+      variants: [],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({ control, name: "variants" });
+
+  useEffect(() => {
+    categoryService
+      .list()
+      .then((res) => setCategories(res.data.categories || []))
+      .catch(() => toast.error("Không thể tải danh mục"));
+  }, []);
+
+  useEffect(() => {
+    if (!isEdit) return;
+    productService
+      .getById(id)
+      .then((res) => {
+        const p = res.data.product;
+        reset({
+          name: p.name || "",
+          description: p.description || "",
+          price: p.price ?? "",
+          compareAtPrice: p.compareAtPrice || "",
+          category: p.category?._id || "",
+          brand: p.brand || "",
+          sku: p.sku || "",
+          material: p.material || "",
+          careInstructions: p.careInstructions || "",
+          isFeatured: p.isFeatured || false,
+          isActive: p.isActive ?? true,
+          variants: p.variants || [],
+        });
+        setImages(p.images || []);
+      })
+      .catch(() => toast.error("Không thể tải thông tin sản phẩm"))
+      .finally(() => setLoadingProduct(false));
+  }, [id, isEdit, reset]);
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const remaining = 5 - images.length;
+    if (remaining <= 0) {
+      toast.error("Tối đa 5 ảnh");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const res = await productService.uploadImages(files.slice(0, remaining));
+      const urls = res.data.urls || [];
+      setImages((prev) => [...prev, ...urls]);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Upload ảnh thất bại");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const onSubmit = async (data) => {
+    setSubmitting(true);
+    try {
+      const payload = { ...data, images };
+      if (isEdit) {
+        await productService.update(id, payload);
+        toast.success("Cập nhật sản phẩm thành công");
+      } else {
+        await productService.create(payload);
+        toast.success("Tạo sản phẩm thành công");
+      }
+      navigate("/admin/products");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Lưu sản phẩm thất bại");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const inputCls = (hasError) =>
+    cn(
+      "w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-50",
+      hasError ? "border-red-400" : "border-neutral-300"
+    );
+
+  if (loadingProduct) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="animate-spin text-neutral-400" size={28} />
+      </div>
+    );
+  }
+
   return (
-    <section>
-      <h1 className="text-3xl font-extrabold uppercase tracking-[-0.04em] text-[#2f2f2e]">
-        Product Form
-      </h1>
-      <p className="mt-3 text-sm text-[#5c5b5b]">
-        Form tạo và sửa sản phẩm đang ở trạng thái khung.
-      </p>
-    </section>
+    <div>
+      {/* Header */}
+      <div className="mb-6">
+        <Link
+          to="/admin/products"
+          className="mb-2 inline-flex items-center gap-1 text-sm text-neutral-400 transition hover:text-neutral-700"
+        >
+          ← Sản phẩm
+        </Link>
+        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+          {isEdit ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}
+        </h1>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* ===== CỘT TRÁI — Thông tin cơ bản + Biến thể ===== */}
+          <div className="space-y-6 lg:col-span-2">
+            {/* Thông tin cơ bản */}
+            <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-5 text-base font-semibold text-neutral-900">
+                Thông tin cơ bản
+              </h2>
+              <div className="space-y-4">
+                {/* Tên */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                    Tên sản phẩm <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    {...register("name")}
+                    placeholder="Áo thun oversize premium..."
+                    className={inputCls(errors.name)}
+                  />
+                  {errors.name && (
+                    <p className="mt-1.5 text-xs text-red-500">{errors.name.message}</p>
+                  )}
+                </div>
+
+                {/* Mô tả */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                    Mô tả sản phẩm
+                  </label>
+                  <textarea
+                    {...register("description")}
+                    rows={4}
+                    placeholder="Mô tả chi tiết về sản phẩm..."
+                    className="w-full resize-none rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                  />
+                </div>
+
+                {/* Giá bán + Giá gốc */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                      Giá bán (VNĐ) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      {...register("price")}
+                      type="number"
+                      min={0}
+                      placeholder="450000"
+                      className={inputCls(errors.price)}
+                    />
+                    {errors.price && (
+                      <p className="mt-1.5 text-xs text-red-500">{errors.price.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                      Giá gốc (VNĐ)
+                    </label>
+                    <input
+                      {...register("compareAtPrice")}
+                      type="number"
+                      min={0}
+                      placeholder="600000"
+                      className={inputCls(false)}
+                    />
+                  </div>
+                </div>
+
+                {/* SKU + Thương hiệu */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                      SKU
+                    </label>
+                    <input
+                      {...register("sku")}
+                      placeholder="VU-TEE-001"
+                      className="w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 font-mono text-sm uppercase text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                      Thương hiệu
+                    </label>
+                    <input
+                      {...register("brand")}
+                      placeholder="Vibe Urban"
+                      className={inputCls(false)}
+                    />
+                  </div>
+                </div>
+
+                {/* Chất liệu + Bảo quản */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                      Chất liệu
+                    </label>
+                    <input
+                      {...register("material")}
+                      placeholder="100% Cotton"
+                      className={inputCls(false)}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                      Hướng dẫn bảo quản
+                    </label>
+                    <input
+                      {...register("careInstructions")}
+                      placeholder="Giặt tay, không vắt mạnh"
+                      className={inputCls(false)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Biến thể */}
+            <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-neutral-900">
+                    Biến thể sản phẩm
+                  </h2>
+                  <p className="mt-0.5 text-xs text-neutral-500">
+                    Size, màu sắc và tồn kho
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => append({ size: "", color: "", stock: 0 })}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
+                >
+                  <Plus size={14} />
+                  Thêm biến thể
+                </button>
+              </div>
+
+              {fields.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-neutral-200 py-10 text-center">
+                  <p className="text-sm text-neutral-400">Chưa có biến thể nào</p>
+                  <button
+                    type="button"
+                    onClick={() => append({ size: "", color: "", stock: 0 })}
+                    className="mt-2 text-sm text-blue-500 hover:underline"
+                  >
+                    + Thêm biến thể đầu tiên
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-[1fr_1fr_100px_40px] gap-2 px-1 pb-1">
+                    <p className="text-xs font-medium text-neutral-500">Size</p>
+                    <p className="text-xs font-medium text-neutral-500">Màu sắc</p>
+                    <p className="text-xs font-medium text-neutral-500">Tồn kho</p>
+                    <span />
+                  </div>
+
+                  {fields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-[1fr_1fr_100px_40px] items-start gap-2"
+                    >
+                      <div>
+                        <input
+                          {...register(`variants.${index}.size`)}
+                          placeholder="M, L, XL..."
+                          className={inputCls(errors.variants?.[index]?.size)}
+                        />
+                        {errors.variants?.[index]?.size && (
+                          <p className="mt-1 text-xs text-red-500">
+                            {errors.variants[index].size.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <input
+                          {...register(`variants.${index}.color`)}
+                          placeholder="Đỏ, Xanh navy..."
+                          className={inputCls(errors.variants?.[index]?.color)}
+                        />
+                        {errors.variants?.[index]?.color && (
+                          <p className="mt-1 text-xs text-red-500">
+                            {errors.variants[index].color.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <input
+                          {...register(`variants.${index}.stock`)}
+                          type="number"
+                          min={0}
+                          placeholder="0"
+                          className={inputCls(errors.variants?.[index]?.stock)}
+                        />
+                        {errors.variants?.[index]?.stock && (
+                          <p className="mt-1 text-xs text-red-500">
+                            {errors.variants[index].stock.message}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => remove(index)}
+                        className="flex h-[42px] w-[40px] items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+
+          {/* ===== CỘT PHẢI — Ảnh + Phân loại + Actions ===== */}
+          <div className="space-y-6">
+            {/* Ảnh sản phẩm */}
+            <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-base font-semibold text-neutral-900">
+                Ảnh sản phẩm
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading || images.length >= 5}
+                className="mb-4 flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-200 py-8 text-neutral-400 transition hover:border-neutral-300 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {uploading ? (
+                  <Loader2 className="animate-spin" size={20} />
+                ) : (
+                  <Upload size={20} />
+                )}
+                <span className="text-sm">
+                  {uploading
+                    ? "Đang tải lên..."
+                    : images.length >= 5
+                      ? "Đã đủ 5 ảnh"
+                      : "Nhấn để tải ảnh lên"}
+                </span>
+                {!uploading && images.length < 5 && (
+                  <span className="text-xs">
+                    {images.length}/5 ảnh • JPEG, PNG, WebP, GIF
+                  </span>
+                )}
+              </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+
+              {images.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {images.map((url, idx) => (
+                    <div
+                      key={idx}
+                      className="group relative aspect-square overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
+                    >
+                      <img
+                        src={url}
+                        alt={`Ảnh ${idx + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setImages((prev) => prev.filter((_, i) => i !== idx))
+                        }
+                        className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm text-neutral-600 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-600"
+                      >
+                        <X size={12} />
+                      </button>
+                      {idx === 0 && (
+                        <div className="absolute bottom-1.5 left-1.5 rounded bg-neutral-900/70 px-1.5 py-0.5 text-[10px] text-white">
+                          Ảnh chính
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-neutral-50 py-8">
+                  <ImageOff size={24} className="text-neutral-300" />
+                  <p className="text-xs text-neutral-400">Chưa có ảnh nào</p>
+                </div>
+              )}
+            </section>
+
+            {/* Phân loại & Cài đặt */}
+            <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-base font-semibold text-neutral-900">
+                Phân loại & Cài đặt
+              </h2>
+              <div className="space-y-4">
+                {/* Danh mục */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                    Danh mục <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    {...register("category")}
+                    className={cn(
+                      "w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-50",
+                      errors.category ? "border-red-400" : "border-neutral-300"
+                    )}
+                  >
+                    <option value="">-- Chọn danh mục --</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.category && (
+                    <p className="mt-1.5 text-xs text-red-500">
+                      {errors.category.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* isFeatured toggle */}
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-neutral-200 p-3.5 transition hover:bg-neutral-50">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-700">
+                      Sản phẩm nổi bật
+                    </p>
+                    <p className="text-xs text-neutral-400">
+                      Hiển thị trên trang chủ
+                    </p>
+                  </div>
+                  <input
+                    {...register("isFeatured")}
+                    type="checkbox"
+                    className="h-4 w-4 rounded accent-blue-500"
+                  />
+                </label>
+
+                {/* isActive toggle */}
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-neutral-200 p-3.5 transition hover:bg-neutral-50">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-700">
+                      Đang bán
+                    </p>
+                    <p className="text-xs text-neutral-400">
+                      Hiển thị trên cửa hàng
+                    </p>
+                  </div>
+                  <input
+                    {...register("isActive")}
+                    type="checkbox"
+                    className="h-4 w-4 rounded accent-blue-500"
+                  />
+                </label>
+              </div>
+            </section>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-3">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting && <Loader2 className="animate-spin" size={16} />}
+                {submitting
+                  ? "Đang lưu..."
+                  : isEdit
+                    ? "Lưu thay đổi"
+                    : "Tạo sản phẩm"}
+              </button>
+              <Link
+                to="/admin/products"
+                className="block w-full rounded-xl border border-neutral-200 px-6 py-3 text-center text-sm font-medium text-neutral-600 transition hover:bg-neutral-50"
+              >
+                Hủy
+              </Link>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
   );
 }

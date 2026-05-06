@@ -2,6 +2,7 @@ import Category from "../models/Category.js";
 import Product from "../models/Product.js";
 import {
   buildProductFilter,
+  findById,
   findByIdentifier,
   generateProductSlug,
 } from "../services/productService.js";
@@ -198,6 +199,20 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
+// GET /api/products/admin/:id — Chi tiết sản phẩm theo ID (Admin — bao gồm inactive)
+export const getProductById = async (req, res) => {
+  try {
+    const product = await findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+    }
+    return res.status(200).json({ product });
+  } catch (error) {
+    console.error("Lỗi khi lấy sản phẩm theo ID:", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
 // GET /api/products/admin/all — Tất cả sản phẩm cho Admin (kể cả inactive)
 export const getAdminProducts = async (req, res) => {
   try {
@@ -205,9 +220,10 @@ export const getAdminProducts = async (req, res) => {
 
     const filter = {};
     if (search) {
+      const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       filter.$or = [
-        { name: { $regex: new RegExp(search, "i") } },
-        { sku:  { $regex: new RegExp(search, "i") } },
+        { name: { $regex: safeSearch, $options: "i" } },
+        { sku:  { $regex: safeSearch, $options: "i" } },
       ];
     }
 

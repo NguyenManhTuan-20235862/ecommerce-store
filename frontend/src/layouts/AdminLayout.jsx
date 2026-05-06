@@ -89,10 +89,24 @@ export default function AdminLayout() {
         <div className="border-t border-neutral-200 p-4">
           <Link
             to="/"
-            className="mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"
+            className="mb-1 flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"
           >
             <Home size={16} />
             Về trang chủ
+          </Link>
+          <Link
+            to="/profile/info"
+            className="mb-1 flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"
+          >
+            <Users size={16} />
+            Tài khoản
+          </Link>
+          <Link
+            to="/profile/orders"
+            className="mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"
+          >
+            <ShoppingCart size={16} />
+            Đơn hàng của tôi
           </Link>
 
           <div className="flex items-center gap-3 rounded-lg bg-neutral-50 px-3 py-2.5">

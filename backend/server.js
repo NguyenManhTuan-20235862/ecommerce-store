@@ -12,6 +12,8 @@ import categoryRoute from "./routes/categoryRoute.js";
 import productRoute from "./routes/productRoute.js";
 import uploadRoute from "./routes/uploadRoute.js";
 import userRoute from "./routes/userRoute.js";
+import couponRoute from "./routes/couponRoute.js";
+import orderRoute from "./routes/orderRoute.js";
 
 dotenv.config();
 
@@ -75,6 +77,8 @@ app.use(protectedRoute);
 app.use("/api/users", userRoute);
 app.use("/api/upload", uploadRoute);
 app.use("/api/cart", cartRoute);
+app.use("/api/orders", orderRoute);
+app.use("/api/coupons", couponRoute);
 
 connectDB().then(() => {
   app.listen(PORT, () => {

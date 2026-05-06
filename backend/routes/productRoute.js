@@ -2,6 +2,7 @@ import express from "express";
 import {
   getProducts,
   getProductBySlug,
+  getProductById,
   getRelatedProducts,
   createProduct,
   updateProduct,
@@ -25,6 +26,9 @@ router.get("/:slug/related", getRelatedProducts);
 // ====== ADMIN ROUTES (cần đăng nhập + role admin) ======
 // Lấy tất cả sản phẩm cho Admin (kể cả inactive)
 router.get("/admin/all", protectedRoute, adminRoute, getAdminProducts);
+
+// Lấy chi tiết sản phẩm theo ID cho Admin
+router.get("/admin/:id", protectedRoute, adminRoute, getProductById);
 
 // Tạo sản phẩm mới
 router.post("/", protectedRoute, adminRoute, createProduct);

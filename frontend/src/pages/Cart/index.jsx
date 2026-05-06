@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { couponService } from "../../services/coupon.service";
 import { useCartStore } from "../../store/cartStore";
 import CartItem from "./CartItem";
 import CartSummary from "./CartSummary";
@@ -13,11 +15,12 @@ export default function Cart() {
     removeItem,
     couponCode,
     setCouponCode,
-    shippingFee,
   } = useCartStore();
 
   const hasStoreItems = items.length > 0;
   const [demoItems, setDemoItems] = useState(figmaItems);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponLoading, setCouponLoading] = useState(false);
 
   // Determine which items to display (store items or demo items)
   const displayItems = useMemo(
@@ -32,9 +35,9 @@ export default function Cart() {
     [displayItems],
   );
 
-  const shipping = hasStoreItems ? Number(shippingFee || 0) : 0;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  // Phí ship khớp với backend: miễn phí nếu >= 500k, ngược lại 30k
+  const shipping = hasStoreItems ? (subtotal >= 500000 ? 0 : 30000) : 0;
+  const total = subtotal - couponDiscount + shipping;
 
   // Handle quantity change
   const handleQtyChange = (productId, nextQty) => {
@@ -50,6 +53,21 @@ export default function Cart() {
         item.productId === productId ? { ...item, quantity: safeQty } : item,
       ),
     );
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode?.trim()) return;
+    setCouponLoading(true);
+    try {
+      const res = await couponService.validate(couponCode.trim(), subtotal);
+      setCouponDiscount(res.data.discountAmount);
+      toast.success("Áp dụng mã giảm giá thành công");
+    } catch (err) {
+      setCouponDiscount(0);
+      toast.error(err.response?.data?.message || "Mã không hợp lệ");
+    } finally {
+      setCouponLoading(false);
+    }
   };
 
   // Handle item removal
@@ -105,10 +123,15 @@ export default function Cart() {
             <CartSummary
               subtotal={subtotal}
               shipping={shipping}
-              tax={tax}
               total={total}
               couponCode={couponCode}
-              onCouponChange={setCouponCode}
+              onCouponChange={(val) => {
+                setCouponCode(val);
+                setCouponDiscount(0);
+              }}
+              onApplyCoupon={handleApplyCoupon}
+              couponDiscount={couponDiscount}
+              couponLoading={couponLoading}
             />
 
             <VibeLoyaltyCard promoBadge={promoBadge} />
