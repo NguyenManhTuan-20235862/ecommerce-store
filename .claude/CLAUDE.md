@@ -29,7 +29,27 @@ Các quy tắc chi tiết nằm trong `.claude/rules/`:
 | `project-status.md` | Trạng thái từng module, việc còn thiếu, lộ trình | Lên kế hoạch tính năng |
 | `architecture.md` | Cấu trúc thư mục, quyết định kiến trúc, lưu ý kỹ thuật | Điều hướng codebase |
 
-## Cập Nhật Phiên Này (2026-05-07) — Session 4
+## Cập Nhật Phiên Này (2026-05-07) — Session 5
+
+### Hoàn thành
+
+| Hạng mục | Chi tiết |
+|---|---|
+| **Admin Dashboard statistics** ✅ | Đã hoàn chỉnh từ trước (backend `getDashboardStats` + frontend chart/table). Xác nhận lại không cần làm thêm. |
+| **Wishlist** ✅ | Backend: `wishlist` field trong User model, `getWishlist`/`addToWishlist`/`removeFromWishlist` trong userService + userController, 3 routes `/me/wishlist`. Frontend: `wishlist.service.js`, `wishlistStore.js` (Zustand, optimistic toggle), trang `/wishlist`, heart icon trên ProductTile/FeaturedProductTile/ProductDetails, badge đỏ trên Header |
+| **Bug fixes (3 lỗi)** | ProductDetails truyền thiếu slug+images vào toggle (→ `/product/undefined`), toggle không guard productId undefined, Wishlist page double-fetch fetchWishlist |
+
+### Quyết định quan trọng & lý do (session 5)
+
+| Quyết định | Lý do |
+|---|---|
+| **Wishlist lưu trong User model** | Không cần model riêng — array ObjectId trong User đủ cho scope đồ án, đơn giản hơn join. |
+| **wishlistStore không persist** | By design giống cartStore — fetch lại từ API sau login/hydration. Tránh stale data khi user dùng nhiều tab. |
+| **Optimistic update với rollback** | UX nhanh hơn — heart toggle ngay lập tức, rollback bằng `fetchWishlist()` nếu API fail. |
+| **fetchWishlist KHÔNG gọi trong Wishlist page** | authStore đã gọi `fetchWishlist()` sau login + hydration — gọi thêm trong component là double-fetch thừa. |
+| **ProductDetails nhận thêm `productSlug` + `productImages`** | toggle cần đủ data để optimistic add item vào store mà không bị `/product/undefined` khi user sang Wishlist page ngay. |
+
+## Cập Nhật Phiên Trước (2026-05-07) — Session 4
 
 ### Hoàn thành
 
@@ -131,11 +151,9 @@ Các quy tắc chi tiết nằm trong `.claude/rules/`:
 
 ## Ưu Tiên Phiên Tiếp Theo
 
-1. **Admin Dashboard statistics** ⭐ — Aggregate query: doanh thu theo tháng, top sản phẩm bán chạy, đơn hàng theo trạng thái
-2. **Wishlist** — Store + API + UI
-3. **Reviews** — Model + API + UI (submit từ Product Detail)
-4. **Profile - Avatar upload** — Multer upload ảnh avatar, lưu local
-5. **Refresh token rotation** — endpoint `/auth/refresh`
+1. **Reviews** ⭐ — Model + API + UI (submit từ Product Detail, `VibeCheckReviews` đang hardcode `reviews = []`)
+2. **Profile - Avatar upload** — Multer upload ảnh avatar, lưu local, hiển thị thay avatar chữ cái
+3. **Refresh token rotation** — endpoint `/auth/refresh`
 
 ## Quy tắc session
 

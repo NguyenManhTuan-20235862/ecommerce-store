@@ -92,6 +92,8 @@ export default function Product() {
           />
           <ProductDetails
             productId={product._id}
+            productSlug={product.slug}
+            productImages={product.images}
             title={product.name}
             price={product.price}
             stock={stockInfo}

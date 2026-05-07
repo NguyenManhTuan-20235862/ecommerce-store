@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import User from "../models/User.js";
 
 export const updateProfile = async (userId, { displayName, email, phone }) => {
@@ -53,4 +54,28 @@ export const updatePassword = async (userId, currentPassword, newPassword) => {
   // 4. Cập nhật vào DB
   user.hashedPassword = hashedPassword;
   await user.save();
+};
+
+export const getWishlist = async (userId) => {
+  const user = await User.findById(userId).populate({
+    path: "wishlist",
+    match: { isActive: true },
+    select: "name slug price images",
+  });
+  if (!user) throw new Error("Không tìm thấy tài khoản");
+  return user.wishlist;
+};
+
+export const addToWishlist = async (userId, productId) => {
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    throw new Error("productId không hợp lệ");
+  }
+  await User.findByIdAndUpdate(userId, { $addToSet: { wishlist: productId } });
+};
+
+export const removeFromWishlist = async (userId, productId) => {
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    throw new Error("productId không hợp lệ");
+  }
+  await User.findByIdAndUpdate(userId, { $pull: { wishlist: productId } });
 };

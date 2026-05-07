@@ -11,6 +11,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuthStore } from "../store/authStore";
 import { useCartStore } from "../store/cartStore";
+import { useWishlistStore } from "../store/wishlistStore";
 
 const productMenu = [
   { label: "Tất cả sản phẩm", to: "/shop" },
@@ -38,6 +39,7 @@ export default function Header() {
   const cartCount = useCartStore((state) =>
     state.items.reduce((total, item) => total + Number(item.quantity || 0), 0),
   );
+  const wishlistCount = useWishlistStore((state) => state.items.length);
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
@@ -196,11 +198,16 @@ export default function Header() {
           </button>
 
           <Link
-            to={isAuthenticated ? "/profile" : "/login"}
-            className="rounded-full p-2 transition hover:bg-[#f3f0ef]"
+            to={isAuthenticated ? "/wishlist" : "/login"}
+            className="relative rounded-full p-2 transition hover:bg-[#f3f0ef]"
             aria-label="Yêu thích"
           >
             <Heart strokeWidth={1.9} className="h-4 w-4" />
+            {isAuthenticated && wishlistCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                {wishlistCount > 99 ? "99+" : wishlistCount}
+              </span>
+            )}
           </Link>
 
           <div className="relative hidden sm:block">

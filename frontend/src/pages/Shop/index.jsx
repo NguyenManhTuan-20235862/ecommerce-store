@@ -63,6 +63,7 @@ export default function Shop() {
       }
 
       return {
+        _id: p._id,
         id: p.slug,
         title: p.name,
         category: p.category?.slug,

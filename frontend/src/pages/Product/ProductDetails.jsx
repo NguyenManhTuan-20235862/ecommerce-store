@@ -1,7 +1,10 @@
 import { Heart, ShieldCheck, Truck } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore.js";
 import { useCartStore } from "../../store/cartStore.js";
+import { useWishlistStore } from "../../store/wishlistStore.js";
 
 function formatVnd(price) {
   return new Intl.NumberFormat("vi-VN").format(price);
@@ -16,6 +19,8 @@ export default function ProductDetails({
   sizes,
   defaultSize,
   productId,
+  productSlug,
+  productImages,
 }) {
   const [selectedColor, setSelectedColor] = useState(colors[0]);
   const [selectedSize, setSelectedSize] = useState(defaultSize);
@@ -23,8 +28,21 @@ export default function ProductDetails({
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const addItem = useCartStore((state) => state.addItem);
+  const { isWishlisted, toggle } = useWishlistStore();
+  const wishlisted = isWishlisted(productId);
+
+  const handleWishlist = () => {
+    if (!isAuthenticated) {
+      toast.info("Vui lòng đăng nhập để thêm vào Wishlist");
+      navigate("/login");
+      return;
+    }
+    toggle(productId, { name: title, price, slug: productSlug, images: productImages || [] });
+  };
 
   const handleAddToCart = async () => {
     try {
@@ -136,9 +154,16 @@ export default function ProductDetails({
           {isLoading ? "Đang thêm..." : "Add to Pulse"}
         </button>
 
-        <button className="w-full flex items-center justify-center gap-3 rounded-full bg-[#dfdcdc] py-4 font-heading text-base font-bold uppercase tracking-wide text-[#2f2f2e] transition hover:bg-[#d4d1d1]">
-          <Heart className="h-5 w-5" />
-          Add to Wishlist
+        <button
+          onClick={handleWishlist}
+          className={`w-full flex items-center justify-center gap-3 rounded-full py-4 font-heading text-base font-bold uppercase tracking-wide transition ${
+            wishlisted
+              ? "bg-red-50 text-red-500 hover:bg-red-100"
+              : "bg-[#dfdcdc] text-[#2f2f2e] hover:bg-[#d4d1d1]"
+          }`}
+        >
+          <Heart className={`h-5 w-5 ${wishlisted ? "fill-red-500" : ""}`} />
+          {wishlisted ? "Đã lưu" : "Add to Wishlist"}
         </button>
 
         {error && (

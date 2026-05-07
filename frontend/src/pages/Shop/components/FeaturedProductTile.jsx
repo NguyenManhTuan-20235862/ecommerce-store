@@ -1,5 +1,8 @@
-import { ArrowRight } from "lucide-react";
-import { Link } from "react-router";
+import { ArrowRight, Heart } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { toast } from "sonner";
+import { useAuthStore } from "../../../store/authStore";
+import { useWishlistStore } from "../../../store/wishlistStore";
 
 function formatVndLines(price) {
   const value = new Intl.NumberFormat("vi-VN").format(price);
@@ -8,6 +11,26 @@ function formatVndLines(price) {
 
 export default function FeaturedProductTile({ product }) {
   const [priceLineOne, priceLineTwo] = formatVndLines(product.price);
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { isWishlisted, toggle } = useWishlistStore();
+  const wishlisted = isWishlisted(product._id);
+
+  const handleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      toast.info("Vui lòng đăng nhập để thêm vào Wishlist");
+      navigate("/login");
+      return;
+    }
+    toggle(product._id, {
+      name: product.title,
+      slug: product.id,
+      price: product.price,
+      images: [product.image],
+    });
+  };
 
   return (
     <Link
@@ -35,6 +58,16 @@ export default function FeaturedProductTile({ product }) {
             </p>
           </div>
         </div>
+
+        <button
+          onClick={handleWishlist}
+          className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md opacity-0 transition group-hover:opacity-100 hover:scale-110"
+          aria-label={wishlisted ? "Xóa khỏi Wishlist" : "Thêm vào Wishlist"}
+        >
+          <Heart
+            className={`h-4 w-4 transition ${wishlisted ? "fill-red-500 text-red-500" : "text-neutral-400"}`}
+          />
+        </button>
 
         <div className="absolute bottom-5 right-5 inline-flex items-center gap-2 rounded-full bg-[#004be3] px-7 py-3 text-xs font-extrabold uppercase tracking-widest text-white shadow-lg transition group-hover:brightness-110">
           {product.featured?.cta}

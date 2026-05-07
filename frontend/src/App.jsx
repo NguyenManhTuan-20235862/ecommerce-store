@@ -23,6 +23,9 @@ import Home from "./pages/Home";
 import Product from "./pages/Product";
 import Shop from "./pages/Shop";
 
+// Wishlist Page
+import Wishlist from "./pages/Wishlist";
+
 // Profile Pages
 import ChangePassword from "./pages/Profile/ChangePassword";
 import OrderDetail from "./pages/Profile/OrderDetail";
@@ -80,6 +83,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:productId" element={<Product />} />
+          <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route

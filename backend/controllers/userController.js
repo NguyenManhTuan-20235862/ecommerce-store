@@ -63,6 +63,43 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+// GET /api/users/me/wishlist — Lấy danh sách wishlist
+export const getWishlist = async (req, res) => {
+  try {
+    const wishlist = await userService.getWishlist(req.user._id);
+    return res.status(200).json({ success: true, data: wishlist });
+  } catch (error) {
+    console.error("Lỗi khi lấy wishlist:", error);
+    return res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+  }
+};
+
+// POST /api/users/me/wishlist — Thêm sản phẩm vào wishlist
+export const addToWishlist = async (req, res) => {
+  try {
+    const { productId } = req.body;
+    if (!productId) {
+      return res.status(400).json({ success: false, message: "Thiếu productId" });
+    }
+    await userService.addToWishlist(req.user._id, productId);
+    return res.status(200).json({ success: true, message: "Đã thêm vào Wishlist" });
+  } catch (error) {
+    console.error("Lỗi khi thêm wishlist:", error);
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// DELETE /api/users/me/wishlist/:productId — Xóa sản phẩm khỏi wishlist
+export const removeFromWishlist = async (req, res) => {
+  try {
+    await userService.removeFromWishlist(req.user._id, req.params.productId);
+    return res.status(200).json({ success: true, message: "Đã xóa khỏi Wishlist" });
+  } catch (error) {
+    console.error("Lỗi khi xóa wishlist:", error);
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 // PUT /api/users/me/password — Đổi mật khẩu
 export const updatePassword = async (req, res) => {
   try {

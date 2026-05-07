@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import api, { setAccessToken } from "../services/api";
 import { useCartStore } from "./cartStore.js";
+import { useWishlistStore } from "./wishlistStore.js";
 
 export const useAuthStore = create(
   persist(
@@ -55,11 +56,16 @@ export const useAuthStore = create(
             user,
           });
 
-          // Fetch cart sau khi login thành công
+          // Fetch cart và wishlist sau khi login thành công
           try {
             await useCartStore.getState().fetchCart();
           } catch (cartError) {
             console.error("Error fetching cart after login:", cartError);
+          }
+          try {
+            await useWishlistStore.getState().fetchWishlist();
+          } catch (wishlistError) {
+            console.error("Error fetching wishlist after login:", wishlistError);
           }
 
           toast.success("Đăng nhập thành công!");
@@ -91,11 +97,16 @@ export const useAuthStore = create(
             isAuthenticated: Boolean(response.data?.user),
             isHydrating: false,
           });
-          // Fetch cart sau khi hydrate phiên thành công
+          // Fetch cart và wishlist sau khi hydrate phiên thành công
           try {
             await useCartStore.getState().fetchCart();
           } catch (cartError) {
             console.error("Error fetching cart during hydration:", cartError);
+          }
+          try {
+            await useWishlistStore.getState().fetchWishlist();
+          } catch (wishlistError) {
+            console.error("Error fetching wishlist during hydration:", wishlistError);
           }
         } catch {
           setAccessToken(null);
@@ -115,6 +126,7 @@ export const useAuthStore = create(
           await api.post("/auth/signout");
           setAccessToken(null);
           get().clearCartState();
+          useWishlistStore.getState().reset();
           set({
             user: null,
             accessToken: null,

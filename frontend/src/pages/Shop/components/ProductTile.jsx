@@ -1,5 +1,8 @@
-import { ArrowUpRight } from "lucide-react";
-import { Link } from "react-router";
+import { ArrowUpRight, Heart } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { toast } from "sonner";
+import { useAuthStore } from "../../../store/authStore";
+import { useWishlistStore } from "../../../store/wishlistStore";
 
 const badgeToneClasses = {
   brand: "bg-[#004be3] text-white",
@@ -13,6 +16,27 @@ function formatVnd(price) {
 }
 
 export default function ProductTile({ product }) {
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { isWishlisted, toggle } = useWishlistStore();
+  const wishlisted = isWishlisted(product._id);
+
+  const handleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      toast.info("Vui lòng đăng nhập để thêm vào Wishlist");
+      navigate("/login");
+      return;
+    }
+    toggle(product._id, {
+      name: product.title,
+      slug: product.id,
+      price: product.price,
+      images: [product.image],
+    });
+  };
+
   return (
     <Link
       to={`/product/${product.id}`}
@@ -35,6 +59,16 @@ export default function ProductTile({ product }) {
             {product.badge.text}
           </span>
         ) : null}
+
+        <button
+          onClick={handleWishlist}
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md opacity-0 transition group-hover:opacity-100 hover:scale-110"
+          aria-label={wishlisted ? "Xóa khỏi Wishlist" : "Thêm vào Wishlist"}
+        >
+          <Heart
+            className={`h-4 w-4 transition ${wishlisted ? "fill-red-500 text-red-500" : "text-neutral-400"}`}
+          />
+        </button>
 
         <div
           className="absolute bottom-4 right-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#0f172a] opacity-0 shadow-lg transition group-hover:opacity-100"
