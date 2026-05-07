@@ -20,8 +20,9 @@ export default function ProductTile({ product }) {
     >
       <div className="relative overflow-hidden rounded-3xl bg-[#f3f0ef]">
         <img
-          src={product.image}
+          src={product.image || "https://placehold.co/600x600/f3f0ef/94a3b8?text=No+Image"}
           alt={product.title}
+          onError={(e) => { e.currentTarget.src = "https://placehold.co/600x600/f3f0ef/94a3b8?text=No+Image"; }}
           className="h-65 w-full object-cover transition duration-500 group-hover:scale-105"
         />
 

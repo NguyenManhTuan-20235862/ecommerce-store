@@ -19,6 +19,7 @@ export const productSchema = z.object({
       z.object({
         size: z.string().min(1, "Nhập size"),
         color: z.string().min(1, "Nhập màu sắc"),
+        colorHex: z.string().default(""),
         stock: z.coerce
           .number({ invalid_type_error: "Nhập số hợp lệ" })
           .min(0, "Tồn kho >= 0"),

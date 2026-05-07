@@ -5,6 +5,7 @@ import FilterSidebar from "./components/FilterSidebar";
 import ProductTile from "./components/ProductTile";
 import { maxPrice } from "./components/shopData";
 import { productService } from "../../services/product.service";
+import { getImageUrl } from "../../utils/getImageUrl";
 
 const sortOptions = [
   { value: "newest", label: "Newest Arrivals" },
@@ -12,7 +13,7 @@ const sortOptions = [
   { value: "price_desc", label: "Price: High to Low" },
 ];
 
-const INITIAL_VISIBLE = 8;
+const INITIAL_VISIBLE = 11;
 
 export default function Shop() {
   const [searchParams] = useSearchParams();
@@ -21,6 +22,7 @@ export default function Shop() {
   );
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [priceLimit, setPriceLimit] = useState(maxPrice);
+  const [appliedPriceLimit, setAppliedPriceLimit] = useState(maxPrice);
   const [sortBy, setSortBy] = useState("newest");
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
 
@@ -34,7 +36,7 @@ export default function Shop() {
           limit: visibleCount,
           category: activeCategory || undefined,
           size: selectedSizes.length > 0 ? selectedSizes.join(",") : undefined,
-          maxPrice: priceLimit < maxPrice ? priceLimit : undefined,
+          maxPrice: appliedPriceLimit < maxPrice ? appliedPriceLimit : undefined,
           sort: sortBy,
         };
         const res = await productService.list(params);
@@ -47,7 +49,7 @@ export default function Shop() {
       }
     };
     fetchProducts();
-  }, [activeCategory, selectedSizes, priceLimit, sortBy, visibleCount]);
+  }, [activeCategory, selectedSizes, appliedPriceLimit, sortBy, visibleCount]);
 
   const formattedProducts = useMemo(() => {
     return products.map((p) => {
@@ -67,7 +69,7 @@ export default function Shop() {
         categoryLabel: p.category?.name || "CLOTHING",
         price: p.price,
         badge,
-        image: p.images?.[0] || "",
+        image: getImageUrl(p.images?.[0] || ""),
         isFeatured: p.isFeatured,
         featured: p.isFeatured
           ? {
@@ -82,7 +84,7 @@ export default function Shop() {
   }, [products]);
 
   const featuredProduct = formattedProducts.find((item) => item.isFeatured);
-  const regularProducts = formattedProducts.filter((item) => !item.isFeatured);
+  const regularProducts = formattedProducts.filter((item) => item !== featuredProduct);
 
   const shown = formattedProducts.length;
   const canLoadMore = shown < total;
@@ -110,7 +112,10 @@ export default function Shop() {
             }}
             priceLimit={priceLimit}
             onPriceLimitChange={setPriceLimit}
-            onApply={() => setVisibleCount(INITIAL_VISIBLE)}
+            onApply={() => {
+              setAppliedPriceLimit(priceLimit);
+              setVisibleCount(INITIAL_VISIBLE);
+            }}
           />
         </div>
 

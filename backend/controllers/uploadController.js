@@ -40,10 +40,9 @@ export const uploadImages = (req, res) => {
       return res.status(400).json({ message: "Không có file nào được upload" });
     }
 
-    // Trả về mảng URL ảnh đã upload
-    const urls = req.files.map(
-      (file) => `/uploads/${file.filename}`,
-    );
+    // Trả về mảng URL đầy đủ để frontend không cần biết base URL backend
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const urls = req.files.map((file) => `${baseUrl}/uploads/${file.filename}`);
 
     return res.status(200).json({
       message: `Upload thành công ${urls.length} ảnh`,

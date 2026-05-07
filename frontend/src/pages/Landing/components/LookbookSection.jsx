@@ -52,8 +52,8 @@ export default function LookbookSection({ categories, isAuthenticated }) {
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {categories.map((item, index) => (
             <article
-              key={item}
-              className={`min-h-72 rounded-[1.65rem] p-4 shadow-[0_20px_50px_rgba(47,47,46,0.12)] lg:min-h-84 lg:p-4.5 ${
+              key={item.label}
+              className={`relative min-h-72 overflow-hidden rounded-[1.65rem] p-4 shadow-[0_20px_50px_rgba(47,47,46,0.12)] lg:min-h-84 lg:p-4.5 ${
                 index === 0
                   ? "bg-[#16161a]"
                   : index === 1
@@ -61,7 +61,14 @@ export default function LookbookSection({ categories, isAuthenticated }) {
                     : "bg-[#d97706]"
               }`}
             >
-              <div className="flex h-full flex-col justify-between text-white">
+              {item.image && (
+                <img
+                  src={item.image}
+                  alt={item.label}
+                  className="absolute inset-0 h-full w-full object-cover opacity-20"
+                />
+              )}
+              <div className="relative flex h-full flex-col justify-between text-white">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/65 lg:text-[11px] lg:tracking-[0.26em]">
                     {index === 0 ? "Feature story" : "Category focus"}
@@ -73,7 +80,7 @@ export default function LookbookSection({ categories, isAuthenticated }) {
                         : "text-[2.05rem] leading-[0.92] lg:text-[2.15rem]"
                     }`}
                   >
-                    {item}
+                    {item.label}
                   </h3>
                 </div>
 

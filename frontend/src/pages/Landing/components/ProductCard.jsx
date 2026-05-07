@@ -3,7 +3,14 @@ import { toast } from "sonner";
 import { useAuthStore } from "../../../store/authStore";
 import { useCartStore } from "../../../store/cartStore";
 
-export default function ProductCard({ title, category, price, badge, tone }) {
+export default function ProductCard({
+  title,
+  category,
+  price,
+  badge,
+  tone,
+  image,
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -16,11 +23,14 @@ export default function ProductCard({ title, category, price, badge, tone }) {
       return;
     }
 
-    const result = await addItem({
-      productId: title.toLowerCase().replace(/\s+/g, "-"),
-      selectedSize: "M",
-      selectedColor: "Urban Core",
-    }, 1);
+    const result = await addItem(
+      {
+        productId: title.toLowerCase().replace(/\s+/g, "-"),
+        selectedSize: "M",
+        selectedColor: "Urban Core",
+      },
+      1,
+    );
 
     if (result && result.success) {
       toast.success(`Đã thêm ${title} vào giỏ hàng`);
@@ -34,7 +44,14 @@ export default function ProductCard({ title, category, price, badge, tone }) {
       <div
         className={`relative aspect-4/3 overflow-hidden bg-linear-to-br ${tone}`}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.38),transparent_32%),radial-gradient(circle_at_85%_15%,rgba(129,155,255,0.28),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.12),rgba(0,0,0,0.1))]" />
+        {image && (
+          <img
+            src={image}
+            alt={title}
+            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          />
+        )}
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.05)_0%,rgba(0,0,0,0.45)_100%)]" />
         <div className="absolute left-4 top-4 rounded-full bg-[#004be3] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white">
           {badge}
         </div>

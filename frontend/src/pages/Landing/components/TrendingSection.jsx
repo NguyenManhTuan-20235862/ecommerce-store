@@ -16,13 +16,18 @@ export default function TrendingSection({ trendCards }) {
             Những khối hình đang lên phố
           </h2>
           <p className="mt-4 text-base leading-8 text-[#71717a] sm:text-lg">
-            Bố cục mạnh, ảnh lớn, đối lập rõ ràng và khoảng trắng đủ rộng để giữ
-            cảm giác cao cấp theo đúng tinh thần Figma.
+            Ưu tiên hàng đầu của chúng tôi là sự hài lòng tuyệt đối của khách
+            hàng.
           </p>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
           <article className="relative min-h-110 overflow-hidden rounded-4xl bg-[#111827] shadow-[0_30px_90px_rgba(47,47,46,0.16)] sm:min-h-130 lg:min-h-140">
+            <img
+              src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=800&q=80&fit=crop"
+              alt="The Saigon Techwear Scene"
+              className="absolute inset-0 h-full w-full object-cover opacity-50"
+            />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.75))]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,254,102,0.18),transparent_22%),radial-gradient(circle_at_80%_10%,rgba(0,75,227,0.3),transparent_30%)]" />
             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),transparent_42%,rgba(255,255,255,0.04))]" />
@@ -55,6 +60,13 @@ export default function TrendingSection({ trendCards }) {
                 key={card.title}
                 className={`relative min-h-61.75 overflow-hidden rounded-4xl bg-linear-to-br ${card.tone} p-7 text-white shadow-[0_20px_50px_rgba(47,47,46,0.12)]`}
               >
+                {card.image && (
+                  <img
+                    src={card.image}
+                    alt={card.title}
+                    className="absolute inset-0 h-full w-full object-cover opacity-35 transition duration-500 group-hover:scale-105"
+                  />
+                )}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_25%,rgba(255,255,255,0.18),transparent_28%)]" />
                 <div className="relative flex h-full flex-col justify-end">
                   <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/70">

@@ -15,11 +15,12 @@ export default function Cart() {
     removeItem,
     couponCode,
     setCouponCode,
+    couponDiscount,
+    setCouponDiscount,
   } = useCartStore();
 
   const hasStoreItems = items.length > 0;
   const [demoItems, setDemoItems] = useState(figmaItems);
-  const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponLoading, setCouponLoading] = useState(false);
 
   // Determine which items to display (store items or demo items)

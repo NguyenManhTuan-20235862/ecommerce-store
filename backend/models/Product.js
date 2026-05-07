@@ -14,6 +14,11 @@ const variantSchema = new mongoose.Schema(
       required: [true, "Màu sắc là bắt buộc"],
       trim: true,
     },
+    colorHex: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     stock: {
       type: Number,
       required: true,

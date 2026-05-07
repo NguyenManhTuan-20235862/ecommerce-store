@@ -283,7 +283,7 @@ export default function ProductForm() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => append({ size: "", color: "", stock: 0 })}
+                  onClick={() => append({ size: "", color: "", colorHex: "#000000", stock: 0 })}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
                 >
                   <Plus size={14} />
@@ -296,7 +296,7 @@ export default function ProductForm() {
                   <p className="text-sm text-neutral-400">Chưa có biến thể nào</p>
                   <button
                     type="button"
-                    onClick={() => append({ size: "", color: "", stock: 0 })}
+                    onClick={() => append({ size: "", color: "", colorHex: "#000000", stock: 0 })}
                     className="mt-2 text-sm text-blue-500 hover:underline"
                   >
                     + Thêm biến thể đầu tiên
@@ -304,9 +304,10 @@ export default function ProductForm() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="grid grid-cols-[1fr_1fr_100px_40px] gap-2 px-1 pb-1">
+                  <div className="grid grid-cols-[1fr_1fr_44px_100px_40px] gap-2 px-1 pb-1">
                     <p className="text-xs font-medium text-neutral-500">Size</p>
                     <p className="text-xs font-medium text-neutral-500">Màu sắc</p>
+                    <p className="text-xs font-medium text-neutral-500">Màu</p>
                     <p className="text-xs font-medium text-neutral-500">Tồn kho</p>
                     <span />
                   </div>
@@ -314,7 +315,7 @@ export default function ProductForm() {
                   {fields.map((field, index) => (
                     <div
                       key={field.id}
-                      className="grid grid-cols-[1fr_1fr_100px_40px] items-start gap-2"
+                      className="grid grid-cols-[1fr_1fr_44px_100px_40px] items-start gap-2"
                     >
                       <div>
                         <input
@@ -339,6 +340,14 @@ export default function ProductForm() {
                             {errors.variants[index].color.message}
                           </p>
                         )}
+                      </div>
+                      <div>
+                        <input
+                          {...register(`variants.${index}.colorHex`)}
+                          type="color"
+                          title="Chọn mã màu"
+                          className="h-[42px] w-[44px] cursor-pointer rounded-lg border border-neutral-300 bg-white p-1 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                        />
                       </div>
                       <div>
                         <input

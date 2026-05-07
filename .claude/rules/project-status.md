@@ -3,7 +3,7 @@ description: Trạng thái hoàn thiện của từng module Backend và Fronten
 alwaysApply: false
 ---
 
-# Trạng Thái Dự Án (cập nhật 2026-05-06, session 3)
+# Trạng Thái Dự Án (cập nhật 2026-05-07, session 4)
 
 ## Backend — Hoàn thành ✅
 
@@ -15,7 +15,7 @@ alwaysApply: false
 | Category API (public + admin) | CRUD, slug generation |
 | Cart API | get/add/update-quantity/remove/clear |
 | **Order API** ✅ | Tạo đơn (atomic stock decrement + rollback), danh sách, chi tiết, hủy (hoàn stock), đổi trạng thái có state machine |
-| Upload API | Max 5 files, 5MB/file, JPEG/PNG/WebP/GIF |
+| Upload API | Max 5 files, 5MB/file, JPEG/PNG/WebP/GIF — trả **full URL** `http://host/uploads/filename` |
 | **User API** ✅ | `GET /users/me`, `PUT /users/me` (update profile), `PUT /users/me/password`, `GET /users` (admin) |
 | **Coupon API** ✅ | `POST /coupons/validate` (user), CRUD admin — Model (code, discountType, value, minOrder, maxUses, expiresAt, usedCount) |
 | Models | User, Session, Product, Category, Cart, Order, Coupon |
@@ -37,8 +37,8 @@ alwaysApply: false
 | Header | Desktop nav + dropdown, mobile menu, cart badge |
 | Shop | API thật, filter (category slug chuẩn), sort, load-more, featured grid |
 | Product Detail | Gallery, biến thể (size/color), thêm vào giỏ, sản phẩm liên quan |
-| Cart | API thật, +/-/remove (dùng cartItemId), CartSummary VND, coupon Apply button |
-| **Checkout** ✅ | Zod + RHF validation, pre-fill displayName/email, API integration, Success page |
+| Cart | API thật, +/-/remove (dùng cartItemId), CartSummary VND, coupon Apply + discount line |
+| **Checkout** ✅ | Zod + RHF validation, pre-fill displayName/email/**phone**, coupon discount sync từ store, guard `cartLoading`, API integration, Success page |
 | **Profile - Thông tin tài khoản** ✅ | Avatar chữ cái, info read-only (username/role/joinDate), form edit (displayName/email/phone), Zod + RHF |
 | **Profile - Order History** ✅ | Danh sách orders, status badges, loading/error/empty states |
 | **Profile - Order Detail** ✅ | Chi tiết, nút hủy, API integration |
@@ -51,8 +51,9 @@ alwaysApply: false
 | **Admin Orders** ✅ | Filter tabs, inline status select, optimistic update, detail drawer, lock terminal states |
 | **Admin Customers** ✅ | Search debounce, table, detail drawer |
 | **Admin Coupons** ✅ | Table (mã/loại/giá trị/min đơn/đã dùng/hết hạn/trạng thái), modal create/edit Zod + RHF, delete |
-| Stores (Zustand) | authStore (+ setUser), cartStore, uiStore — persist localStorage |
+| Stores (Zustand) | authStore (+ setUser), cartStore (+ couponDiscount), uiStore — persist localStorage |
 | **Services (API layer)** ✅ | `product.service.js`, `cartService.js`, `category.service.js`, `order.service.js`, `user.service.js` (+ updateProfile), `coupon.service.js` |
+| **Utils** ✅ | `getImageUrl.js` — prefix backend origin cho `/uploads/` path |
 | Routes | AdminRoute, ProtectedRoute guard |
 
 ## Frontend — Chưa hoàn thiện 🚩
@@ -106,6 +107,20 @@ alwaysApply: false
 | Cart tổng tiền sai (cộng thêm tax) | Xóa Urban Tax (8%), tính shipping khớp backend: `>= 500k → miễn phí, else 30k` |
 | Cart total tràn container | `flex flex-col gap-1` (label trên, giá dưới) thay vì `flex justify-between` |
 | Checkout không pre-fill họ tên/email | `authController.signIn` thêm `email` vào response; `defaultValues` dùng `user?.displayName`, `user?.email` |
+
+### ✅ Bug Fixes (Session 4)
+
+| Bug | Fix |
+|---|---|
+| couponDiscount mất khi Cart → Checkout | `couponDiscount` chuyển vào `cartStore`; Checkout đọc từ store |
+| Admin Coupon edit fail Zod validation | `openEdit()` thêm `code: coupon.code`; payload edit strip `code` |
+| fetchCart không reset couponDiscount | `fetchCart` và `clearCart` đều set `couponDiscount: 0` |
+| jsconfig path alias không hoạt động | Thêm `"baseUrl": "."` vào `compilerOptions` |
+| Checkout không pre-fill phone | `defaultValues.receiverPhone: user?.phone \|\| ""` |
+| Checkout redirect sai khi cart đang load | Guard `!cartLoading &&` trước `items.length === 0` |
+| Shop hàng cuối luôn thiếu 1 sản phẩm | `INITIAL_VISIBLE=11`, step `+4` — `(N-3)%4==0` với featured span 2 cols |
+| Ảnh upload local bị vỡ (404) | `uploadController` trả full URL; `getImageUrl` utility prefix backend origin |
+| Ảnh rỗng/vỡ hiển thị icon broken | `onError` fallback + src fallback trong `ProductTile` + `FeaturedProductTile` |
 
 ### ✅ Admin Panel (Hoàn thành 100%)
 

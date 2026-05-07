@@ -4,6 +4,7 @@ import * as cartService from "../services/cartService.js";
 export const useCartStore = create((set, get) => ({
   items: [],
   couponCode: null,
+  couponDiscount: 0,
   shippingFee: 0,
   isLoading: false,
   error: null,
@@ -17,6 +18,7 @@ export const useCartStore = create((set, get) => ({
         set({
           items: result.data.items || [],
           couponCode: result.data.couponCode || null,
+          couponDiscount: 0,
           shippingFee: result.data.shippingFee || 0,
           isLoading: false,
         });
@@ -84,7 +86,7 @@ export const useCartStore = create((set, get) => ({
     try {
       const result = await cartService.clearCartAPI();
       if (result.success) {
-        set({ items: [], couponCode: null, shippingFee: 0, isLoading: false });
+        set({ items: [], couponCode: null, couponDiscount: 0, shippingFee: 0, isLoading: false });
       }
     } catch (error) {
       set({ error: "Lỗi hệ thống", isLoading: false });
@@ -92,6 +94,8 @@ export const useCartStore = create((set, get) => ({
   },
 
   setCouponCode: (couponCode) => set({ couponCode }),
+
+  setCouponDiscount: (couponDiscount) => set({ couponDiscount }),
 
   setShippingFee: (shippingFee) => set({ shippingFee }),
 }));

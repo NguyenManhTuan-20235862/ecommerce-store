@@ -76,6 +76,11 @@ export default function HeroSection({
         </div>
 
         <div className="relative min-h-140 overflow-hidden rounded-4xl border border-black/5 bg-[#2f2f2e] shadow-[0_32px_90px_rgba(47,47,46,0.16)] sm:min-h-160 lg:min-h-180">
+          <img
+            src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&h=1100&q=80&fit=crop"
+            alt="Hero fashion"
+            className="absolute inset-0 h-full w-full object-cover opacity-60"
+          />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_15%,rgba(0,75,227,0.35),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.16))]" />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))]" />
           <div className="absolute left-6 top-6 rounded-full bg-[#00fe66] px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-[#004616] shadow-[0_12px_24px_rgba(0,0,0,0.1)]">

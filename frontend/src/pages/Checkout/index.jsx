@@ -20,7 +20,7 @@ import {
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { items, fetchCart } = useCartStore();
+  const { items, fetchCart, isLoading: cartLoading, couponCode: appliedCouponCode, couponDiscount } = useCartStore();
   const { user } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,14 +35,14 @@ export default function Checkout() {
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       receiverName: user?.displayName || "",
-      receiverPhone: "",
+      receiverPhone: user?.phone || "",
       receiverEmail: user?.email || "",
       province: "",
       district: "",
       ward: "",
       detail: "",
       paymentMethod: "COD",
-      couponCode: "",
+      couponCode: appliedCouponCode || "",
     },
   });
 
@@ -50,17 +50,17 @@ export default function Checkout() {
   const subtotal = useMemo(() => calculateSubtotal(items), [items]);
   const shippingFee = useMemo(() => calculateShippingFee(subtotal), [subtotal]);
   const total = useMemo(
-    () => calculateFinalAmount(subtotal, shippingFee, 0),
-    [subtotal, shippingFee]
+    () => calculateFinalAmount(subtotal, shippingFee, couponDiscount),
+    [subtotal, shippingFee, couponDiscount]
   );
 
-  // Redirect nếu giỏ hàng rỗng
+  // Redirect nếu giỏ hàng rỗng (chờ load xong mới kiểm tra)
   useEffect(() => {
-    if (!items || items.length === 0) {
+    if (!cartLoading && (!items || items.length === 0)) {
       toast.error("Giỏ hàng trống, vui lòng thêm sản phẩm");
       navigate("/cart");
     }
-  }, [items, navigate]);
+  }, [items, cartLoading, navigate]);
 
   // Submit form
   const onSubmit = async (data) => {
@@ -102,8 +102,8 @@ export default function Checkout() {
     }
   };
 
-  // Nếu giỏ hàng rỗng, không render gì
-  if (!items || items.length === 0) {
+  // Chờ cart load hoặc giỏ hàng rỗng, không render gì
+  if (cartLoading || !items || items.length === 0) {
     return null;
   }
 
@@ -177,6 +177,14 @@ export default function Checkout() {
                         {formatVnd(subtotal)}
                       </span>
                     </div>
+                    {couponDiscount > 0 && (
+                      <div className="flex justify-between text-emerald-600">
+                        <span>Giảm giá {appliedCouponCode && `(${appliedCouponCode})`}</span>
+                        <span className="text-base normal-case tracking-normal">
+                          −{formatVnd(couponDiscount)}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span>Phí vận chuyển</span>
                       <span className="text-base normal-case tracking-normal">

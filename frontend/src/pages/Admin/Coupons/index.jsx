@@ -103,6 +103,7 @@ export default function AdminCouponsPage() {
   const openEdit = (coupon) => {
     setEditingCoupon(coupon);
     reset({
+      code: coupon.code,
       discountType: coupon.discountType,
       discountValue: coupon.discountValue,
       minOrderValue: coupon.minOrderValue || 0,
@@ -124,8 +125,9 @@ export default function AdminCouponsPage() {
   const onSubmit = async (data) => {
     setSubmitting(true);
     try {
+      const { code: _code, ...rest } = data;
       const payload = {
-        ...data,
+        ...(editingCoupon ? rest : data),
         maxUses: data.maxUses || null,
         expiresAt: data.expiresAt || null,
       };

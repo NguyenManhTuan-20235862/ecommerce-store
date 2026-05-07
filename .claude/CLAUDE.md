@@ -29,7 +29,35 @@ Các quy tắc chi tiết nằm trong `.claude/rules/`:
 | `project-status.md` | Trạng thái từng module, việc còn thiếu, lộ trình | Lên kế hoạch tính năng |
 | `architecture.md` | Cấu trúc thư mục, quyết định kiến trúc, lưu ý kỹ thuật | Điều hướng codebase |
 
-## Cập Nhật Phiên Này (2026-05-06) — Session 3
+## Cập Nhật Phiên Này (2026-05-07) — Session 4
+
+### Hoàn thành
+
+| Hạng mục | Chi tiết |
+|---|---|
+| **Bug fixes (8 lỗi)** | couponDiscount Cart→Checkout, Admin Coupon edit validation, fetchCart reset discount, jsconfig baseUrl, Checkout phone pre-fill, Checkout redirect race condition, Shop last-row incomplete, ảnh vỡ không có fallback |
+| **`cartStore.js`** | Thêm `couponDiscount: 0` state + `setCouponDiscount` action; `fetchCart` và `clearCart` đều reset `couponDiscount: 0` |
+| **`Checkout/index.jsx`** | Đọc `couponDiscount`+`couponCode` từ store; pre-fill `receiverPhone: user?.phone`; guard redirect dùng `cartLoading` |
+| **`Admin/Coupons/index.jsx`** | `openEdit()` thêm `code: coupon.code` vào reset; payload edit strip `code` |
+| **`frontend/jsconfig.json`** | Thêm `"baseUrl": "."` cho path alias `@/*` |
+| **`Shop/index.jsx`** | `INITIAL_VISIBLE = 11`, load step `+4` — hàng cuối luôn đủ 4 cột (featured span 2 cols) |
+| **`uploadController.js`** | Trả full URL `http://host/uploads/filename` thay vì `/uploads/filename` |
+| **`getImageUrl.js`** | Utility mới: prefix backend origin cho path `/uploads/...` — xử lý ảnh cũ trong DB |
+| **`ProductTile.jsx` / `FeaturedProductTile.jsx`** | Thêm `onError` fallback + src fallback khi ảnh rỗng/vỡ |
+| **`Product/index.jsx` / `Shop/index.jsx`** | Áp dụng `getImageUrl()` khi render images |
+
+### Quyết định quan trọng & lý do (session 4)
+
+| Quyết định | Lý do |
+|---|---|
+| **`couponDiscount` vào Zustand store** | Local useState trong Cart bị mất khi navigate sang Checkout. Store persist qua navigation. |
+| **`fetchCart` reset `couponDiscount: 0`** | Backend Cart không lưu discount amount — chỉ lưu `couponCode`. Mỗi lần fetchCart phải reset để tránh stale value. |
+| **`cartLoading` guard trong Checkout redirect** | `cartStore.items` khởi tạo là `[]`. useEffect chạy ngay lập tức trước khi fetchCart async về → false redirect. |
+| **`INITIAL_VISIBLE = 11`, step `+4`** | Grid `xl:grid-cols-4` + featured `lg:col-span-2` → công thức `(N-3)%4==0`. N=11,15,19... luôn đủ hàng. |
+| **`uploadController` trả full URL** | Frontend Vite (`localhost:5173`) không serve `/uploads/`. Backend (`localhost:5000`) mới có static. Relative path gây 404. |
+| **`getImageUrl` utility** | Ảnh cũ trong DB đã lưu `/uploads/...` (relative). Utility convert runtime thay vì migrate DB. |
+
+## Cập Nhật Phiên Trước (2026-05-06) — Session 3
 
 ### Hoàn thành
 
