@@ -1,5 +1,5 @@
 import Cart from "../models/Cart.js";
-import { getOrCreateCart, resolveProduct } from "../services/cartService.js";
+import { findMatchingVariant, getOrCreateCart, resolveProduct } from "../services/cartService.js";
 
 // GET /api/cart — Lấy giỏ hàng của user
 export const getCart = async (req, res) => {
@@ -32,6 +32,20 @@ export const addToCart = async (req, res) => {
         item.selectedSize  === selectedSize &&
         item.selectedColor === selectedColor,
     );
+
+    if (product.variants && product.variants.length > 0) {
+      const variant = findMatchingVariant(product, selectedSize, selectedColor);
+      if (!variant) {
+        return res.status(400).json({ success: false, message: "Biến thể sản phẩm không tồn tại" });
+      }
+      const currentQty = existingItem ? existingItem.quantity : 0;
+      if (currentQty + quantity > variant.stock) {
+        return res.status(400).json({
+          success: false,
+          message: variant.stock === 0 ? "Sản phẩm đã hết hàng" : `Chỉ còn ${variant.stock} sản phẩm trong kho`,
+        });
+      }
+    }
 
     if (existingItem) {
       existingItem.quantity += quantity;
@@ -73,6 +87,17 @@ export const updateItemQuantity = async (req, res) => {
     const item = cart.items.id(itemId);
     if (!item) {
       return res.status(404).json({ success: false, message: "Item không tìm thấy trong giỏ hàng" });
+    }
+
+    const product = await resolveProduct(item.productId.toString());
+    if (product && product.variants && product.variants.length > 0) {
+      const variant = findMatchingVariant(product, item.selectedSize, item.selectedColor);
+      if (variant && quantity > variant.stock) {
+        return res.status(400).json({
+          success: false,
+          message: variant.stock === 0 ? "Sản phẩm đã hết hàng" : `Chỉ còn ${variant.stock} sản phẩm trong kho`,
+        });
+      }
     }
 
     item.quantity = quantity;

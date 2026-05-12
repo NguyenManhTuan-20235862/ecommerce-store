@@ -1,4 +1,4 @@
-import { orderService } from "@/services";
+import { orderService, userService } from "@/services";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
+import AddressSelectorModal from "./components/AddressSelectorModal";
 import CheckoutProgress from "./components/CheckoutProgress";
 import ShippingDeploymentForm from "./components/ShippingDeploymentForm";
 import { checkoutSchema } from "./schemas";
@@ -23,6 +24,8 @@ export default function Checkout() {
   const { items, fetchCart, isLoading: cartLoading, couponCode: appliedCouponCode, couponDiscount } = useCartStore();
   const { user } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [showAddressModal, setShowAddressModal] = useState(false);
 
   // React Hook Form với Zod validation
   const {
@@ -54,6 +57,38 @@ export default function Checkout() {
     [subtotal, shippingFee, couponDiscount]
   );
 
+  // Fetch địa chỉ đã lưu và pre-fill form với địa chỉ mặc định
+  useEffect(() => {
+    userService.getAddresses()
+      .then((res) => {
+        const addrs = res.data.data || [];
+        setSavedAddresses(addrs);
+        const def = addrs.find((a) => a.isDefault) || addrs[0];
+        if (def) {
+          setValue("province", def.province);
+          setValue("district", def.district);
+          setValue("ward", def.ward);
+          setValue("detail", def.detail);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSelectAddress = async (address) => {
+    setValue("province", address.province, { shouldValidate: true });
+    setValue("district", address.district, { shouldValidate: true });
+    setValue("ward", address.ward, { shouldValidate: true });
+    setValue("detail", address.detail, { shouldValidate: true });
+    // Lưu địa chỉ được chọn làm mặc định
+    try {
+      const res = await userService.setDefaultAddress(address._id);
+      setSavedAddresses(res.data.data);
+    } catch {
+      // fail silently
+    }
+    setShowAddressModal(false);
+  };
+
   // Redirect nếu giỏ hàng rỗng (chờ load xong mới kiểm tra)
   useEffect(() => {
     if (!cartLoading && (!items || items.length === 0)) {
@@ -78,6 +113,16 @@ export default function Checkout() {
 
         // Đồng bộ giỏ hàng từ server (backend đã clear cart)
         await fetchCart();
+
+        // Nếu user chưa có địa chỉ nào, lưu địa chỉ vừa nhập làm mặc định
+        if (savedAddresses.length === 0) {
+          userService.addAddress({
+            province: data.province,
+            district: data.district,
+            ward: data.ward,
+            detail: data.detail,
+          }).catch(() => {});
+        }
 
         // Hiển thị thông báo thành công
         toast.success("Đặt hàng thành công!");
@@ -132,6 +177,7 @@ export default function Checkout() {
                 errors={errors}
                 setValue={setValue}
                 watch={watch}
+                onChangeAddress={savedAddresses.length > 0 ? () => setShowAddressModal(true) : undefined}
               />
             </div>
 
@@ -230,6 +276,14 @@ export default function Checkout() {
           </div>
         </form>
       </div>
+
+      {showAddressModal && (
+        <AddressSelectorModal
+          addresses={savedAddresses}
+          onSelect={handleSelectAddress}
+          onClose={() => setShowAddressModal(false)}
+        />
+      )}
     </section>
   );
 }

@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/store/authStore";
-import { KeyRound, Package, UserCircle } from "lucide-react";
+import { KeyRound, MapPin, Package, UserCircle } from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router";
 
 /**
@@ -20,6 +20,11 @@ export default function ProfileLayout() {
       path: "/profile/orders",
       label: "Đơn hàng của tôi",
       icon: Package,
+    },
+    {
+      path: "/profile/addresses",
+      label: "Địa chỉ của tôi",
+      icon: MapPin,
     },
     {
       path: "/profile/change-password",

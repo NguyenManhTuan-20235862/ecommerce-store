@@ -3,30 +3,29 @@ description: Trạng thái hoàn thiện của từng module Backend và Fronten
 alwaysApply: false
 ---
 
-# Trạng Thái Dự Án (cập nhật 2026-05-07, session 5)
+# Trạng Thái Dự Án (cập nhật 2026-05-10, session 8)
 
 ## Backend — Hoàn thành ✅
 
 | Module | Ghi chú |
 |---|---|
-| Auth (signup/signin/signout) | JWT + Bcrypt, login bằng username hoặc email |
+| Auth (signup/signin/signout/refresh) | JWT + Bcrypt, login bằng username hoặc email, refresh token rotation |
 | Middleware (protectedRoute, adminRoute) | JWT verify từ Authorization header |
-| Product API (public + admin) | CRUD, filter/sort/pagination/search, related, slug + `GET /admin/:id` |
+| Product API (public + admin) | CRUD, filter/sort/pagination/search, related, slug + `GET /admin/:id`. **Limit cap 200** cho public endpoint |
 | Category API (public + admin) | CRUD, slug generation |
-| Cart API | get/add/update-quantity/remove/clear |
+| **Cart API** ✅ | get/add/update-quantity/remove/clear. **Validate tồn kho**: `findMatchingVariant` + stock check trong `addToCart` + `updateItemQuantity` |
 | **Order API** ✅ | Tạo đơn (atomic stock decrement + rollback), danh sách, chi tiết, hủy (hoàn stock), đổi trạng thái có state machine |
 | Upload API | Max 5 files, 5MB/file, JPEG/PNG/WebP/GIF — trả **full URL** `http://host/uploads/filename` |
-| **User API** ✅ | `GET /users/me`, `PUT /users/me`, `PUT /users/me/password`, `GET /users` (admin), `GET/POST/DELETE /users/me/wishlist` |
+| **User API** ✅ | `GET /users/me`, `PUT /users/me`, `PUT /users/me/password`, `POST /users/me/avatar`, `GET /users` (admin), `GET/POST/DELETE /users/me/wishlist`, **`GET/POST /me/addresses`, `PUT/DELETE /me/addresses/:id`, `PUT /me/addresses/:id/default`** |
 | **Coupon API** ✅ | `POST /coupons/validate` (user), CRUD admin — Model (code, discountType, value, minOrder, maxUses, expiresAt, usedCount) |
-| Models | User (+ wishlist field), Session, Product, Category, Cart, Order, Coupon |
+| **Review API** ✅ | `GET /products/:id/reviews` (public), `POST /products/:id/reviews` (protected), `DELETE /products/:id/reviews/:reviewId` (protected/admin) |
+| Models | User (+ wishlist + avatarUrl/avatarId + **addresses[]**), Session, Product, Category, Cart, Order, Coupon, **Review** |
 | Seeder | 5 danh mục + 24+ sản phẩm (8 featured) |
-| **Services layer** ✅ | `authService`, `productService`, `cartService`, `orderService`, `userService` (+ wishlist CRUD), `couponService` + `utils/slugUtils` |
+| **Services layer** ✅ | `authService`, `productService`, `cartService` (+ **findMatchingVariant**), `orderService`, `userService` (+ wishlist + avatar + **addresses CRUD**), `couponService`, **`reviewService`** + `utils/slugUtils` |
 
 ## Backend — Chưa có ❌
 
-- Model + API `Review`
-- Validate tồn kho khi thêm vào giỏ
-- Refresh token rotation endpoint (`/auth/refresh`)
+_(Không còn backlog — tất cả items đã hoàn thành)_
 
 ## Frontend — Hoàn thành ✅
 
@@ -52,25 +51,24 @@ alwaysApply: false
 | **Admin Customers** ✅ | Search debounce, table, detail drawer |
 | **Admin Coupons** ✅ | Table (mã/loại/giá trị/min đơn/đã dùng/hết hạn/trạng thái), modal create/edit Zod + RHF, delete |
 | **Wishlist** ✅ | Trang `/wishlist`, heart icon trên ProductTile/FeaturedProductTile/ProductDetails, store Zustand (optimistic toggle), badge Header |
+| **Reviews** ✅ | `VibeCheckReviews.jsx` redesign grid text cards (sm:2/lg:3), `ReviewModal.jsx` (Zod+RHF, star hover), `Product/index.jsx` fetch + mapReviewToDisplay, `review.service.js` |
+| **Profile - Avatar upload** ✅ | Nút camera overlay, hidden file input, upload → `POST /users/me/avatar`, `setUser({ avatarUrl })`, hiển thị ảnh hoặc letter fallback |
+| **Profile - Địa chỉ** ✅ | Trang `/profile/addresses`, list/add/edit/delete/set-default, form Zod+RHF (province/district/ward/detail), max 10 địa chỉ |
+| **Checkout - Address integration** ✅ | Pre-fill form từ địa chỉ mặc định khi vào trang, nút "Thay đổi địa chỉ" mở modal, chọn địa chỉ → set làm mặc định, auto-save khi checkout lần đầu chưa có địa chỉ |
 | Stores (Zustand) | authStore (+ setUser + fetchWishlist), cartStore (+ couponDiscount), wishlistStore, uiStore — persist localStorage |
-| **Services (API layer)** ✅ | `product.service.js`, `cartService.js`, `category.service.js`, `order.service.js`, `user.service.js` (+ updateProfile), `coupon.service.js`, `wishlist.service.js` |
-| **Utils** ✅ | `getImageUrl.js` — prefix backend origin cho `/uploads/` path |
+| **Services (API layer)** ✅ | `product.service.js`, `cartService.js`, `category.service.js`, `order.service.js`, `user.service.js` (+ uploadAvatar + **addresses CRUD**), `coupon.service.js`, `wishlist.service.js`, **`review.service.js`** |
+| **Utils** ✅ | `getImageUrl.js` — prefix backend origin cho `/uploads/` path; `cityOptions.js` — shared data dùng chung giữa Profile/Addresses và Checkout |
 | Routes | AdminRoute, ProtectedRoute guard |
 
 ## Frontend — Chưa hoàn thiện 🚩
 
-| Trang / Module | Việc cần làm |
-|---|---|
-| Reviews (VibeCheckReviews) | `reviews = []`, chưa có submit logic |
-| Shop — shoe/pants sizes | Filter size chỉ có S/M/L/XL/XXL/OS, chưa có size giày/quần |
-| Load More giới hạn 50 | Backend cap `Math.min(50, ...)`, Load More stuck khi tổng > 50 |
-| Profile - Avatar upload | Multer upload ảnh avatar, hiển thị thay avatar chữ cái |
+_(Không còn backlog bắt buộc — tất cả items đã hoàn thành)_
 
-## Lộ trình tiếp theo (ưu tiên cao → thấp)
+## Lộ trình tiếp theo (cải thiện thêm)
 
-1. **Reviews** ⭐ — Model + API + UI (submit từ Product Detail, `VibeCheckReviews` đang hardcode `reviews = []`)
-2. **Profile - Avatar upload** — Multer upload ảnh avatar, lưu local
-3. **Refresh token rotation** — endpoint `/auth/refresh`
+1. **UI hết hàng trên Product page** — Disable nút + badge "Hết hàng" trên variant khi stock = 0, không cần chờ API
+2. **Search trên Shop page** — Thanh tìm kiếm full-text (backend đã có `$text` index)
+3. **Cursor-based pagination** — Thay Load More + limit lớn bằng pagination thật nếu catalog mở rộng
 
 ## Trạng Thái Chi Tiết
 
@@ -78,9 +76,21 @@ alwaysApply: false
 
 - ✅ `PUT /api/users/me` — update profile (displayName, email, phone) với email uniqueness check
 - ✅ `PUT /api/users/me/password` — đổi mật khẩu bcrypt
-- ✅ `ProfileInfo.jsx` — avatar chữ cái, view + edit mode, Zod + RHF, sync authStore sau save
+- ✅ `POST /api/users/me/avatar` — upload avatar (multer single, xóa file cũ, lưu avatarUrl+avatarId)
+- ✅ `ProfileInfo.jsx` — avatar ảnh hoặc letter fallback, nút camera overlay, upload handler, view + edit mode, Zod + RHF
 - ✅ `ProfileLayout` — 3 nav items: Thông tin tài khoản, Đơn hàng, Đổi mật khẩu
 - ✅ `/profile` → redirect `/profile/info` (mặc định)
+
+### ✅ Reviews (Hoàn thành 100%)
+
+- ✅ `backend/models/Review.js` — userId, productId, rating(1-5 int), comment(optional max 1000), unique index {userId,productId}
+- ✅ `backend/services/reviewService.js` — `getReviewsByProduct` (bulk verify delivered orders, O(1) DB round-trip), `createReview`, `deleteReview`
+- ✅ `backend/controllers/reviewController.js` — 3 handlers, 409 duplicate, 403 forbidden, 404 not found
+- ✅ `backend/routes/reviewRoute.js` — `mergeParams: true`, sub-mount dưới `productRoute.js`
+- ✅ `frontend/src/services/review.service.js` — `getByProduct`, `create`, `remove`
+- ✅ `frontend/src/pages/Product/ReviewModal.jsx` — Zod+RHF, star selector với hover, textarea
+- ✅ `frontend/src/pages/Product/VibeCheckReviews.jsx` — grid text cards (sm:2/lg:3), auth gate, modal trigger
+- ✅ `frontend/src/pages/Product/index.jsx` — `mapReviewToDisplay` (tên → "MINH H."), fetch reviews, truyền props
 
 ### ✅ Coupon System (Hoàn thành 100%)
 

@@ -7,6 +7,8 @@ export const categoryFilters = [
 ];
 
 export const sizeFilters = ["S", "M", "L", "XL", "XXL", "OS"];
+export const shoeSizeFilters = ["38", "39", "40", "41", "42", "43", "44"];
+export const pantsSizeFilters = ["28", "29", "30", "31", "32", "33", "34", "36"];
 
 export const maxPrice = 5000000;
 

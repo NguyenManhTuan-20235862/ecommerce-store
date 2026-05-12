@@ -65,6 +65,7 @@ export default function Cart() {
       toast.success("Áp dụng mã giảm giá thành công");
     } catch (err) {
       setCouponDiscount(0);
+      setCouponCode("");
       toast.error(err.response?.data?.message || "Mã không hợp lệ");
     } finally {
       setCouponLoading(false);

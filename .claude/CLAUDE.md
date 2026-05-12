@@ -10,15 +10,13 @@
 ## Nguyên Tắc Dành Cho AI
 
 1. **Ngôn ngữ:** Luôn giao tiếp, giải đáp và comment code bằng **Tiếng Việt**.
-2. **Thiết kế Tailwind:** Bám sát bảng màu hệ thống (warm gray + blue accent). Không tự ý thêm màu ngoài hệ thống. Xem chi tiết trong `.claude/rules/ui-design.md`.
-3. **Bám sát scope đồ án:** Trước khi implement tính năng mới, đối chiếu với `docs/topic/TOPIC GR1.md`.
-4. **Nhất quán pattern hiện có:** Dùng service layer cho API calls, Zustand cho state, Zod + RHF cho form validation. Không đổi pattern chỉ vì có cách khác.
-5. **Bảo mật:** Mọi async function backend phải có try/catch. Không để lộ stack trace ra response. Validate đầu vào trước khi query DB.
-6. **Controllers phải mỏng:** Controller chỉ làm 3 việc — validate input, gọi service, trả response. Business logic đặt trong `services/`.
+2. **Thiết kế Tailwind:** Bám sát bảng màu hệ thống (warm gray + blue accent). Xem `.claude/rules/ui-design.md`.
+3. **Bám sát scope đồ án:** Đối chiếu `docs/topic/TOPIC GR1.md` trước khi implement tính năng mới.
+4. **Nhất quán pattern:** Service layer cho API calls, Zustand cho state, Zod + RHF cho form validation.
+5. **Bảo mật:** Mọi async function backend phải có try/catch. Không để lộ stack trace. Validate input trước DB.
+6. **Controllers phải mỏng:** Chỉ validate input → gọi service → trả response. Business logic trong `services/`.
 
 ## Rules Chi Tiết
-
-Các quy tắc chi tiết nằm trong `.claude/rules/`:
 
 | File | Nội dung | Load khi |
 |---|---|---|
@@ -27,135 +25,69 @@ Các quy tắc chi tiết nằm trong `.claude/rules/`:
 | `coding-frontend.md` | Cấu trúc component, state, form, service layer | Thêm/sửa frontend |
 | `coding-backend.md` | Routes/Controllers/Services/Models, response format | Thêm/sửa backend |
 | `project-status.md` | Trạng thái từng module, việc còn thiếu, lộ trình | Lên kế hoạch tính năng |
-| `architecture.md` | Cấu trúc thư mục, quyết định kiến trúc, lưu ý kỹ thuật | Điều hướng codebase |
+| `architecture.md` | Cấu trúc thư mục, quyết định kiến trúc | Điều hướng codebase |
 
-## Cập Nhật Phiên Này (2026-05-07) — Session 5
-
-### Hoàn thành
-
-| Hạng mục | Chi tiết |
-|---|---|
-| **Admin Dashboard statistics** ✅ | Đã hoàn chỉnh từ trước (backend `getDashboardStats` + frontend chart/table). Xác nhận lại không cần làm thêm. |
-| **Wishlist** ✅ | Backend: `wishlist` field trong User model, `getWishlist`/`addToWishlist`/`removeFromWishlist` trong userService + userController, 3 routes `/me/wishlist`. Frontend: `wishlist.service.js`, `wishlistStore.js` (Zustand, optimistic toggle), trang `/wishlist`, heart icon trên ProductTile/FeaturedProductTile/ProductDetails, badge đỏ trên Header |
-| **Bug fixes (3 lỗi)** | ProductDetails truyền thiếu slug+images vào toggle (→ `/product/undefined`), toggle không guard productId undefined, Wishlist page double-fetch fetchWishlist |
-
-### Quyết định quan trọng & lý do (session 5)
-
-| Quyết định | Lý do |
-|---|---|
-| **Wishlist lưu trong User model** | Không cần model riêng — array ObjectId trong User đủ cho scope đồ án, đơn giản hơn join. |
-| **wishlistStore không persist** | By design giống cartStore — fetch lại từ API sau login/hydration. Tránh stale data khi user dùng nhiều tab. |
-| **Optimistic update với rollback** | UX nhanh hơn — heart toggle ngay lập tức, rollback bằng `fetchWishlist()` nếu API fail. |
-| **fetchWishlist KHÔNG gọi trong Wishlist page** | authStore đã gọi `fetchWishlist()` sau login + hydration — gọi thêm trong component là double-fetch thừa. |
-| **ProductDetails nhận thêm `productSlug` + `productImages`** | toggle cần đủ data để optimistic add item vào store mà không bị `/product/undefined` khi user sang Wishlist page ngay. |
-
-## Cập Nhật Phiên Trước (2026-05-07) — Session 4
+## Cập Nhật Phiên Này (2026-05-10) — Session 8
 
 ### Hoàn thành
 
 | Hạng mục | Chi tiết |
 |---|---|
-| **Bug fixes (8 lỗi)** | couponDiscount Cart→Checkout, Admin Coupon edit validation, fetchCart reset discount, jsconfig baseUrl, Checkout phone pre-fill, Checkout redirect race condition, Shop last-row incomplete, ảnh vỡ không có fallback |
-| **`cartStore.js`** | Thêm `couponDiscount: 0` state + `setCouponDiscount` action; `fetchCart` và `clearCart` đều reset `couponDiscount: 0` |
-| **`Checkout/index.jsx`** | Đọc `couponDiscount`+`couponCode` từ store; pre-fill `receiverPhone: user?.phone`; guard redirect dùng `cartLoading` |
-| **`Admin/Coupons/index.jsx`** | `openEdit()` thêm `code: coupon.code` vào reset; payload edit strip `code` |
-| **`frontend/jsconfig.json`** | Thêm `"baseUrl": "."` cho path alias `@/*` |
-| **`Shop/index.jsx`** | `INITIAL_VISIBLE = 11`, load step `+4` — hàng cuối luôn đủ 4 cột (featured span 2 cols) |
-| **`uploadController.js`** | Trả full URL `http://host/uploads/filename` thay vì `/uploads/filename` |
-| **`getImageUrl.js`** | Utility mới: prefix backend origin cho path `/uploads/...` — xử lý ảnh cũ trong DB |
-| **`ProductTile.jsx` / `FeaturedProductTile.jsx`** | Thêm `onError` fallback + src fallback khi ảnh rỗng/vỡ |
-| **`Product/index.jsx` / `Shop/index.jsx`** | Áp dụng `getImageUrl()` khi render images |
+| **Load More giới hạn 50** ✅ | `getProducts`: nâng cap `Math.min(50,…)` → `Math.min(200,…)`. Admin `getAdminProducts` giữ nguyên 50. |
+| **Validate tồn kho khi add to cart** ✅ | `cartService.js`: thêm `findMatchingVariant`. `addToCart`: check variant + `currentQty + quantity ≤ stock`. `updateItemQuantity`: check `quantity ≤ stock`. |
+| **Xác nhận Shop sizes + outOfStock Dashboard** | Đã implement từ trước — `shopData.js` có `shoeSizeFilters`/`pantsSizeFilters`, `FilterSidebar` có `getSizeList(activeCategory)`, `getDashboardStats` tính `outOfStockCount` từ DB thực. |
 
-### Quyết định quan trọng & lý do (session 4)
+### Quyết định quan trọng (session 8)
 
 | Quyết định | Lý do |
 |---|---|
-| **`couponDiscount` vào Zustand store** | Local useState trong Cart bị mất khi navigate sang Checkout. Store persist qua navigation. |
-| **`fetchCart` reset `couponDiscount: 0`** | Backend Cart không lưu discount amount — chỉ lưu `couponCode`. Mỗi lần fetchCart phải reset để tránh stale value. |
-| **`cartLoading` guard trong Checkout redirect** | `cartStore.items` khởi tạo là `[]`. useEffect chạy ngay lập tức trước khi fetchCart async về → false redirect. |
-| **`INITIAL_VISIBLE = 11`, step `+4`** | Grid `xl:grid-cols-4` + featured `lg:col-span-2` → công thức `(N-3)%4==0`. N=11,15,19... luôn đủ hàng. |
-| **`uploadController` trả full URL** | Frontend Vite (`localhost:5173`) không serve `/uploads/`. Backend (`localhost:5000`) mới có static. Relative path gây 404. |
-| **`getImageUrl` utility** | Ảnh cũ trong DB đã lưu `/uploads/...` (relative). Utility convert runtime thay vì migrate DB. |
+| **Cap 200 cho public `getProducts`** | Frontend Shop gửi `limit: visibleCount` tăng dần — cap 50 làm stuck khi tổng > 50 sản phẩm. |
+| **`findMatchingVariant` trong `cartService.js`** | Business logic về variant matching thuộc service layer. Controller chỉ gọi và xử lý response. |
+| **Stock check cộng `currentQty` hiện có** | User đã có 3 trong giỏ, stock = 3 → thêm 1 nữa phải bị block. |
+| **`updateItemQuantity` cũng check stock** | User có thể tăng qty trực tiếp trong giỏ — cần validate ở cả endpoint này. |
 
-## Cập Nhật Phiên Trước (2026-05-06) — Session 3
+## Cập Nhật Phiên Trước (2026-05-07) — Session 7
 
 ### Hoàn thành
 
 | Hạng mục | Chi tiết |
 |---|---|
-| **Coupon System** ✅ | Backend: Model (code/discountType/value/minOrder/maxUses/usedCount/expiresAt), Service (validateAndApplyCoupon + CRUD), Controller (5 endpoints), Route. Frontend: coupon.service.js, Admin CRUD page, Cart Apply button + discount line |
-| **Profile - Thông tin tài khoản** ✅ | `PUT /api/users/me` backend, `ProfileInfo.jsx` với avatar chữ cái + view/edit mode, `profileInfoSchema` Zod, sync `authStore` sau save, redirect mặc định `/profile` → `/profile/info` |
-| **Bug fixes (10 lỗi)** | Order status state machine, race condition stock decrement, Shop category filter, Shop default size M, ReDoS regex, Cart +/- REMOVE, Cart USD→VND, Cart tax sai, Cart total overflow, Checkout pre-fill |
-| `authStore.js` | Thêm `setUser()` action để update user trong store mà không cần refetch |
-| `backend/controllers/authController.js` | Thêm `email` vào signIn response (cần cho Checkout pre-fill) |
+| **Bug fix: Coupon hết hạn** ✅ | `Cart/index.jsx` catch: thêm `setCouponCode("")` khi Apply thất bại. |
+| **Address Management** ✅ | Backend: `addressSchema` subdoc trong User (province/district/ward/detail/isDefault, max 10), 5 routes `/me/addresses`. Frontend: `cityOptions.js`, `Profile/Addresses/index.jsx`, `AddressSelectorModal.jsx`, tích hợp Checkout pre-fill + auto-save. |
 
-### Quyết định quan trọng & lý do (session 3)
+### Quyết định quan trọng (session 7)
 
 | Quyết định | Lý do |
 |---|---|
-| **`VALID_TRANSITIONS` state machine cho order status** | Single source of truth — terminal states (`delivered`, `cancelled`) map tới `[]`, mọi transition throw ngay thay vì kiểm tra rải rác. |
-| **Atomic stock decrement + rollback loop** | MongoDB không có transactions ở setup local. `findOneAndUpdate` + `$elemMatch: { stock: { $gte } }` đảm bảo atomicity từng item. Rollback: vòng lặp `$inc +quantity` cho các item đã trừ trước khi lỗi xảy ra. |
-| **`cartItemId` tách khỏi `productId` trong `mapStoreItem`** | Sau `populate`, `item.productId` là object, không dùng làm ID được. Cart subdoc có `_id` riêng (cartItemId) dùng cho API, còn `productId._id` dùng cho reference. |
-| **`updateProfile` kiểm tra email uniqueness** | `User.findOne({ email, _id: { $ne: userId } })` — chặn user khác chiếm email, cho phép user giữ email của mình khi edit các field khác. |
-| **`setUser` merge thay vì replace** | `set((state) => ({ user: { ...state.user, ...userData } }))` — chỉ cập nhật fields được trả về, giữ nguyên `role`, `username`, `_id` không thay đổi. |
-| **Checkout pre-fill email qua signIn response** | `authStore.user.email` chỉ có sau hydration từ `/users/me`. Thêm email vào signIn response đảm bảo field có ngay sau login, trước cả khi hydration xong. |
+| **Address không có receiverName/Phone** | Tên/SĐT đã có trong profile — address chỉ lưu địa điểm. |
+| **Auto-save address khi checkout lần đầu** | Guard `savedAddresses.length === 0` tránh ghi đè khi đã có. `.catch(()=>{})` để không block redirect. |
+| **`cityOptions.js` file riêng** | Dùng chung giữa Checkout và Profile/Addresses — tránh duplicate. |
 
-## Cập Nhật Phiên Trước (2026-05-06) — Session 2
+## Cập Nhật Phiên Trước (2026-05-07) — Session 6
 
 ### Hoàn thành
 
 | Hạng mục | Chi tiết |
 |---|---|
-| **Admin Categories** ✅ | Table (tên/slug/mô tả/trạng thái), modal create/edit với Zod + RHF, toggle isActive (chỉ khi edit), delete với confirm dialog |
-| **Admin Orders** ✅ | Filter tabs theo status + badge đếm, table với inline status select, optimistic update, detail drawer (khách hàng/địa chỉ/items/tóm tắt/status update), lock khi delivered/cancelled |
-| **Admin Customers** ✅ | Search debounce 400ms, table (avatar/tên/username/email/SĐT/vai trò/ngày tham gia), click row → detail drawer |
-| `backend/controllers/userController.js` | Thêm `getAllUsers` — tìm kiếm theo displayName/email/username, select bỏ hashedPassword |
-| `backend/routes/userRoute.js` | Thêm `GET /` (adminRoute) — lấy danh sách users cho admin |
-| `frontend/src/services/order.service.js` | Thêm `getAllOrders()`, `updateOrderStatus(orderId, status)` |
-| `frontend/src/services/user.service.js` | Thêm `getAllUsers(params)` |
-| `frontend/src/App.jsx` | Mount 3 trang admin thật thay cho placeholder div |
+| **Reviews** ✅ | Backend: `Review.js` (unique index {userId,productId}), `reviewService.js` (bulk-verify delivered orders), controller + route (`mergeParams: true`). Frontend: `ReviewModal.jsx` (star selector), `VibeCheckReviews.jsx` (grid text cards), `mapReviewToDisplay`. |
+| **Profile - Avatar upload** ✅ | Backend: `uploadAvatar` (fs.unlink ảnh cũ, lưu avatarUrl+avatarId). Frontend: camera overlay, letter fallback, spinner upload. |
 
-### Quyết định quan trọng & lý do (session 2)
+### Quyết định quan trọng (session 6)
 
 | Quyết định | Lý do |
 |---|---|
-| **Status select inline trên table row** | Cập nhật trạng thái ngay tại chỗ, không cần mở modal riêng. UX nhanh hơn cho admin xử lý nhiều đơn. |
-| **Optimistic update sau status change** | Sau khi API thành công, update `setOrders(prev => ...)` thay vì refetch. Tránh flicker + tiết kiệm request. Drawer cũng sync cùng lúc nếu đang mở. |
-| **Lock select khi delivered/cancelled** | Hai trạng thái này là "trạng thái cuối" — không thể quay lại. Disable select để tránh thao tác nhầm. |
-| **Detail drawer thay vì navigate sang page riêng** | Giữ context list page, không mất vị trí filter/tab đang chọn. Backdrop click để đóng nhanh. |
-| **`getAllUsers` đặt thẳng trong controller** | Query đơn giản (find + select + regex search), không cần tách ra userService. Giữ service cho business logic phức tạp. |
-| **Debounce 400ms cho search (Customers)** | Tránh gọi API liên tục khi user gõ. Pattern giống AdminProductsPage đã có. |
-
-## Cập Nhật Phiên Trước (2026-05-06) — Session 1
-
-### Hoàn thành
-
-| Hạng mục | Chi tiết |
-|---|---|
-| **Admin ProductForm** ✅ | Implement đầy đủ: form 2 cột, upload ảnh (tối đa 5, preview grid, xóa từng ảnh), variant editor động (useFieldArray), dropdown danh mục, toggles nổi bật/đang bán, submit create/edit, loading/error states |
-| `backend/services/productService.js` | Thêm `findById(id)` — lấy sản phẩm theo `_id`, bao gồm cả inactive (dùng cho admin) |
-| `backend/controllers/productController.js` | Thêm `getProductById` controller |
-| `backend/routes/productRoute.js` | Thêm `GET /admin/:id` (đặt sau `/admin/all` để tránh conflict) |
-| `frontend/src/services/product.service.js` | Thêm `getById(id)` — gọi `GET /products/admin/:id` |
-| `frontend/src/pages/Admin/Products/schemas.js` | **Mới** — Zod schema cho ProductForm |
-| `frontend/src/pages/Admin/Products/ProductForm.jsx` | Refactor từ skeleton thành form đầy đủ |
-
-### Quyết định quan trọng & lý do (session 1)
-
-| Quyết định | Lý do |
-|---|---|
-| **GET /admin/:id thêm vào sau /admin/all** | Express match theo thứ tự — literal `/admin/all` phải đứng trước wildcard `/admin/:id` để không bị override. |
-| **Upload ảnh trước, submit form sau** | Images không đi qua RHF — lưu trong `useState` riêng. Khi submit, merge `{ ...data, images }`. Tránh complexity của file input trong Zod schema. |
-| **`useFieldArray` cho variants** | RHF built-in, hỗ trợ add/remove/re-order mà không cần viết state thủ công. |
-| **`findById` không filter `isActive`** | Admin cần xem được sản phẩm đang ẩn để edit/kích hoạt lại. Public `findByIdentifier` vẫn có `isActive: true`. |
+| **`isVerified` tính runtime** | Lưu DB → stale nếu order bị cancel sau khi đã review. Bulk query O(1) round-trip. |
+| **Review sub-router dưới `productRoute.js`** | `mergeParams: true` nhận `productId` từ cha. Không cần sửa `server.js`. |
+| **`/:slug` không shadow `/:productId/reviews`** | Express `end: true` — chỉ match 1 segment. `/productId/reviews` là 2 segments. |
+| **Hidden `<input {...register("rating")} />`** | RHF yêu cầu field được `register` trước khi `setValue` có hiệu lực — pattern chuẩn cho custom star selector. |
 
 ## Ưu Tiên Phiên Tiếp Theo
 
-1. **Reviews** ⭐ — Model + API + UI (submit từ Product Detail, `VibeCheckReviews` đang hardcode `reviews = []`)
-2. **Profile - Avatar upload** — Multer upload ảnh avatar, lưu local, hiển thị thay avatar chữ cái
-3. **Refresh token rotation** — endpoint `/auth/refresh`
+1. **UI hết hàng trên Product page** — Disable nút + badge "Hết hàng" khi variant stock = 0, không chờ API
+2. **Search trên Shop page** — Thanh tìm kiếm full-text (backend đã có `$text` index)
+3. **Cursor-based pagination** — Thay Load More nếu catalog mở rộng
 
 ## Quy tắc session
 
-- **Context dài**: Khi conversation có nhiều tool calls / nội dung dài, hỏi: "Context đang dài, bạn có muốn /compact không? Sẽ ưu tiên giữ: auth architecture, database schema, danh sách file đã tạo."
+- **Context dài**: Hỏi user có muốn `/compact` không khi conversation có nhiều tool calls.
 - **Trước khi kết thúc**: Khi user nói "done", "tạm dừng", "xong" — chạy `/update-claude-md`.

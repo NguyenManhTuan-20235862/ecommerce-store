@@ -79,3 +79,61 @@ export const removeFromWishlist = async (userId, productId) => {
   }
   await User.findByIdAndUpdate(userId, { $pull: { wishlist: productId } });
 };
+
+export const getAddresses = async (userId) => {
+  const user = await User.findById(userId).select("addresses");
+  if (!user) throw new Error("Không tìm thấy tài khoản");
+  return user.addresses;
+};
+
+export const addAddress = async (userId, { province, district, ward, detail }) => {
+  const user = await User.findById(userId).select("addresses");
+  if (!user) throw new Error("Không tìm thấy tài khoản");
+  if (user.addresses.length >= 10) throw new Error("Tối đa 10 địa chỉ");
+
+  const isDefault = user.addresses.length === 0;
+  user.addresses.push({ province, district, ward, detail, isDefault });
+  await user.save();
+  return user.addresses;
+};
+
+export const updateAddress = async (userId, addressId, addressData) => {
+  const user = await User.findById(userId).select("addresses");
+  if (!user) throw new Error("Không tìm thấy tài khoản");
+  const address = user.addresses.id(addressId);
+  if (!address) throw new Error("Không tìm thấy địa chỉ");
+
+  if (addressData.isDefault) {
+    user.addresses.forEach((a) => { a.isDefault = false; });
+  }
+  Object.assign(address, addressData);
+  await user.save();
+  return user.addresses;
+};
+
+export const deleteAddress = async (userId, addressId) => {
+  const user = await User.findById(userId).select("addresses");
+  if (!user) throw new Error("Không tìm thấy tài khoản");
+  const address = user.addresses.id(addressId);
+  if (!address) throw new Error("Không tìm thấy địa chỉ");
+
+  const wasDefault = address.isDefault;
+  address.deleteOne();
+  if (wasDefault && user.addresses.length > 0) {
+    user.addresses[0].isDefault = true;
+  }
+  await user.save();
+  return user.addresses;
+};
+
+export const setDefaultAddress = async (userId, addressId) => {
+  const user = await User.findById(userId).select("addresses");
+  if (!user) throw new Error("Không tìm thấy tài khoản");
+  const address = user.addresses.id(addressId);
+  if (!address) throw new Error("Không tìm thấy địa chỉ");
+
+  user.addresses.forEach((a) => { a.isDefault = false; });
+  address.isDefault = true;
+  await user.save();
+  return user.addresses;
+};

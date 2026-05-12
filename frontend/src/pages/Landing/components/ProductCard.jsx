@@ -1,53 +1,80 @@
-import { useLocation, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useAuthStore } from "../../../store/authStore";
 import { useCartStore } from "../../../store/cartStore";
 
+function formatPrice(price) {
+  if (typeof price === "number") {
+    return `${new Intl.NumberFormat("vi-VN").format(price)}đ`;
+  }
+  return price;
+}
+
 export default function ProductCard({
+  _id,
+  slug,
   title,
   category,
   price,
   badge,
   tone,
   image,
+  variants = [],
 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const addItem = useCartStore((state) => state.addItem);
 
-  const handleAddToCart = async () => {
+  const isRealProduct = Boolean(_id && slug);
+
+  const handleAddToCart = async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+
     if (!isAuthenticated) {
-      toast.info("Vui lòng đăng nhập/đăng ký để thêm sản phẩm vào giỏ hàng");
+      toast.info("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
       navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
+
+    if (!isRealProduct) {
+      toast.error("Sản phẩm không khả dụng");
+      return;
+    }
+
+    const firstVariant = variants.find((v) => v.stock > 0);
+    if (!firstVariant) {
+      navigate(`/product/${slug}`);
       return;
     }
 
     const result = await addItem(
       {
-        productId: title.toLowerCase().replace(/\s+/g, "-"),
-        selectedSize: "M",
-        selectedColor: "Urban Core",
+        productId: _id,
+        selectedSize: firstVariant.size,
+        selectedColor: firstVariant.color,
       },
       1,
     );
 
-    if (result && result.success) {
+    if (result?.success) {
       toast.success(`Đã thêm ${title} vào giỏ hàng`);
     } else {
       toast.error(result?.message || "Có lỗi xảy ra khi thêm vào giỏ hàng");
     }
   };
 
-  return (
+  const card = (
     <article className="group relative overflow-hidden rounded-3xl border border-black/5 bg-white shadow-[0_20px_50px_rgba(47,47,46,0.08)] transition duration-300 hover:-translate-y-px hover:shadow-[0_30px_70px_rgba(47,47,46,0.12)]">
       <div
-        className={`relative aspect-4/3 overflow-hidden bg-linear-to-br ${tone}`}
+        className={`relative aspect-4/3 overflow-hidden bg-linear-to-br ${tone || "from-[#1a1a1e] via-[#21212a] to-[#2f2f2e]"}`}
       >
         {image && (
           <img
             src={image}
             alt={title}
+            onError={(e) => { e.currentTarget.src = "https://placehold.co/600x400/f3f0ef/94a3b8?text=No+Image"; }}
             className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         )}
@@ -67,7 +94,7 @@ export default function ProductCard({
             {title}
           </h3>
           <span className="text-lg font-extrabold tracking-[-0.04em] text-[#004be3]">
-            {price}
+            {formatPrice(price)}
           </span>
         </div>
         <button
@@ -80,4 +107,14 @@ export default function ProductCard({
       </div>
     </article>
   );
+
+  if (isRealProduct) {
+    return (
+      <Link to={`/product/${slug}`} className="block">
+        {card}
+      </Link>
+    );
+  }
+
+  return card;
 }

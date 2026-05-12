@@ -17,6 +17,7 @@ export default function ProductForm() {
 
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [sizeChart, setSizeChart] = useState({ headers: [], rows: [] });
   const [categories, setCategories] = useState([]);
   const [loadingProduct, setLoadingProduct] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
@@ -75,6 +76,7 @@ export default function ProductForm() {
           variants: p.variants || [],
         });
         setImages(p.images || []);
+        setSizeChart(p.sizeChart || { headers: [], rows: [] });
       })
       .catch(() => toast.error("Không thể tải thông tin sản phẩm"))
       .finally(() => setLoadingProduct(false));
@@ -103,10 +105,57 @@ export default function ProductForm() {
     }
   };
 
+  const scAddColumn = () => {
+    setSizeChart((prev) => ({
+      headers: [...prev.headers, ""],
+      rows: prev.rows.map((r) => [...r, ""]),
+    }));
+  };
+
+  const scRemoveColumn = (colIdx) => {
+    setSizeChart((prev) => ({
+      headers: prev.headers.filter((_, i) => i !== colIdx),
+      rows: prev.rows.map((r) => r.filter((_, i) => i !== colIdx)),
+    }));
+  };
+
+  const scUpdateHeader = (colIdx, val) => {
+    setSizeChart((prev) => {
+      const headers = [...prev.headers];
+      headers[colIdx] = val;
+      return { ...prev, headers };
+    });
+  };
+
+  const scAddRow = () => {
+    setSizeChart((prev) => ({
+      ...prev,
+      rows: [...prev.rows, prev.headers.map(() => "")],
+    }));
+  };
+
+  const scRemoveRow = (rowIdx) => {
+    setSizeChart((prev) => ({
+      ...prev,
+      rows: prev.rows.filter((_, i) => i !== rowIdx),
+    }));
+  };
+
+  const scUpdateCell = (rowIdx, colIdx, val) => {
+    setSizeChart((prev) => {
+      const rows = prev.rows.map((r, ri) =>
+        ri === rowIdx ? r.map((c, ci) => (ci === colIdx ? val : c)) : r,
+      );
+      return { ...prev, rows };
+    });
+  };
+
   const onSubmit = async (data) => {
     setSubmitting(true);
     try {
-      const payload = { ...data, images };
+      const sizeChartPayload =
+        sizeChart.headers.length > 0 ? sizeChart : null;
+      const payload = { ...data, images, sizeChart: sizeChartPayload };
       if (isEdit) {
         await productService.update(id, payload);
         toast.success("Cập nhật sản phẩm thành công");
@@ -372,6 +421,103 @@ export default function ProductForm() {
                       </button>
                     </div>
                   ))}
+                </div>
+              )}
+            </section>
+            {/* Bảng size */}
+            <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-neutral-900">
+                    Bảng size
+                  </h2>
+                  <p className="mt-0.5 text-xs text-neutral-500">
+                    Để trống nếu sản phẩm không cần bảng size
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={scAddColumn}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
+                  >
+                    <Plus size={14} /> Thêm cột
+                  </button>
+                  <button
+                    type="button"
+                    onClick={scAddRow}
+                    disabled={sizeChart.headers.length === 0}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Plus size={14} /> Thêm hàng
+                  </button>
+                </div>
+              </div>
+
+              {sizeChart.headers.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-neutral-200 py-10 text-center">
+                  <p className="text-sm text-neutral-400">Chưa có bảng size</p>
+                  <button
+                    type="button"
+                    onClick={scAddColumn}
+                    className="mt-2 text-sm text-blue-500 hover:underline"
+                  >
+                    + Thêm cột đầu tiên
+                  </button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr>
+                        {sizeChart.headers.map((h, ci) => (
+                          <th key={ci} className="pb-2 pr-2 text-left font-normal">
+                            <div className="flex items-center gap-1">
+                              <input
+                                value={h}
+                                onChange={(e) => scUpdateHeader(ci, e.target.value)}
+                                placeholder={`Cột ${ci + 1}`}
+                                className="w-full rounded border border-neutral-300 px-2 py-1.5 text-xs font-semibold text-neutral-700 outline-none focus:border-blue-500"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => scRemoveColumn(ci)}
+                                className="shrink-0 rounded p-1 text-neutral-400 hover:bg-red-50 hover:text-red-500"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          </th>
+                        ))}
+                        <th className="w-8" />
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100">
+                      {sizeChart.rows.map((row, ri) => (
+                        <tr key={ri}>
+                          {row.map((cell, ci) => (
+                            <td key={ci} className="py-1.5 pr-2">
+                              <input
+                                value={cell}
+                                onChange={(e) => scUpdateCell(ri, ci, e.target.value)}
+                                placeholder="—"
+                                className="w-full rounded border border-neutral-200 px-2 py-1.5 text-xs text-neutral-700 outline-none focus:border-blue-500"
+                              />
+                            </td>
+                          ))}
+                          <td className="py-1.5">
+                            <button
+                              type="button"
+                              onClick={() => scRemoveRow(ri)}
+                              className="flex h-7 w-7 items-center justify-center rounded border border-neutral-200 text-neutral-400 hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </section>

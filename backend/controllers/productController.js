@@ -24,7 +24,7 @@ export const getProducts = async (req, res) => {
     }
 
     const pageNum  = Math.max(1, Number(page));
-    const limitNum = Math.min(50, Math.max(1, Number(limit)));
+    const limitNum = Math.min(200, Math.max(1, Number(limit)));
     const skip     = (pageNum - 1) * limitNum;
 
     const [products, total] = await Promise.all([
@@ -90,7 +90,7 @@ export const createProduct = async (req, res) => {
     const {
       name, description, price, compareAtPrice,
       category, brand, sku, images, variants,
-      material, careInstructions, isFeatured,
+      material, careInstructions, isFeatured, sizeChart,
     } = req.body;
 
     if (!name || !name.trim()) {
@@ -124,6 +124,7 @@ export const createProduct = async (req, res) => {
       material: material?.trim() || "",
       careInstructions: careInstructions?.trim() || "",
       isFeatured: Boolean(isFeatured),
+      sizeChart: sizeChart || null,
     });
 
     await product.populate("category", "name slug");
@@ -145,7 +146,7 @@ export const updateProduct = async (req, res) => {
     const {
       name, description, price, compareAtPrice,
       category, brand, sku, images, variants,
-      material, careInstructions, isFeatured, isActive,
+      material, careInstructions, isFeatured, isActive, sizeChart,
     } = req.body;
 
     if (name && name.trim() && name.trim() !== product.name) {
@@ -164,6 +165,10 @@ export const updateProduct = async (req, res) => {
     if (careInstructions !== undefined) product.careInstructions = careInstructions.trim();
     if (isFeatured !== undefined)     product.isFeatured     = Boolean(isFeatured);
     if (isActive !== undefined)       product.isActive       = Boolean(isActive);
+    if (sizeChart !== undefined) {
+      product.sizeChart = sizeChart || null;
+      product.markModified("sizeChart");
+    }
 
     if (category) {
       const categoryExists = await Category.findById(category);

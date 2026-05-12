@@ -10,6 +10,7 @@ import {
   getAdminProducts,
 } from "../controllers/productController.js";
 import { protectedRoute, adminRoute } from "../middlewares/authMiddleware.js";
+import reviewRoute from "./reviewRoute.js";
 
 const router = express.Router();
 
@@ -38,5 +39,8 @@ router.put("/:id", protectedRoute, adminRoute, updateProduct);
 
 // Xóa sản phẩm
 router.delete("/:id", protectedRoute, adminRoute, deleteProduct);
+
+// Reviews theo sản phẩm — GET public, POST/DELETE tự bảo vệ
+router.use("/:productId/reviews", reviewRoute);
 
 export default router;

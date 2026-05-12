@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import User from "../models/User.js";
 import * as userService from "../services/userService.js";
 
@@ -97,6 +99,101 @@ export const removeFromWishlist = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi xóa wishlist:", error);
     return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/users/me/addresses — Lấy danh sách địa chỉ
+export const getAddresses = async (req, res) => {
+  try {
+    const addresses = await userService.getAddresses(req.user._id);
+    return res.status(200).json({ success: true, data: addresses });
+  } catch (error) {
+    console.error("Lỗi khi lấy địa chỉ:", error);
+    return res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+  }
+};
+
+// POST /api/users/me/addresses — Thêm địa chỉ mới
+export const addAddress = async (req, res) => {
+  try {
+    const { province, district, ward, detail } = req.body;
+    if (!province || !district || !ward || !detail) {
+      return res.status(400).json({ success: false, message: "Thiếu thông tin địa chỉ bắt buộc" });
+    }
+    const addresses = await userService.addAddress(req.user._id, { province, district, ward, detail });
+    return res.status(201).json({ success: true, message: "Thêm địa chỉ thành công", data: addresses });
+  } catch (error) {
+    console.error("Lỗi khi thêm địa chỉ:", error);
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// PUT /api/users/me/addresses/:addressId — Cập nhật địa chỉ
+export const updateAddress = async (req, res) => {
+  try {
+    const addresses = await userService.updateAddress(req.user._id, req.params.addressId, req.body);
+    return res.status(200).json({ success: true, message: "Cập nhật địa chỉ thành công", data: addresses });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật địa chỉ:", error);
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// DELETE /api/users/me/addresses/:addressId — Xóa địa chỉ
+export const deleteAddress = async (req, res) => {
+  try {
+    const addresses = await userService.deleteAddress(req.user._id, req.params.addressId);
+    return res.status(200).json({ success: true, message: "Xóa địa chỉ thành công", data: addresses });
+  } catch (error) {
+    console.error("Lỗi khi xóa địa chỉ:", error);
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// PUT /api/users/me/addresses/:addressId/default — Đặt địa chỉ mặc định
+export const setDefaultAddress = async (req, res) => {
+  try {
+    const addresses = await userService.setDefaultAddress(req.user._id, req.params.addressId);
+    return res.status(200).json({ success: true, message: "Đặt địa chỉ mặc định thành công", data: addresses });
+  } catch (error) {
+    console.error("Lỗi khi đặt địa chỉ mặc định:", error);
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// POST /api/users/me/avatar — Upload ảnh đại diện
+export const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Không có file nào được upload" });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    // Xóa file avatar cũ nếu có
+    if (user.avatarId) {
+      const oldPath = path.join(process.cwd(), "uploads", user.avatarId);
+      fs.unlink(oldPath, (err) => {
+        if (err) console.error("Không thể xóa avatar cũ:", err.message);
+      });
+    }
+
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const avatarUrl = `${baseUrl}/uploads/${req.file.filename}`;
+
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { avatarUrl, avatarId: req.file.filename },
+      { new: true, select: "-hashedPassword" }
+    );
+
+    return res.status(200).json({
+      message: "Cập nhật ảnh đại diện thành công",
+      avatarUrl: updated.avatarUrl,
+    });
+  } catch (error) {
+    console.error("Lỗi khi upload avatar:", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 

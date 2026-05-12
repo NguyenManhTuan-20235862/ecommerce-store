@@ -1,30 +1,12 @@
-import { ChevronDown } from "lucide-react";
+import { cityOptions } from "@/data/cityOptions";
+import { ChevronDown, MapPin } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-
-// Danh sách tỉnh/thành phố Việt Nam
-const cityOptions = [
-  {
-    value: "Hà Nội",
-    label: "Hà Nội",
-    districts: ["Ba Đình", "Hoàn Kiếm", "Đống Đa", "Cầu Giấy", "Hai Bà Trưng", "Hoàng Mai"],
-  },
-  {
-    value: "TP. Hồ Chí Minh",
-    label: "TP. Hồ Chí Minh",
-    districts: ["Quận 1", "Quận 3", "Quận 5", "Quận Bình Thạnh", "TP. Thủ Đức", "Quận 7"],
-  },
-  {
-    value: "Đà Nẵng",
-    label: "Đà Nẵng",
-    districts: ["Hải Châu", "Thanh Khê", "Sơn Trà", "Ngũ Hành Sơn", "Liên Chiểu"],
-  },
-];
 
 /**
  * Shipping Deployment Form Component
  * Form nhập thông tin giao hàng với validation
  */
-export default function ShippingDeploymentForm({ register, errors, setValue, watch }) {
+export default function ShippingDeploymentForm({ register, errors, setValue, watch, onChangeAddress }) {
   const [openDropdown, setOpenDropdown] = useState(null);
   const cityDropdownRef = useRef(null);
   const districtDropdownRef = useRef(null);
@@ -66,9 +48,21 @@ export default function ShippingDeploymentForm({ register, errors, setValue, wat
 
   return (
     <section className="space-y-8">
-      <h1 className="font-heading text-[30px] font-extrabold italic uppercase leading-9 tracking-[-0.05em] text-[#2f2f2e]">
-        Thông tin giao hàng
-      </h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="font-heading text-[30px] font-extrabold italic uppercase leading-9 tracking-[-0.05em] text-[#2f2f2e]">
+          Thông tin giao hàng
+        </h1>
+        {onChangeAddress && (
+          <button
+            type="button"
+            onClick={onChangeAddress}
+            className="flex shrink-0 items-center gap-2 rounded-full border border-[#004be3]/30 bg-white px-4 py-2 text-sm font-bold text-[#004be3] transition hover:bg-[#004be3]/5"
+          >
+            <MapPin className="h-4 w-4" />
+            Thay đổi địa chỉ
+          </button>
+        )}
+      </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Full Name */}

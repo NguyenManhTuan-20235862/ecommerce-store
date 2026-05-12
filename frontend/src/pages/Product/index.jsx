@@ -1,15 +1,44 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import { reviewService } from "../../services/review.service";
 import { productService } from "../../services/product.service";
+import { useAuthStore } from "../../store/authStore";
 import { getImageUrl } from "../../utils/getImageUrl";
 import ProductDetails from "./ProductDetails";
 import ProductGallery from "./ProductGallery";
+import ProductInfo from "./ProductInfo";
 import VibeCheckReviews from "./VibeCheckReviews";
+
+function mapReviewToDisplay(review) {
+  const parts = (review.userId?.displayName || "USER").trim().split(/\s+/);
+  const author =
+    parts.length === 1
+      ? parts[0].toUpperCase()
+      : `${parts[parts.length - 2].toUpperCase()} ${parts[parts.length - 1][0].toUpperCase()}.`;
+  return {
+    id: review._id,
+    author,
+    verified: review.isVerified,
+    rating: review.rating,
+    text: review.comment || null,
+  };
+}
 
 export default function Product() {
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [reviews, setReviews] = useState([]);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  const fetchReviews = async (pid) => {
+    try {
+      const res = await reviewService.getByProduct(pid);
+      setReviews((res.data.reviews || []).map(mapReviewToDisplay));
+    } catch {
+      // non-fatal
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -27,6 +56,10 @@ export default function Product() {
     };
     if (productId) fetchProduct();
   }, [productId]);
+
+  useEffect(() => {
+    if (product?._id) fetchReviews(product._id);
+  }, [product?._id]);
 
   if (isLoading) {
     return (
@@ -80,8 +113,6 @@ export default function Product() {
     return { name: c, hex: variantWithHex?.colorHex || fallbackHex(c) };
   }) : [{ name: "Default", hex: "#0f172a" }];
 
-  const stockInfo = (product.variants?.reduce((acc, v) => acc + (v.stock || 0), 0) || 0) + " IN STOCK";
-
   return (
     <section className="w-full bg-[#f9f6f5]">
       <div className="mx-auto w-full max-w-7xl space-y-24 px-4 py-20 sm:px-6 lg:px-10">
@@ -96,15 +127,26 @@ export default function Product() {
             productImages={product.images}
             title={product.name}
             price={product.price}
-            stock={stockInfo}
             description={product.description}
             colors={colors}
             sizes={sizes}
             defaultSize={sizes[0]}
+            variants={product.variants || []}
           />
         </div>
 
-        <VibeCheckReviews reviews={[]} />
+        <ProductInfo
+          material={product.material}
+          careInstructions={product.careInstructions}
+          sizeChart={product.sizeChart}
+        />
+
+        <VibeCheckReviews
+          reviews={reviews}
+          productId={product._id}
+          isAuthenticated={isAuthenticated}
+          onReviewSubmitted={() => fetchReviews(product._id)}
+        />
       </div>
     </section>
   );

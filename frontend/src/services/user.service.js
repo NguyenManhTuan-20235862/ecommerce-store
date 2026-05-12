@@ -27,6 +27,29 @@ export const userService = {
     return api.put("/users/me/password", passwordData);
   },
 
+  uploadAvatar(formData) {
+    return api.post("/users/me/avatar", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // ====== ADDRESSES ======
+  getAddresses() {
+    return api.get("/users/me/addresses");
+  },
+  addAddress(addressData) {
+    return api.post("/users/me/addresses", addressData);
+  },
+  updateAddress(addressId, addressData) {
+    return api.put(`/users/me/addresses/${addressId}`, addressData);
+  },
+  deleteAddress(addressId) {
+    return api.delete(`/users/me/addresses/${addressId}`);
+  },
+  setDefaultAddress(addressId) {
+    return api.put(`/users/me/addresses/${addressId}/default`);
+  },
+
   // ====== ADMIN ======
   getAllUsers(params = {}) {
     return api.get("/users", { params });

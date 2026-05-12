@@ -13,7 +13,6 @@ function formatVnd(price) {
 export default function ProductDetails({
   title,
   price,
-  stock,
   description,
   colors,
   sizes,
@@ -21,6 +20,7 @@ export default function ProductDetails({
   productId,
   productSlug,
   productImages,
+  variants = [],
 }) {
   const [selectedColor, setSelectedColor] = useState(colors[0]);
   const [selectedSize, setSelectedSize] = useState(defaultSize);
@@ -35,6 +35,39 @@ export default function ProductDetails({
   const { isWishlisted, toggle } = useWishlistStore();
   const wishlisted = isWishlisted(productId);
 
+  const getVariantStock = (size, colorName) => {
+    if (!variants.length) return null;
+    const v = variants.find(
+      (v) =>
+        v.size === size?.toUpperCase() &&
+        v.color?.toLowerCase() === colorName?.toLowerCase(),
+    );
+    return v ? v.stock : 0;
+  };
+
+  const isSizeAvailable = (size) => {
+    if (!variants.length) return true;
+    return variants.some(
+      (v) =>
+        v.size === size?.toUpperCase() &&
+        v.color?.toLowerCase() === selectedColor.name?.toLowerCase() &&
+        v.stock > 0,
+    );
+  };
+
+  const isColorAvailable = (color) => {
+    if (!variants.length) return true;
+    return variants.some(
+      (v) =>
+        v.color?.toLowerCase() === color.name?.toLowerCase() &&
+        v.size === selectedSize?.toUpperCase() &&
+        v.stock > 0,
+    );
+  };
+
+  const selectedStock = getVariantStock(selectedSize, selectedColor.name);
+  const isOutOfStock = variants.length > 0 && selectedStock === 0;
+
   const handleWishlist = () => {
     if (!isAuthenticated) {
       toast.info("Vui lòng đăng nhập để thêm vào Wishlist");
@@ -46,7 +79,6 @@ export default function ProductDetails({
 
   const handleAddToCart = async () => {
     try {
-      // Kiểm tra xem user đã đăng nhập chưa
       if (!user) {
         setError("Vui lòng đăng nhập để thêm vào giỏ hàng");
         return;
@@ -56,14 +88,10 @@ export default function ProductDetails({
       setSuccessMessage(null);
       setIsLoading(true);
 
-      const cartData = {
-        productId,
-        quantity: 1,
-        selectedSize,
-        selectedColor: selectedColor.name,
-      };
-
-      const result = await addItem(cartData, 1);
+      const result = await addItem(
+        { productId, quantity: 1, selectedSize, selectedColor: selectedColor.name },
+        1,
+      );
 
       if (result.success) {
         setSuccessMessage("Đã thêm vào giỏ hàng thành công!");
@@ -71,7 +99,7 @@ export default function ProductDetails({
       } else {
         setError(result.message || "Có lỗi xảy ra khi thêm vào giỏ hàng");
       }
-    } catch (err) {
+    } catch {
       setError("Có lỗi xảy ra");
     } finally {
       setIsLoading(false);
@@ -89,9 +117,17 @@ export default function ProductDetails({
           <span className="text-3xl font-bold text-[#004be3]">
             {formatVnd(price)} VND
           </span>
-          <span className="inline-block rounded-full bg-[#e4e2e1] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#2f2f2e]">
-            {stock}
-          </span>
+          {selectedStock !== null && (
+            <span
+              className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+                isOutOfStock
+                  ? "bg-red-100 text-red-600"
+                  : "bg-[#e4e2e1] text-[#2f2f2e]"
+              }`}
+            >
+              {isOutOfStock ? "Hết hàng" : `${selectedStock} in stock`}
+            </span>
+          )}
         </div>
       </div>
 
@@ -102,19 +138,28 @@ export default function ProductDetails({
           Color: {selectedColor.name}
         </label>
         <div className="flex gap-4">
-          {colors.map((color) => (
-            <button
-              key={color.name}
-              onClick={() => setSelectedColor(color)}
-              className={`h-10 w-10 rounded-full transition ${
-                selectedColor.name === color.name
-                  ? "ring-2 ring-offset-2 ring-[#004be3]"
-                  : ""
-              }`}
-              style={{ backgroundColor: color.hex }}
-              title={color.name}
-            />
-          ))}
+          {colors.map((color) => {
+            const available = isColorAvailable(color);
+            return (
+              <button
+                key={color.name}
+                onClick={() => available && setSelectedColor(color)}
+                className={`relative h-10 w-10 rounded-full transition ${
+                  selectedColor.name === color.name
+                    ? "ring-2 ring-offset-2 ring-[#004be3]"
+                    : ""
+                } ${!available ? "opacity-40 cursor-not-allowed" : "hover:opacity-90"}`}
+                style={{ backgroundColor: color.hex }}
+                title={available ? color.name : `${color.name} — Hết hàng`}
+              >
+                {!available && (
+                  <span className="absolute inset-0 flex items-center justify-center rounded-full overflow-hidden">
+                    <span className="block h-px w-10 rotate-45 bg-white/80" />
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -129,29 +174,36 @@ export default function ProductDetails({
         </div>
 
         <div className="grid grid-cols-5 gap-2">
-          {sizes.map((size) => (
-            <button
-              key={size}
-              onClick={() => setSelectedSize(size)}
-              className={`rounded-lg py-3 text-center font-bold transition ${
-                selectedSize === size
-                  ? "bg-[#004be3] text-white"
-                  : "bg-[#e4e2e1] text-[#2f2f2e] hover:bg-[#dfdcdc]"
-              }`}
-            >
-              {size}
-            </button>
-          ))}
+          {sizes.map((size) => {
+            const available = isSizeAvailable(size);
+            const isSelected = selectedSize === size;
+            return (
+              <button
+                key={size}
+                onClick={() => available && setSelectedSize(size)}
+                title={available ? size : `${size} — Hết hàng`}
+                className={`rounded-lg py-3 text-center font-bold transition ${
+                  isSelected && available
+                    ? "bg-[#004be3] text-white"
+                    : available
+                      ? "bg-[#e4e2e1] text-[#2f2f2e] hover:bg-[#dfdcdc]"
+                      : "bg-[#e4e2e1] text-[#94a3b8] line-through cursor-not-allowed"
+                }`}
+              >
+                {size}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <div className="space-y-3">
         <button
           onClick={handleAddToCart}
-          disabled={isLoading}
+          disabled={isLoading || isOutOfStock}
           className="w-full rounded-full bg-gradient-to-r from-[#004be3] to-[#819bff] py-4 font-heading text-lg font-bold uppercase tracking-wide text-white transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Đang thêm..." : "Add to Pulse"}
+          {isLoading ? "Đang thêm..." : isOutOfStock ? "Hết hàng" : "Add to Pulse"}
         </button>
 
         <button

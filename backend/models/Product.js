@@ -97,6 +97,11 @@ const productSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    // Bảng size do admin tự định nghĩa: { headers: string[], rows: string[][] }
+    sizeChart: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
     // Flags điều khiển hiển thị
     isFeatured: {
       type: Boolean,

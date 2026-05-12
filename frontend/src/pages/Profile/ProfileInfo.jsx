@@ -1,8 +1,8 @@
 import { userService } from "@/services";
 import { useAuthStore } from "@/store/authStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Calendar, Mail, Phone, Save, Shield, User } from "lucide-react";
-import { useState } from "react";
+import { Calendar, Camera, Mail, Phone, Save, Shield, User } from "lucide-react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { profileInfoSchema } from "./schemas";
@@ -23,6 +23,29 @@ export default function ProfileInfo() {
   const { user, setUser } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef(null);
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      setIsUploadingAvatar(true);
+      const res = await userService.uploadAvatar(formData);
+      setUser({ avatarUrl: res.data.avatarUrl });
+      toast.success("Cập nhật ảnh đại diện thành công!");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Upload ảnh thất bại");
+    } finally {
+      setIsUploadingAvatar(false);
+      // Reset input để có thể chọn lại cùng file
+      e.target.value = "";
+    }
+  };
 
   const {
     register,
@@ -69,8 +92,38 @@ export default function ProfileInfo() {
       {/* Avatar + tên */}
       <div className="rounded-3xl bg-white p-8 shadow-sm">
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#004be3_0%,#819bff_100%)] text-2xl font-extrabold text-white">
-            {user?.displayName?.charAt(0)?.toUpperCase() || "U"}
+          <div className="relative shrink-0">
+            {user?.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.displayName}
+                className="h-20 w-20 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(135deg,#004be3_0%,#819bff_100%)] text-2xl font-extrabold text-white">
+                {user?.displayName?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-[#2f2f2e] text-white shadow-md transition hover:brightness-125 disabled:opacity-60"
+              title="Đổi ảnh đại diện"
+            >
+              {isUploadingAvatar ? (
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <Camera className="h-3.5 w-3.5" />
+              )}
+            </button>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
           </div>
           <div className="text-center sm:text-left">
             <h2 className="font-heading text-2xl font-extrabold uppercase tracking-[-0.03em] text-[#2f2f2e]">

@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+const addressSchema = new mongoose.Schema({
+  province: { type: String, required: true },
+  district: { type: String, required: true },
+  ward: { type: String, required: true },
+  detail: { type: String, required: true },
+  isDefault: { type: Boolean, default: false },
+}, { _id: true });
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -44,6 +52,7 @@ const userSchema = new mongoose.Schema({
     default: "customer",
   },
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+  addresses: [addressSchema],
 }, {
   timestamps: true // tự động thêm createdAt và updatedAt
 });

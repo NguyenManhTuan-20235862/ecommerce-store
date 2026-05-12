@@ -1,5 +1,5 @@
 import { Gem, Shirt, ShoppingBag, Spline } from "lucide-react";
-import { categoryFilters, maxPrice, sizeFilters } from "./shopData";
+import { categoryFilters, maxPrice, pantsSizeFilters, shoeSizeFilters, sizeFilters } from "./shopData";
 
 const categoryIconMap = {
   shirt: Shirt,
@@ -12,6 +12,12 @@ function formatPriceCompact(value) {
   return `${new Intl.NumberFormat("vi-VN").format(value)}đ`;
 }
 
+function getSizeList(activeCategory) {
+  if (activeCategory === "giay") return shoeSizeFilters;
+  if (activeCategory === "quan") return pantsSizeFilters;
+  return sizeFilters;
+}
+
 export default function FilterSidebar({
   activeCategory,
   onCategoryChange,
@@ -21,6 +27,7 @@ export default function FilterSidebar({
   onPriceLimitChange,
   onApply,
 }) {
+  const currentSizes = getSizeList(activeCategory);
   return (
     <aside className="h-fit rounded-3xl bg-[#f8fafc] p-6 lg:sticky lg:top-20">
       <section>
@@ -57,8 +64,8 @@ export default function FilterSidebar({
           Size / Fit
         </h3>
 
-        <div className="mt-5 grid grid-cols-3 gap-2">
-          {sizeFilters.map((size) => {
+        <div className="mt-5 grid grid-cols-4 gap-2">
+          {currentSizes.map((size) => {
             const isSelected = selectedSizes.includes(size);
 
             return (

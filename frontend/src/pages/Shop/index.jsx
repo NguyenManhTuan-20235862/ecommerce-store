@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { Search, X } from "lucide-react";
 import { useSearchParams } from "react-router";
 import FeaturedProductTile from "./components/FeaturedProductTile";
 import FilterSidebar from "./components/FilterSidebar";
@@ -13,7 +14,7 @@ const sortOptions = [
   { value: "price_desc", label: "Price: High to Low" },
 ];
 
-const INITIAL_VISIBLE = 11;
+const PAGE_SIZE = 12;
 
 export default function Shop() {
   const [searchParams] = useSearchParams();
@@ -24,24 +25,38 @@ export default function Shop() {
   const [priceLimit, setPriceLimit] = useState(maxPrice);
   const [appliedPriceLimit, setAppliedPriceLimit] = useState(maxPrice);
   const [sortBy, setSortBy] = useState("newest");
-  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    let cancelled = false;
     const fetchProducts = async () => {
       try {
         const params = {
-          limit: visibleCount,
+          page,
+          limit: PAGE_SIZE,
           category: activeCategory || undefined,
           size: selectedSizes.length > 0 ? selectedSizes.join(",") : undefined,
           maxPrice: appliedPriceLimit < maxPrice ? appliedPriceLimit : undefined,
           sort: sortBy,
+          search: debouncedSearch || undefined,
         };
         const res = await productService.list(params);
-        if (res.data) {
-          setProducts(res.data.products);
+        if (!cancelled && res.data) {
+          const incoming = res.data.products;
+          setProducts(page === 1 ? incoming : (prev) => [...prev, ...incoming]);
           setTotal(res.data.pagination.total);
         }
       } catch (error) {
@@ -49,7 +64,10 @@ export default function Shop() {
       }
     };
     fetchProducts();
-  }, [activeCategory, selectedSizes, appliedPriceLimit, sortBy, visibleCount]);
+    return () => {
+      cancelled = true;
+    };
+  }, [page, activeCategory, selectedSizes, appliedPriceLimit, sortBy, debouncedSearch]);
 
   const formattedProducts = useMemo(() => {
     return products.map((p) => {
@@ -101,7 +119,8 @@ export default function Shop() {
               setActiveCategory((prev) =>
                 prev === categoryKey ? "" : categoryKey,
               );
-              setVisibleCount(INITIAL_VISIBLE);
+              setSelectedSizes([]);
+              setPage(1);
             }}
             selectedSizes={selectedSizes}
             onSizeToggle={(size) => {
@@ -110,42 +129,68 @@ export default function Shop() {
                   ? prev.filter((item) => item !== size)
                   : [...prev, size],
               );
+              setPage(1);
             }}
             priceLimit={priceLimit}
             onPriceLimitChange={setPriceLimit}
             onApply={() => {
               setAppliedPriceLimit(priceLimit);
-              setVisibleCount(INITIAL_VISIBLE);
+              setPage(1);
             }}
           />
         </div>
 
         <div className="px-4 pb-12 pt-6 sm:px-6 lg:p-12">
-          <div className="flex flex-col gap-5 border-b border-black/5 pb-8 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-extrabold uppercase tracking-widest text-[#004be3]">
-                Urban Core / SS24
-              </p>
-              <h1 className="m-0 font-heading text-5xl font-extrabold uppercase leading-[0.92] tracking-[-0.05em] text-[#0f172a] sm:text-6xl lg:text-8xl">
-                ALL VIBES
-                <br />/ ALL DROPS
-              </h1>
+          <div className="border-b border-black/5 pb-8">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-extrabold uppercase tracking-widest text-[#004be3]">
+                  Urban Core / SS24
+                </p>
+                <h1 className="m-0 font-heading text-5xl font-extrabold uppercase leading-[0.92] tracking-[-0.05em] text-[#0f172a] sm:text-6xl lg:text-8xl">
+                  ALL VIBES
+                  <br />/ ALL DROPS
+                </h1>
+              </div>
+
+              <label className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-[#94a3b8]">
+                SORT BY:
+                <select
+                  value={sortBy}
+                  onChange={(event) => {
+                    setSortBy(event.target.value);
+                    setPage(1);
+                  }}
+                  className="border-b-2 border-[#004be3] bg-transparent pb-1 text-xs font-bold uppercase tracking-widest text-[#0f172a] outline-none"
+                >
+                  {sortOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
 
-            <label className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-[#94a3b8]">
-              SORT BY:
-              <select
-                value={sortBy}
-                onChange={(event) => setSortBy(event.target.value)}
-                className="border-b-2 border-[#004be3] bg-transparent pb-1 text-xs font-bold uppercase tracking-widest text-[#0f172a] outline-none"
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="relative mt-6">
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm kiếm sản phẩm..."
+                className="w-full rounded-full border border-black/10 bg-white py-3 pl-11 pr-10 text-sm font-medium text-[#2f2f2e] placeholder-[#94a3b8] outline-none focus:border-[#004be3] transition"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[#2f2f2e] transition"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="mt-8 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
@@ -176,7 +221,7 @@ export default function Shop() {
 
             <button
               type="button"
-              onClick={() => setVisibleCount((prev) => prev + 4)}
+              onClick={() => setPage((prev) => prev + 1)}
               disabled={!canLoadMore}
               className="rounded-full border-2 border-[#0f172a] bg-white px-10 py-4 font-heading text-sm font-extrabold uppercase tracking-widest text-[#0f172a] transition hover:border-[#004be3] hover:text-[#004be3] disabled:cursor-not-allowed disabled:opacity-50"
             >

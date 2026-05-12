@@ -21,13 +21,6 @@ const productMenu = [
   { label: "Phụ kiện", to: "/shop?category=accessories" },
 ];
 
-const collectionMenu = [
-  { label: "Hàng mới về", to: "/shop?collection=new" },
-  { label: "Bán chạy", to: "/shop?collection=best-seller" },
-  { label: "Urban Essentials", to: "/shop?collection=essentials" },
-  { label: "Theo mùa", to: "/shop?collection=seasonal" },
-];
-
 const supportMenu = [
   { label: "FAQ", to: "/" },
   { label: "Giao hàng và đổi trả", to: "/" },
@@ -107,43 +100,14 @@ export default function Header() {
             </div>
           </div>
 
-          <div
-            className="relative"
-            onMouseEnter={() => setActiveDesktopSubmenu("collection")}
-            onMouseLeave={() => setActiveDesktopSubmenu(null)}
-          >
-            <button
-              type="button"
-              className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-[#5c5b5b] transition hover:text-[#004be3]"
-            >
-              Bộ sưu tập <ChevronDown className="h-3.5 w-3.5" />
-            </button>
-            <div
-              className={`absolute left-0 top-full z-20 pt-2 transition ${
-                activeDesktopSubmenu === "collection"
-                  ? "visible opacity-100"
-                  : "invisible opacity-0"
-              }`}
-            >
-              <div className="w-52 rounded-xl border border-black/5 bg-white p-2 shadow-lg">
-                {collectionMenu.map((item) => (
-                  <Link
-                    key={item.label}
-                    to={item.to}
-                    className="block rounded-lg px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-[#5c5b5b] hover:bg-[#f3f0ef] hover:text-[#004be3]"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-
           <Link
             to="/shop?collection=new"
             className="transition hover:text-[#004be3]"
           >
             New Drops
+          </Link>
+          <Link to="/#lookbook" className="transition hover:text-[#004be3]">
+            Lookbook
           </Link>
           <Link
             to="/shop?sale=true"
@@ -333,29 +297,19 @@ export default function Header() {
                 ))}
               </div>
             </details>
-            <details>
-              <summary className="cursor-pointer rounded-lg px-3 py-2 hover:bg-[#f3f0ef]">
-                Bộ sưu tập
-              </summary>
-              <div className="mt-1 space-y-1 pl-3">
-                {collectionMenu.map((item) => (
-                  <Link
-                    key={item.label}
-                    to={item.to}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-[11px] hover:bg-[#f3f0ef] hover:text-[#004be3]"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </details>
             <Link
               to="/shop?collection=new"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block rounded-lg px-3 py-2 hover:bg-[#f3f0ef] hover:text-[#004be3]"
             >
               New Drops
+            </Link>
+            <Link
+              to="/#lookbook"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2 hover:bg-[#f3f0ef] hover:text-[#004be3]"
+            >
+              Lookbook
             </Link>
             <Link
               to="/shop?sale=true"

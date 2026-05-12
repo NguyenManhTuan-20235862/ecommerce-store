@@ -28,6 +28,7 @@ import Wishlist from "./pages/Wishlist";
 
 // Profile Pages
 import ChangePassword from "./pages/Profile/ChangePassword";
+import Addresses from "./pages/Profile/Addresses";
 import OrderDetail from "./pages/Profile/OrderDetail";
 import OrderHistory from "./pages/Profile/OrderHistory";
 import ProfileInfo from "./pages/Profile/ProfileInfo";
@@ -94,6 +95,7 @@ function App() {
           <Route path="/profile" element={<ProfileLayout />}>
             <Route index element={<Navigate to="/profile/info" replace />} />
             <Route path="info" element={<ProfileInfo />} />
+            <Route path="addresses" element={<Addresses />} />
             <Route path="orders" element={<OrderHistory />} />
             <Route path="orders/:orderId" element={<OrderDetail />} />
             <Route path="change-password" element={<ChangePassword />} />
