@@ -45,7 +45,7 @@ export default function HeroSection({
               </Link>
             ) : (
               <Link
-                to="/shop?collection=new"
+                to="/new-drops"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[#dfdcdc] px-6 py-3.5 text-sm font-bold uppercase tracking-[0.2em] text-[#2f2f2e] transition hover:bg-[#d5d1d0]"
               >
                 Xem bộ mới

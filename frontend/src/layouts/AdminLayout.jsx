@@ -7,6 +7,8 @@ import {
   ShoppingCart,
   Users,
   Ticket,
+  BookImage,
+  Tag,
   LogOut,
   Home,
   ChevronRight,
@@ -19,6 +21,8 @@ const MENU = [
   { to: "/admin/orders", label: "Đơn hàng", icon: ShoppingCart },
   { to: "/admin/customers", label: "Khách hàng", icon: Users },
   { to: "/admin/coupons", label: "Mã giảm giá", icon: Ticket },
+  { to: "/admin/lookbook", label: "Lookbook", icon: BookImage },
+  { to: "/admin/sale", label: "Khuyến Mãi", icon: Tag },
 ];
 
 export default function AdminLayout() {

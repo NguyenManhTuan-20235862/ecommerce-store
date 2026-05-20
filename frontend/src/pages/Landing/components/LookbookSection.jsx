@@ -25,7 +25,7 @@ export default function LookbookSection({ categories, isAuthenticated }) {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              to="/shop"
+              to="/lookbook"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#004be3] px-6 py-3.5 text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:bg-[#003cc0]"
             >
               Khám phá lookbook

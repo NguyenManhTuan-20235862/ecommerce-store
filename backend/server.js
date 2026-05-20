@@ -13,7 +13,10 @@ import productRoute from "./routes/productRoute.js";
 import uploadRoute from "./routes/uploadRoute.js";
 import userRoute from "./routes/userRoute.js";
 import couponRoute from "./routes/couponRoute.js";
+import lookbookRoute from "./routes/lookbookRoute.js";
 import orderRoute from "./routes/orderRoute.js";
+import saleConfigRoute from "./routes/saleConfigRoute.js";
+import comboRoute from "./routes/comboRoute.js";
 
 dotenv.config();
 
@@ -71,6 +74,10 @@ app.use("/api/auth", authRoute);
 // (admin endpoints tự bảo vệ bằng middleware riêng trong từng route)
 app.use("/api/products", productRoute);
 app.use("/api/categories", categoryRoute);
+app.use("/api/lookbook", lookbookRoute);
+app.use("/api/sale-config", saleConfigRoute);
+app.use("/api/combos", comboRoute);
+app.use("/api/coupons", couponRoute);
 
 // ====== PRIVATE ROUTES (cần đăng nhập) ======
 app.use(protectedRoute);
@@ -78,7 +85,6 @@ app.use("/api/users", userRoute);
 app.use("/api/upload", uploadRoute);
 app.use("/api/cart", cartRoute);
 app.use("/api/orders", orderRoute);
-app.use("/api/coupons", couponRoute);
 
 connectDB().then(() => {
   app.listen(PORT, () => {

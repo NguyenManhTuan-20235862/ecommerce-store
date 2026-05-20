@@ -1,4 +1,4 @@
-import { ArrowUpRight, Heart } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useAuthStore } from "../../../store/authStore";
@@ -12,16 +12,17 @@ const badgeToneClasses = {
 };
 
 function formatVnd(price) {
-  return `${new Intl.NumberFormat("vi-VN").format(price)} VND`;
+  return `${new Intl.NumberFormat("vi-VN").format(price)}đ`;
 }
 
-export default function ProductTile({ product }) {
+export default function ProductTile({ product, className = "" }) {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { isWishlisted, toggle } = useWishlistStore();
   const wishlisted = isWishlisted(product._id);
+  const isLarge = className.includes("col-span-2");
 
-  const handleWishlist = (e) => {
+  const handleQuickAction = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthenticated) {
@@ -35,19 +36,26 @@ export default function ProductTile({ product }) {
       price: product.price,
       images: [product.image],
     });
+    if (!wishlisted) {
+      toast.success("Đã thêm vào Wishlist");
+    } else {
+      toast.success("Đã xóa khỏi Wishlist");
+    }
   };
 
   return (
     <Link
       to={`/product/${product.id}`}
-      className="group flex flex-col gap-5 transition hover:no-underline"
+      className={`group flex flex-col gap-3 transition hover:no-underline ${className}`}
     >
-      <div className="relative overflow-hidden rounded-3xl bg-[#f3f0ef]">
+      <div 
+        className={`relative overflow-hidden rounded-2xl bg-[#f3f0ef] ${isLarge ? "aspect-[4/3] md:aspect-[2/1]" : "aspect-square"}`}
+      >
         <img
-          src={product.image || "https://placehold.co/600x600/f3f0ef/94a3b8?text=No+Image"}
+          src={product.image || "https://placehold.co/800x800/f3f0ef/94a3b8?text=No+Image"}
           alt={product.title}
-          onError={(e) => { e.currentTarget.src = "https://placehold.co/600x600/f3f0ef/94a3b8?text=No+Image"; }}
-          className="h-65 w-full object-cover transition duration-500 group-hover:scale-105"
+          onError={(e) => { e.currentTarget.src = "https://placehold.co/800x800/f3f0ef/94a3b8?text=No+Image"; }}
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
 
         {product.badge ? (
@@ -60,32 +68,35 @@ export default function ProductTile({ product }) {
           </span>
         ) : null}
 
+        {product.isOutOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+            <span className="rounded-full bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#0f172a]">
+              Hết hàng
+            </span>
+          </div>
+        )}
+
         <button
-          onClick={handleWishlist}
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md opacity-0 transition group-hover:opacity-100 hover:scale-110"
+          onClick={handleQuickAction}
+          className={`absolute bottom-4 right-4 flex h-8 w-8 items-center justify-center rounded-full transition shadow-md hover:scale-110 ${
+            wishlisted ? "bg-red-500 text-white" : "bg-[#004be3] text-white hover:bg-blue-700"
+          }`}
           aria-label={wishlisted ? "Xóa khỏi Wishlist" : "Thêm vào Wishlist"}
         >
-          <Heart
-            className={`h-4 w-4 transition ${wishlisted ? "fill-red-500 text-red-500" : "text-neutral-400"}`}
-          />
+          <Plus className="h-4 w-4" />
         </button>
-
-        <div
-          className="absolute bottom-4 right-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#0f172a] opacity-0 shadow-lg transition group-hover:opacity-100"
-          aria-label={`Xem nhanh ${product.title}`}
-        >
-          <ArrowUpRight className="h-4 w-4" />
-        </div>
       </div>
 
-      <div className="space-y-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">
-          {product.categoryLabel}
-        </p>
-        <h3 className="m-0 font-heading text-xl font-bold leading-7 text-[#0f172a]">
-          {product.title}
-        </h3>
-        <p className="text-3xl font-bold leading-7 text-[#004be3]">
+      <div className="flex items-end justify-between gap-4 px-1">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">
+            {product.categoryLabel}
+          </p>
+          <h3 className="mt-1 m-0 font-heading text-lg font-bold uppercase leading-tight text-[#0f172a]">
+            {product.title}
+          </h3>
+        </div>
+        <p className="whitespace-nowrap text-lg font-bold text-[#004be3]">
           {formatVnd(product.price)}
         </p>
       </div>

@@ -1,5 +1,15 @@
 import * as couponService from "../services/couponService.js";
 
+const handleError = (res, err) => {
+  if (err.name === "CastError") return res.status(400).json({ message: "ID không hợp lệ" });
+  if (err.name === "ValidationError") {
+    const msg = Object.values(err.errors)[0]?.message || err.message;
+    return res.status(400).json({ message: msg });
+  }
+  console.error(err);
+  return res.status(500).json({ message: "Lỗi server" });
+};
+
 export const validateCoupon = async (req, res) => {
   try {
     const { code, orderAmount } = req.body;
@@ -14,19 +24,27 @@ export const validateCoupon = async (req, res) => {
   }
 };
 
-export const getAllCoupons = async (req, res) => {
+export const getPublicCoupons = async (_req, res) => {
   try {
-    const coupons = await couponService.getAllCoupons();
-    res.json({ message: "Lấy danh sách mã giảm giá thành công", coupons });
+    const data = await couponService.getPublicCoupons();
+    res.json({ message: "OK", data });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Lỗi server" });
+    handleError(res, err);
+  }
+};
+
+export const getAllCoupons = async (_req, res) => {
+  try {
+    const data = await couponService.getAllCoupons();
+    res.json({ message: "Lấy danh sách mã giảm giá thành công", data });
+  } catch (err) {
+    handleError(res, err);
   }
 };
 
 export const createCoupon = async (req, res) => {
   try {
-    const { code, discountType, discountValue, minOrderValue, maxUses, expiresAt, isActive } =
+    const { code, discountType, discountValue, minOrderValue, maxUses, expiresAt, isActive, isPublic } =
       req.body;
     if (!code || !discountType || !discountValue) {
       return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
@@ -37,7 +55,7 @@ export const createCoupon = async (req, res) => {
     if (discountType === "percent" && Number(discountValue) > 100) {
       return res.status(400).json({ message: "Giảm theo % không được vượt quá 100%" });
     }
-    const coupon = await couponService.createCoupon({
+    const data = await couponService.createCoupon({
       code,
       discountType,
       discountValue,
@@ -45,14 +63,14 @@ export const createCoupon = async (req, res) => {
       maxUses: maxUses || null,
       expiresAt: expiresAt || null,
       isActive: isActive !== undefined ? isActive : true,
+      isPublic: isPublic === true,
     });
-    res.status(201).json({ message: "Tạo mã giảm giá thành công", coupon });
+    res.status(201).json({ message: "Tạo mã giảm giá thành công", data });
   } catch (err) {
     if (err.code === 11000) {
       return res.status(400).json({ message: "Mã giảm giá đã tồn tại" });
     }
-    console.error(err);
-    res.status(500).json({ message: "Lỗi server" });
+    handleError(res, err);
   }
 };
 
@@ -74,22 +92,24 @@ export const updateCoupon = async (req, res) => {
     if (maxUses !== undefined && maxUses !== null && Number(maxUses) < 1) {
       return res.status(400).json({ message: "Giới hạn số lần dùng tối thiểu là 1" });
     }
-    const coupon = await couponService.updateCoupon(req.params.id, req.body);
-    if (!coupon) return res.status(404).json({ message: "Không tìm thấy mã giảm giá" });
-    res.json({ message: "Cập nhật thành công", coupon });
+    const { code: _code, ...updatePayload } = req.body;
+    const data = await couponService.updateCoupon(req.params.id, updatePayload);
+    if (!data) return res.status(404).json({ message: "Không tìm thấy mã giảm giá" });
+    res.json({ message: "Cập nhật thành công", data });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Lỗi server" });
+    if (err.code === 11000) {
+      return res.status(400).json({ message: "Mã giảm giá đã tồn tại" });
+    }
+    handleError(res, err);
   }
 };
 
 export const deleteCoupon = async (req, res) => {
   try {
-    const coupon = await couponService.deleteCoupon(req.params.id);
-    if (!coupon) return res.status(404).json({ message: "Không tìm thấy mã giảm giá" });
+    const data = await couponService.deleteCoupon(req.params.id);
+    if (!data) return res.status(404).json({ message: "Không tìm thấy mã giảm giá" });
     res.json({ message: "Đã xóa mã giảm giá" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Lỗi server" });
+    handleError(res, err);
   }
 };

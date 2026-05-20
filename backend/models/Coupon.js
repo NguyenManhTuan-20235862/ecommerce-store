@@ -10,6 +10,7 @@ const couponSchema = new mongoose.Schema(
     usedCount: { type: Number, default: 0 },
     expiresAt: { type: Date, default: null },
     isActive: { type: Boolean, default: true },
+    isPublic: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

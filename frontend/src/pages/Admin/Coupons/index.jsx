@@ -25,6 +25,7 @@ const couponSchema = z.object({
   ),
   expiresAt: z.string().optional().or(z.literal("")),
   isActive: z.boolean().default(true),
+  isPublic: z.boolean().default(false),
 });
 
 const inputCls = (hasError) =>
@@ -67,6 +68,7 @@ export default function AdminCouponsPage() {
       maxUses: "",
       expiresAt: "",
       isActive: true,
+      isPublic: false,
     },
   });
 
@@ -74,7 +76,7 @@ export default function AdminCouponsPage() {
     setLoading(true);
     try {
       const res = await couponService.list();
-      setCoupons(res.data.coupons || []);
+      setCoupons(res.data.data || []);
     } catch {
       toast.error("Không thể tải danh sách mã giảm giá");
     } finally {
@@ -96,6 +98,7 @@ export default function AdminCouponsPage() {
       maxUses: "",
       expiresAt: "",
       isActive: true,
+      isPublic: false,
     });
     setModalOpen(true);
   };
@@ -112,6 +115,7 @@ export default function AdminCouponsPage() {
         ? new Date(coupon.expiresAt).toISOString().slice(0, 10)
         : "",
       isActive: coupon.isActive,
+      isPublic: coupon.isPublic ?? false,
     });
     setModalOpen(true);
   };
@@ -190,9 +194,8 @@ export default function AdminCouponsPage() {
                 <th className="px-4 py-3 font-medium text-neutral-500">Đơn tối thiểu</th>
                 <th className="px-4 py-3 font-medium text-neutral-500">Đã dùng / Giới hạn</th>
                 <th className="px-4 py-3 font-medium text-neutral-500">Hết hạn</th>
-                <th className="px-4 py-3 text-center font-medium text-neutral-500">
-                  Trạng thái
-                </th>
+                <th className="px-4 py-3 text-center font-medium text-neutral-500">Trang Sale</th>
+                <th className="px-4 py-3 text-center font-medium text-neutral-500">Trạng thái</th>
                 <th className="px-4 py-3 text-right font-medium text-neutral-500">
                   Thao tác
                 </th>
@@ -201,13 +204,13 @@ export default function AdminCouponsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-neutral-400">
+                  <td colSpan={8} className="px-4 py-12 text-center text-neutral-400">
                     Đang tải...
                   </td>
                 </tr>
               ) : coupons.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-neutral-400">
+                  <td colSpan={8} className="px-4 py-12 text-center text-neutral-400">
                     Chưa có mã giảm giá nào
                   </td>
                 </tr>
@@ -239,6 +242,17 @@ export default function AdminCouponsPage() {
                     </td>
                     <td className="px-4 py-3 text-neutral-500">
                       {formatExpiry(coupon.expiresAt)}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          coupon.isPublic
+                            ? "bg-blue-50 text-blue-600"
+                            : "bg-neutral-100 text-neutral-400"
+                        }`}
+                      >
+                        {coupon.isPublic ? "Công khai" : "Ẩn"}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span
@@ -403,15 +417,25 @@ export default function AdminCouponsPage() {
                     </p>
                   </div>
                   <label className="relative inline-flex cursor-pointer items-center">
-                    <input
-                      type="checkbox"
-                      {...register("isActive")}
-                      className="peer sr-only"
-                    />
+                    <input type="checkbox" {...register("isActive")} className="peer sr-only" />
                     <div className="peer h-5 w-9 rounded-full bg-neutral-200 transition after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:bg-neutral-900 peer-checked:after:translate-x-4" />
                   </label>
                 </div>
               )}
+
+              {/* Hiện trên trang Khuyến Mãi */}
+              <div className="flex items-center justify-between rounded-lg border border-neutral-200 px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium text-neutral-700">Hiện trên trang Sale</p>
+                  <p className="text-xs text-neutral-400">
+                    Mã sẽ xuất hiện công khai tại trang Khuyến Mãi
+                  </p>
+                </div>
+                <label className="relative inline-flex cursor-pointer items-center">
+                  <input type="checkbox" {...register("isPublic")} className="peer sr-only" />
+                  <div className="peer h-5 w-9 rounded-full bg-neutral-200 transition after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:bg-[#004be3] peer-checked:after:translate-x-4" />
+                </label>
+              </div>
 
               {/* Actions */}
               <div className="flex justify-end gap-3 pt-2">

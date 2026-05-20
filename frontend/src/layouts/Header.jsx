@@ -100,22 +100,16 @@ export default function Header() {
             </div>
           </div>
 
-          <Link
-            to="/shop?collection=new"
-            className="transition hover:text-[#004be3]"
-          >
+          <Link to="/new-drops" className="transition hover:text-[#004be3]">
             New Drops
           </Link>
-          <Link to="/#lookbook" className="transition hover:text-[#004be3]">
+          <Link to="/lookbook" className="transition hover:text-[#004be3]">
             Lookbook
           </Link>
-          <Link
-            to="/shop?sale=true"
-            className="transition hover:text-[#004be3]"
-          >
+          <Link to="/sale" className="transition hover:text-[#004be3]">
             Khuyến mãi
           </Link>
-          <Link to="/" className="transition hover:text-[#004be3]">
+          <Link to="/about" className="transition hover:text-[#004be3]">
             Về thương hiệu
           </Link>
 
@@ -298,28 +292,28 @@ export default function Header() {
               </div>
             </details>
             <Link
-              to="/shop?collection=new"
+              to="/new-drops"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block rounded-lg px-3 py-2 hover:bg-[#f3f0ef] hover:text-[#004be3]"
             >
               New Drops
             </Link>
             <Link
-              to="/#lookbook"
+              to="/lookbook"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block rounded-lg px-3 py-2 hover:bg-[#f3f0ef] hover:text-[#004be3]"
             >
               Lookbook
             </Link>
             <Link
-              to="/shop?sale=true"
+              to="/sale"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block rounded-lg px-3 py-2 hover:bg-[#f3f0ef] hover:text-[#004be3]"
             >
               Khuyến mãi
             </Link>
             <Link
-              to="/"
+              to="/about"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block rounded-lg px-3 py-2 hover:bg-[#f3f0ef] hover:text-[#004be3]"
             >
@@ -327,7 +321,7 @@ export default function Header() {
             </Link>
             <details>
               <summary className="cursor-pointer rounded-lg px-3 py-2 hover:bg-[#f3f0ef]">
-                Hỗ trợ
+                CSKH
               </summary>
               <div className="mt-1 space-y-1 pl-3">
                 {supportMenu.map((item) => (

@@ -1,6 +1,9 @@
 import api from "./api";
 
 export const couponService = {
+  getPublic() {
+    return api.get("/coupons/public");
+  },
   validate(code, orderAmount) {
     return api.post("/coupons/validate", { code, orderAmount });
   },

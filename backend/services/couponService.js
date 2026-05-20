@@ -25,6 +25,9 @@ export const validateAndApplyCoupon = async (code, orderAmount) => {
 
 export const getAllCoupons = async () => Coupon.find().sort({ createdAt: -1 });
 
+export const getPublicCoupons = async () =>
+  Coupon.find({ isActive: true, isPublic: true }).sort({ createdAt: -1 });
+
 export const createCoupon = async (data) => {
   const coupon = new Coupon(data);
   return coupon.save();

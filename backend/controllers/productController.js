@@ -16,11 +16,11 @@ export const getProducts = async (req, res) => {
 
     let sortOption = {};
     switch (sort) {
-      case "price_asc":  sortOption = { price: 1 };      break;
-      case "price_desc": sortOption = { price: -1 };     break;
-      case "name_asc":   sortOption = { name: 1 };       break;
-      case "oldest":     sortOption = { createdAt: 1 };  break;
-      default:           sortOption = { createdAt: -1 };
+      case "price_asc":  sortOption = { price: 1, _id: -1 };      break;
+      case "price_desc": sortOption = { price: -1, _id: -1 };     break;
+      case "name_asc":   sortOption = { name: 1, _id: -1 };       break;
+      case "oldest":     sortOption = { createdAt: 1, _id: -1 };  break;
+      default:           sortOption = { createdAt: -1, _id: -1 };
     }
 
     const pageNum  = Math.max(1, Number(page));
@@ -239,7 +239,7 @@ export const getAdminProducts = async (req, res) => {
     const [products, total] = await Promise.all([
       Product.find(filter)
         .populate("category", "name slug")
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: -1, _id: -1 })
         .skip(skip)
         .limit(limitNum),
       Product.countDocuments(filter),
