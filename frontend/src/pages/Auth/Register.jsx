@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { motion } from "framer-motion";
 import { Loader2, X } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -122,7 +123,12 @@ export default function Register() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#f9f6f5]">
+    <motion.main
+      className="relative min-h-screen overflow-hidden bg-[#f9f6f5]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center opacity-20">
         <p className="font-heading text-[72px] font-extrabold uppercase tracking-[-0.04em] text-[#dfdcdc] sm:text-[110px]">
           VIBE URBAN
@@ -350,6 +356,6 @@ export default function Register() {
           </div>
         </section>
       </div>
-    </main>
+    </motion.main>
   );
 }

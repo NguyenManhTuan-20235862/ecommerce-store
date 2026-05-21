@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router';
@@ -37,9 +38,18 @@ export default function RootLayout() {
   return (
     <div className="flex flex-col min-h-screen relative font-sans selection:bg-black selection:text-white">
       <Header />
-      <main className="flex-grow flex flex-col w-full relative h-auto">
-        <Outlet />
-      </main>
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={location.key}
+          className="flex-grow flex flex-col w-full relative h-auto"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.28, ease: "easeOut" }}
+        >
+          <Outlet />
+        </motion.main>
+      </AnimatePresence>
       <Footer />
       <ScrollToTopButton />
     </div>

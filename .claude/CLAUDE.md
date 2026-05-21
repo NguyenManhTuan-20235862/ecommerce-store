@@ -32,47 +32,59 @@
 
 **Frontend ✅:** Auth · Landing · Header · Shop · Product Detail · Cart · Checkout · Profile · Wishlist · Reviews · Admin (Dashboard với vertical bar chart drill-down/Products/Categories/Orders/Customers/Coupons/About CMS)
 
-## Cập Nhật Phiên Này (2026-05-21) — Session 15
+## Cập Nhật Phiên Này (2026-05-21) — Session 16
 
 ### Hoàn thành
 
 | Hạng mục | Chi tiết |
 |---|---|
-| **About seeder** ✅ | `backend/seeders/aboutSeeder.js` — 4 cửa hàng (SG/HN/ĐN/HP), 8 thành viên có ảnh `randomuser.me`, 1 SiteConfig. Chạy `node seeders/aboutSeeder.js`. |
-| **Lookbook seeder** ✅ | `backend/seeders/lookbookSeeder.js` — 7 story (order 0–6) cho URBAN CHRONICLES, title + subtitle thực tế, ảnh picsum. |
-| **PhilosophySection modal** ✅ | Click card → overlay modal chi tiết 4 đoạn văn, giữ màu card, nút × + click-outside đóng. |
-| **WorkshopSection lightbox** ✅ | Click bất kỳ ảnh quy trình → lightbox fullscreen, prev/next, dots navigation, zoom hint khi hover. |
-| **WorkshopSection text fix** ✅ | Thêm `text-white` explicit vào h2 — "để hoàn thành một đôi giày" trắng rõ trên nền `#1e293b`. |
-| **HeroSection ảnh** ✅ | User thay bằng `src/assets/vibe-urban-v2.jpg` (local). |
-| **StorySection ảnh** ✅ | User thay bằng `src/assets/image.png`, `Store1.jpg`, `Store4.jpg` (local). |
-| **WorkshopSection ảnh** ✅ | User thay bằng `src/assets/Cat.png`, `Khau.png`, `Danhso.png`, `Ktra.png`, `Goi.png` (local). |
+| **New Drops card redesign** ✅ | Tên sản phẩm vào trong frosted glass overlay, bên dưới chỉ còn price + button → các card đồng chiều cao, không lệch khi title dài/ngắn. |
+| **Giá gạch ngang (compareAtPrice)** ✅ | Hiển thị giá gốc gạch ngang trên: Landing `ProductCard`, Shop `ProductCard` (`components/ui/`), `ProductDetails`. Data truyền từ `Landing/index.jsx` + `Product/index.jsx`. |
+| **Tỉ lệ hoàn hủy Dashboard** ✅ | Cuối panel "Đơn hàng theo trạng thái" — thanh progress bar color-coded (xanh ≤5%, vàng 5–10%, đỏ >10%) + dòng "X đơn hủy / Y đơn tổng". |
+| **Field `costPrice` (giá vốn)** ✅ | Backend: `Product.js` + `productController.js` + `orderService.js` ($lookup tính COGS). Frontend: `schemas.js` + `ProductForm.jsx` (3 cột: Giá vốn \| Giá bán \| Giá gốc) + Dashboard banner lợi nhuận. |
+| **Dashboard lợi nhuận ước tính** ✅ | Banner hiển thị: Lợi nhuận = doanh thu − giá vốn, Biên lợi nhuận %, màu xanh/đỏ theo kết quả. |
+| **costPriceMigration.js** ✅ | `backend/seeders/costPriceMigration.js` — cập nhật `costPrice` cho 33 sản phẩm hiện có, làm tròn 5.000đ, bỏ qua sản phẩm đã có giá vốn. Đã chạy xong. |
 
-### Quyết định quan trọng (session 15)
+### Tỉ lệ giá vốn theo danh mục (đã áp dụng)
+
+| Danh mục | Ratio | Margin |
+|---|---|---|
+| `ao` | 46% giá bán | ~54% |
+| `quan` | 44% giá bán | ~56% |
+| `hoodie-sweater` | 50% giá bán | ~50% |
+| `giay` | 52% giá bán | ~48% |
+| `phu-kien` | 38% giá bán | ~62% |
+
+### Quyết định quan trọng (session 16)
 
 | Quyết định | Lý do |
 |---|---|
-| **Ảnh team dùng `randomuser.me`** | Không có dịch vụ nào cung cấp ảnh người Việt + đứng khoanh tay — user cần tự upload qua Admin. |
-| **Lightbox WorkshopSection inline** | Không tách component riêng — chỉ dùng 1 lần, đặt thẳng vào file. |
-| **Lookbook seeder xóa sạch rồi insert** | Stories luôn là content cố định, không cần idempotent như demoSeeder. |
+| **costPrice tính profit dùng $lookup** | Không lưu costPrice vào order items (tránh phình Order schema); join sang Product collection khi aggregate — đủ chính xác cho dashboard |
+| **Profit = totalRevenue − totalCost** | `totalRevenue` dùng `finalAmount` (đã trừ coupon/discount + có phí ship), `totalCost` = sum(costPrice × qty). Cách tính gọn, phù hợp demo. |
+| **Migration script idempotent** | Bỏ qua sản phẩm `costPrice > 0` — an toàn chạy lại nhiều lần khi thêm sản phẩm mới. |
 
-## Cập Nhật Phiên Trước (2026-05-21) — Session 14
+## Cập Nhật Phiên Trước (2026-05-21) — Session 15
 
 ### Hoàn thành
 
 | Hạng mục | Chi tiết |
 |---|---|
-| **Demo data seeder** ✅ | `backend/seeders/demoSeeder.js` — 6 users VN thực tế (pass: Demo@1234), 10 coupons ngẫu nhiên, 10 sản phẩm mới đầy đủ thông tin. Idempotent. |
-| **Color auto-fill** ✅ | `ProductForm.jsx` — `COLOR_MAP` (~35 màu VN→hex) + `guessHex()`. Gõ tên màu → ô color picker tự chuyển. |
-| **Dashboard vertical bar chart** ✅ | Biểu đồ dọc gradient, drill-down ngày, tooltip smart position. |
-| **Drill-down API** ✅ | `GET /api/orders/stats/daily?year&month`. |
+| **About seeder** ✅ | `backend/seeders/aboutSeeder.js` — 4 cửa hàng (SG/HN/ĐN/HP), 8 thành viên có ảnh `randomuser.me`, 1 SiteConfig. |
+| **Lookbook seeder** ✅ | `backend/seeders/lookbookSeeder.js` — 7 story cho URBAN CHRONICLES. |
+| **PhilosophySection modal** ✅ | Click card → overlay modal chi tiết 4 đoạn văn. |
+| **WorkshopSection lightbox** ✅ | Click ảnh → lightbox fullscreen, prev/next, dots navigation. |
+| **Font overhaul** ✅ | Fraunces (heading) + Nunito (sans) + Cormorant Garamond (serif). `.price` utility class `0.75em`. |
+| **Trang Hỗ Trợ `/support`** ✅ | Hero + sticky nav + FaqSection + ShippingSection + ContactSection. Hash anchor scroll. |
+| **Footer + Header links** ✅ | Footer trỏ đúng `/support#shipping`, `/support#faq`, `/support#contact`. Header "Hỗ trợ" dẫn `/support`. |
+| **ScrollToTop button** ✅ | `RootLayout.jsx` — nút ^ góc phải, hiện sau 300px scroll. |
 
 ## Ưu Tiên Phiên Tiếp Theo
 
-1. **Ảnh team người Việt** — Upload thủ công qua `/admin/about` → tab Thành viên (ảnh đứng khoanh tay)
-2. **Lookbook ảnh thật** — Upload qua `/admin` → Lookbook thay ảnh picsum
+1. **Ảnh team người Việt** — Upload thủ công qua `/admin/about` → tab Thành viên
+2. **Lookbook ảnh thật** — Upload qua Admin → Lookbook thay ảnh picsum
 3. **Cursor-based pagination** — Thay Load More + limit lớn bằng pagination thật
 4. **Refresh token rotation** — Thêm endpoint `/auth/refresh`
-5. **Test thủ công Sale CMS** — Tạo combo + tier + bật `isPublic` coupon → xác nhận `/sale`
+5. **costPrice sản phẩm mới** — Khi tạo sản phẩm mới qua Admin form, nhớ điền Giá vốn (cột đầu tiên trong grid 3 cột)
 
 ## Quy tắc session
 

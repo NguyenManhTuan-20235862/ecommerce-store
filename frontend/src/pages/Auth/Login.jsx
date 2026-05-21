@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { motion } from "framer-motion";
 import { Loader2, X } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -90,7 +91,12 @@ export default function Login() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#f9f6f5]">
+    <motion.main
+      className="relative min-h-screen overflow-hidden bg-[#f9f6f5]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
       <img
         src={loginBackgroundImage}
         alt="Urban background"
@@ -235,6 +241,6 @@ export default function Login() {
           <div className="h-2 w-full bg-[linear-gradient(135deg,#004be3_0%,#819bff_100%)]" />
         </section>
       </div>
-    </main>
+    </motion.main>
   );
 }

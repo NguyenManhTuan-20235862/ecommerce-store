@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { useAuthStore } from "../store/authStore";
 import {
@@ -137,9 +138,18 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content */}
-      <main className="ml-[260px] flex-1 p-6 lg:p-8">
-        <Outlet />
-      </main>
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={location.key}
+          className="ml-[260px] flex-1 p-6 lg:p-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+        >
+          <Outlet />
+        </motion.main>
+      </AnimatePresence>
     </div>
   );
 }
