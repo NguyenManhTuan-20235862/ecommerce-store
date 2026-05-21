@@ -1,6 +1,6 @@
 import Combo from "../models/Combo.js";
 
-const POPULATE = { path: "products.product", select: "name price images slug" };
+const POPULATE = { path: "products.product", select: "name price images slug variants" };
 
 export const getCombos = () =>
   Combo.find({ isActive: true }).sort({ order: 1 }).populate(POPULATE);

@@ -43,8 +43,8 @@ export const calculateShippingFee = (subtotal) => {
  * @param {number} discountAmount - Số tiền giảm giá (từ coupon)
  * @returns {number} Tổng tiền cuối cùng
  */
-export const calculateFinalAmount = (subtotal, shippingFee, discountAmount = 0) => {
-  return subtotal + shippingFee - discountAmount;
+export const calculateFinalAmount = (subtotal, shippingFee, discountAmount = 0, tierDiscount = 0) => {
+  return Math.max(0, subtotal + shippingFee - discountAmount - tierDiscount);
 };
 
 /**

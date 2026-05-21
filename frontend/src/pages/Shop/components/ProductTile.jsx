@@ -1,7 +1,9 @@
-import { Plus } from "lucide-react";
+import { Heart, Plus } from "lucide-react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useAuthStore } from "../../../store/authStore";
+import { useCartStore } from "../../../store/cartStore";
 import { useWishlistStore } from "../../../store/wishlistStore";
 
 const badgeToneClasses = {
@@ -18,11 +20,45 @@ function formatVnd(price) {
 export default function ProductTile({ product, className = "" }) {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const addItem = useCartStore((state) => state.addItem);
   const { isWishlisted, toggle } = useWishlistStore();
   const wishlisted = isWishlisted(product._id);
+  const [isAdding, setIsAdding] = useState(false);
   const isLarge = className.includes("col-span-2");
 
-  const handleQuickAction = (e) => {
+  const handleQuickAdd = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      toast.info("Vui lòng đăng nhập để thêm vào giỏ hàng");
+      navigate("/login");
+      return;
+    }
+
+    if (product.isOutOfStock || isAdding) return;
+
+    setIsAdding(true);
+    try {
+      const result = await addItem(
+        {
+          productId: product._id,
+          selectedSize: product.defaultVariant?.size,
+          selectedColor: product.defaultVariant?.color,
+        },
+        1,
+      );
+
+      if (result?.success) {
+        toast.success("Đã thêm vào giỏ hàng");
+      } else {
+        toast.error(result?.message || "Có lỗi xảy ra khi thêm vào giỏ hàng");
+      }
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthenticated) {
@@ -30,17 +66,13 @@ export default function ProductTile({ product, className = "" }) {
       navigate("/login");
       return;
     }
+
     toggle(product._id, {
       name: product.title,
       slug: product.id,
       price: product.price,
       images: [product.image],
     });
-    if (!wishlisted) {
-      toast.success("Đã thêm vào Wishlist");
-    } else {
-      toast.success("Đã xóa khỏi Wishlist");
-    }
   };
 
   return (
@@ -76,15 +108,30 @@ export default function ProductTile({ product, className = "" }) {
           </div>
         )}
 
-        <button
-          onClick={handleQuickAction}
-          className={`absolute bottom-4 right-4 flex h-8 w-8 items-center justify-center rounded-full transition shadow-md hover:scale-110 ${
-            wishlisted ? "bg-red-500 text-white" : "bg-[#004be3] text-white hover:bg-blue-700"
-          }`}
-          aria-label={wishlisted ? "Xóa khỏi Wishlist" : "Thêm vào Wishlist"}
-        >
-          <Plus className="h-4 w-4" />
-        </button>
+        <div className="absolute bottom-4 right-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleWishlist}
+            className={`flex h-9 w-9 items-center justify-center rounded-full shadow-md transition hover:scale-110 ${
+              wishlisted
+                ? "bg-red-500 text-white"
+                : "bg-white text-[#0f172a] hover:text-red-500"
+            }`}
+            aria-label={wishlisted ? "Xóa khỏi Wishlist" : "Thêm vào Wishlist"}
+          >
+            <Heart className={`h-4 w-4 ${wishlisted ? "fill-current" : ""}`} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleQuickAdd}
+            disabled={product.isOutOfStock || isAdding}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#004be3] text-white shadow-md transition hover:scale-110 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+            aria-label="Thêm nhanh vào giỏ hàng"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <div className="flex items-end justify-between gap-4 px-1">

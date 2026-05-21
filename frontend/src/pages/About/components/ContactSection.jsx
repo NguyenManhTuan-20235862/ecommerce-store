@@ -1,8 +1,28 @@
+import { useEffect, useState } from "react";
+import { siteConfigService } from "../../../services/siteConfig.service";
+
 export default function ContactSection() {
+  const [config, setConfig] = useState({ hotline: "", email: "", zalo: "", press: "" });
+
+  useEffect(() => {
+    siteConfigService
+      .getConfig()
+      .then((res) => {
+        const d = res.data?.data ?? {};
+        setConfig({
+          hotline: d.hotline ?? "",
+          email: d.email ?? "",
+          zalo: d.zalo ?? "",
+          press: d.press ?? "",
+        });
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section className="mx-auto w-full max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8">
       <div className="bg-[#1e293b] rounded-[3rem] p-8 md:p-16 flex flex-col lg:flex-row gap-16">
-        
+
         {/* Left Content */}
         <div className="flex-1 text-white">
           <div className="inline-block bg-[#ff6b35] px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white mb-8 rounded-full">
@@ -16,19 +36,19 @@ export default function ContactSection() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
               <div className="inline-block bg-[#ff6b35] px-2 py-0.5 rounded-md text-[9px] font-bold uppercase text-white mb-2">Hotline</div>
-              <p className="text-xl font-extrabold text-white">placeholder@</p>
+              <p className="text-xl font-extrabold text-white">{config.hotline || "—"}</p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
               <div className="inline-block bg-[#ffcdd2] px-2 py-0.5 rounded-md text-[9px] font-bold uppercase text-[#0f172a] mb-2">Email</div>
-              <p className="text-xl font-extrabold text-white">placeholder@</p>
+              <p className="text-xl font-extrabold text-white">{config.email || "—"}</p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
               <div className="inline-block bg-[#004be3] px-2 py-0.5 rounded-md text-[9px] font-bold uppercase text-white mb-2">Zalo OA</div>
-              <p className="text-xl font-extrabold text-white">placeholder@</p>
+              <p className="text-xl font-extrabold text-white">{config.zalo || "—"}</p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
               <div className="inline-block bg-[#c8e6c9] px-2 py-0.5 rounded-md text-[9px] font-bold uppercase text-[#0f172a] mb-2">Báo chí</div>
-              <p className="text-xl font-extrabold text-white">placeholder@</p>
+              <p className="text-xl font-extrabold text-white">{config.press || "—"}</p>
             </div>
           </div>
         </div>
@@ -38,7 +58,7 @@ export default function ContactSection() {
           <div className="inline-block bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#0f172a] mb-6 rounded-full">
             ✦ Form liên hệ
           </div>
-          
+
           <h3 className="text-3xl font-extrabold text-white mb-8 tracking-tight">Gửi cho bọn mình vài dòng.</h3>
 
           <div className="flex flex-wrap gap-2 mb-8">

@@ -65,19 +65,26 @@ export default function TierSection() {
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="font-bold text-sm sm:text-base text-[#0f172a]">
-                        Giảm {t.discountPercent}%
+                        {t.discountPercent > 0 ? `Giảm ${t.discountPercent}%` : "Không giảm"}
                       </span>
                       {t.perks?.length > 0 && (
-                        <span className="text-xs text-[#94a3b8] mt-1 truncate">
-                          {t.perks.join(" • ")}
-                        </span>
+                        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
+                          {t.perks.map((perk, pi) => (
+                            <span key={pi} className="flex items-center gap-1 text-xs text-[#94a3b8]">
+                              <span className="h-1 w-1 shrink-0 rounded-full bg-[#94a3b8]" />
+                              {perk}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest border hidden sm:flex whitespace-nowrap border-black/20 text-[#94a3b8] shrink-0">
-                    -{t.discountPercent}%
-                  </div>
+                  {t.discountPercent > 0 && (
+                    <div className="px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest border hidden sm:flex whitespace-nowrap border-black/20 text-[#94a3b8] shrink-0">
+                      -{t.discountPercent}%
+                    </div>
+                  )}
                 </div>
               ))}
         </div>

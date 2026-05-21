@@ -88,6 +88,14 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    tierDiscount: {
+      type: Number,
+      default: 0,
+    },
+    tierLabel: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

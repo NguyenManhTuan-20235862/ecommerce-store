@@ -1,4 +1,4 @@
-import { Eye, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { orderService } from "../../../services/order.service";
@@ -47,12 +47,15 @@ const formatDate = (dateStr) =>
     year: "numeric",
   });
 
+const PAGE_SIZE = 10;
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  const [page, setPage] = useState(1);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -88,6 +91,9 @@ export default function AdminOrdersPage() {
     }
   };
 
+  // Reset về trang 1 khi đổi tab
+  useEffect(() => { setPage(1); }, [activeTab]);
+
   const isFinalStatus = (status) =>
     status === "cancelled" || status === "delivered";
 
@@ -95,6 +101,9 @@ export default function AdminOrdersPage() {
     activeTab === "all"
       ? orders
       : orders.filter((o) => o.status === activeTab);
+
+  const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
+  const pageOrders = filteredOrders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const countByStatus = (status) =>
     orders.filter((o) => o.status === status).length;
@@ -191,7 +200,7 @@ export default function AdminOrdersPage() {
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map((order) => (
+                pageOrders.map((order) => (
                   <tr
                     key={order._id}
                     className="border-b border-neutral-100 transition last:border-0 hover:bg-neutral-50"
@@ -297,6 +306,44 @@ export default function AdminOrdersPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-neutral-200 px-4 py-3">
+            <p className="text-xs text-neutral-500">
+              Trang {page} / {totalPages} ({filteredOrders.length} đơn hàng)
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page <= 1}
+                className="rounded-md p-1.5 text-neutral-400 transition hover:bg-neutral-100 disabled:opacity-30"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setPage(n)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    n === page
+                      ? "bg-neutral-900 text-white"
+                      : "text-neutral-500 hover:bg-neutral-100"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= totalPages}
+                className="rounded-md p-1.5 text-neutral-400 transition hover:bg-neutral-100 disabled:opacity-30"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Detail Drawer */}

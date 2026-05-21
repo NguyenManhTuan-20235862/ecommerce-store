@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import { Link } from "react-router";
 import { formatVND } from "./cartUtils";
 
@@ -11,6 +11,10 @@ export default function CartSummary({
   onApplyCoupon,
   couponDiscount,
   couponLoading,
+  tierDiscount = 0,
+  tierLabel = "",
+  nextTier = null,
+  subtotalForTier = 0,
 }) {
   return (
     <div className="rounded-xl bg-white p-6 shadow-[0_12px_24px_rgba(0,75,227,0.08)] sm:p-8">
@@ -39,6 +43,14 @@ export default function CartSummary({
             {shipping === 0 ? "Miễn phí" : formatVND(shipping)}
           </span>
         </div>
+        {tierDiscount > 0 && (
+          <div className="flex items-center justify-between text-[#004be3]">
+            <span className="text-xs font-bold uppercase tracking-[0.14em]">
+              Ưu đãi {tierLabel}
+            </span>
+            <span className="text-base">−{formatVND(tierDiscount)}</span>
+          </div>
+        )}
         {couponDiscount > 0 && (
           <div className="flex items-center justify-between text-emerald-600">
             <span className="text-xs font-bold uppercase tracking-[0.14em]">
@@ -48,6 +60,25 @@ export default function CartSummary({
           </div>
         )}
       </div>
+
+      {/* Gợi ý tier tiếp theo */}
+      {nextTier && (
+        <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#f3f0ef] px-4 py-3">
+          <div className="flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#5c5b5b]">
+              Thêm{" "}
+              <span className="text-[#004be3]">
+                {formatVND(nextTier.threshold - subtotalForTier)}
+              </span>{" "}
+              để đạt <span className="text-[#004be3]">Bậc {nextTier.label}</span>
+            </p>
+            <p className="text-[9px] text-[#94a3b8] mt-0.5">
+              Giảm thêm {nextTier.discountPercent}% toàn bộ đơn hàng
+            </p>
+          </div>
+          <ChevronRight size={14} className="shrink-0 text-[#94a3b8]" />
+        </div>
+      )}
 
       {/* Coupon Code Section */}
       <div className="mt-8">

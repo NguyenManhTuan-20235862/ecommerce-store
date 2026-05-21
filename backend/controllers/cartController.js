@@ -16,7 +16,10 @@ export const getCart = async (req, res) => {
 // POST /api/cart/add — Thêm sản phẩm vào giỏ
 export const addToCart = async (req, res) => {
   try {
-    const { productId, quantity = 1, selectedSize, selectedColor } = req.body;
+    const {
+      productId, quantity = 1, selectedSize, selectedColor,
+      comboGroupId, comboName, originalPrice, price: priceOverride,
+    } = req.body;
 
     const product = await resolveProduct(productId);
     if (!product) {
@@ -26,12 +29,17 @@ export const addToCart = async (req, res) => {
     const cart = await getOrCreateCart(req.user.id);
     const realProductId = product._id.toString();
 
-    const existingItem = cart.items.find(
-      (item) =>
-        item.productId.toString() === realProductId &&
-        item.selectedSize  === selectedSize &&
-        item.selectedColor === selectedColor,
-    );
+    // Combo items luôn tạo entry mới (không merge), item thường mới merge nếu trùng
+    const isComboItem = !!comboGroupId;
+    const existingItem = isComboItem
+      ? null
+      : cart.items.find(
+          (item) =>
+            item.productId.toString() === realProductId &&
+            item.selectedSize  === selectedSize &&
+            item.selectedColor === selectedColor &&
+            !item.comboGroupId,
+        );
 
     if (product.variants && product.variants.length > 0) {
       const variant = findMatchingVariant(product, selectedSize, selectedColor);
@@ -47,6 +55,12 @@ export const addToCart = async (req, res) => {
       }
     }
 
+    // Giá lưu: dùng priceOverride nếu là combo item (đã tính prorated), ngược lại dùng giá sản phẩm
+    const storedPrice =
+      isComboItem && typeof priceOverride === "number" && priceOverride >= 0
+        ? priceOverride
+        : product.price;
+
     if (existingItem) {
       existingItem.quantity += quantity;
     } else {
@@ -55,9 +69,12 @@ export const addToCart = async (req, res) => {
         productName:  product.name,
         productImage: product.images?.[0] || "",
         quantity,
-        price:         product.price,
+        price:        storedPrice,
         selectedSize,
         selectedColor,
+        comboGroupId:  comboGroupId  || null,
+        comboName:     comboName     || null,
+        originalPrice: typeof originalPrice === "number" ? originalPrice : null,
       });
     }
 

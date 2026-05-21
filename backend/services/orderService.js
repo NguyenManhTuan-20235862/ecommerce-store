@@ -3,6 +3,7 @@ import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import Product from "../models/Product.js";
 import * as couponService from "./couponService.js";
+import * as saleConfigService from "./saleConfigService.js";
 import mongoose from "mongoose";
 
 // Tạo đơn hàng mới
@@ -54,7 +55,7 @@ export const createOrder = async (
     });
   }
 
-  // 3. Tính phí vận chuyển & coupon
+  // 3. Tính phí vận chuyển, coupon, và tier discount
   const shippingFee = totalAmount >= 500000 ? 0 : 30000;
 
   let discountAmount = 0;
@@ -65,7 +66,13 @@ export const createOrder = async (
     appliedCoupon = result.coupon;
   }
 
-  const finalAmount = Math.max(0, totalAmount + shippingFee - discountAmount);
+  const activeTier = await saleConfigService.getTierForAmount(totalAmount);
+  const tierDiscount = activeTier
+    ? Math.round(totalAmount * activeTier.discountPercent / 100)
+    : 0;
+  const tierLabel = activeTier?.label ?? "";
+
+  const finalAmount = Math.max(0, totalAmount + shippingFee - discountAmount - tierDiscount);
 
   // 4. Atomic stock decrement — dùng $elemMatch để tránh race condition
   // Nếu một item thất bại, rollback toàn bộ items đã trừ trước đó
@@ -115,6 +122,8 @@ export const createOrder = async (
       totalAmount,
       shippingFee,
       discountAmount,
+      tierDiscount,
+      tierLabel,
       finalAmount,
       paymentMethod,
       shippingAddress,
@@ -284,6 +293,31 @@ export const getDashboardStats = async () => {
     topProducts,
     outOfStock: outOfStockCount,
   };
+};
+
+// Doanh thu từng ngày trong 1 tháng (drill-down từ biểu đồ tháng)
+export const getDailyRevenueByMonth = async (year, month) => {
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 1);
+
+  const result = await Order.aggregate([
+    { $match: { status: "delivered", createdAt: { $gte: startDate, $lt: endDate } } },
+    {
+      $group: {
+        _id: { day: { $dayOfMonth: "$createdAt" } },
+        revenue: { $sum: "$finalAmount" },
+        orders: { $sum: 1 },
+      },
+    },
+    { $sort: { "_id.day": 1 } },
+  ]);
+
+  const daysInMonth = new Date(year, month, 0).getDate();
+  return Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1;
+    const found = result.find((r) => r._id.day === day);
+    return { day, revenue: found?.revenue ?? 0, orders: found?.orders ?? 0 };
+  });
 };
 
 // User tự hủy đơn hàng

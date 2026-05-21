@@ -1,4 +1,4 @@
-import { Search, User, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, User, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { userService } from "../../../services/user.service";
@@ -10,11 +10,14 @@ const formatDate = (dateStr) =>
     year: "numeric",
   });
 
+const PAGE_SIZE = 10;
+
 export default function AdminCustomersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [page, setPage] = useState(1);
 
   const fetchUsers = useCallback(async (searchQuery = "") => {
     setLoading(true);
@@ -41,8 +44,14 @@ export default function AdminCustomersPage() {
     return () => clearTimeout(timer);
   }, [search, fetchUsers]);
 
+  // Reset về trang 1 khi danh sách users thay đổi (sau search)
+  useEffect(() => { setPage(1); }, [users]);
+
   const customers = users.filter((u) => u.role === "customer");
   const admins = users.filter((u) => u.role === "admin");
+
+  const totalPages = Math.ceil(users.length / PAGE_SIZE);
+  const pageUsers = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div>
@@ -128,7 +137,7 @@ export default function AdminCustomersPage() {
                   </td>
                 </tr>
               ) : (
-                users.map((user) => (
+                pageUsers.map((user) => (
                   <tr
                     key={user._id}
                     className="cursor-pointer border-b border-neutral-100 transition last:border-0 hover:bg-neutral-50"
@@ -199,6 +208,44 @@ export default function AdminCustomersPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-neutral-200 px-4 py-3">
+            <p className="text-xs text-neutral-500">
+              Trang {page} / {totalPages} ({users.length} tài khoản)
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page <= 1}
+                className="rounded-md p-1.5 text-neutral-400 transition hover:bg-neutral-100 disabled:opacity-30"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setPage(n)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                    n === page
+                      ? "bg-neutral-900 text-white"
+                      : "text-neutral-500 hover:bg-neutral-100"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= totalPages}
+                className="rounded-md p-1.5 text-neutral-400 transition hover:bg-neutral-100 disabled:opacity-30"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Detail Drawer */}

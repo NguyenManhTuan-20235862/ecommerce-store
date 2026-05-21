@@ -13,3 +13,11 @@ export const updateTiers = async (tiers) => {
   );
   return config.tiers;
 };
+
+// Trả về tier áp dụng cho số tiền amount (sắp xếp threshold giảm dần)
+export const getTierForAmount = async (amount) => {
+  const tiers = await getTiers();
+  if (!tiers.length) return null;
+  const sorted = [...tiers].sort((a, b) => b.threshold - a.threshold);
+  return sorted.find((t) => amount >= t.threshold && t.discountPercent > 0) ?? null;
+};

@@ -76,6 +76,21 @@ export const updateOrderStatus = async (req, res) => {
   }
 };
 
+// GET /api/orders/stats/daily?year=2026&month=5 — Doanh thu từng ngày trong tháng
+export const getDailyStats = async (req, res) => {
+  try {
+    const year = parseInt(req.query.year);
+    const month = parseInt(req.query.month);
+    if (!year || !month || month < 1 || month > 12) {
+      return res.status(400).json({ message: "year và month là bắt buộc (month: 1-12)" });
+    }
+    const data = await orderService.getDailyRevenueByMonth(year, month);
+    res.json({ message: "OK", data });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // GET /api/orders/stats — Thống kê tổng quan cho Admin Dashboard
 export const getDashboardStats = async (_req, res) => {
   try {

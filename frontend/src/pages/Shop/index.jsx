@@ -86,6 +86,8 @@ export default function Shop() {
       }
 
       const outOfStock = (p.totalStock ?? 0) === 0;
+      const defaultVariant = p.variants?.find((variant) => variant.stock > 0) || p.variants?.[0];
+
       return {
         _id: p._id,
         id: p.slug,
@@ -96,6 +98,7 @@ export default function Shop() {
         badge,
         image: getImageUrl(p.images?.[0] || ""),
         isFeatured: p.isFeatured,
+        defaultVariant,
         totalStock: p.totalStock ?? 0,
         isOutOfStock: outOfStock,
         featured: p.isFeatured

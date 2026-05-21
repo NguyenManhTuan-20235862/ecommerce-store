@@ -1,4 +1,29 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+
+const COLOR_MAP = {
+  "đen": "#1a1a1a", "đen than": "#1c1917", "đen wash": "#2d2d2d",
+  "trắng": "#ffffff", "trắng sữa": "#faf7f2",
+  "xám": "#6b7280", "xám nhạt": "#d1d5db", "xám đậm": "#374151", "xám khói": "#4b5563",
+  "đỏ": "#ef4444", "đỏ đậm": "#991b1b",
+  "hồng": "#ec4899", "hồng nhạt": "#fbcfe8",
+  "cam": "#f97316",
+  "vàng": "#eab308",
+  "xanh": "#3b82f6", "xanh lam": "#2563eb", "xanh nhạt": "#93c5fd",
+  "xanh navy": "#1e3a5f", "xanh đậm": "#1e40af", "xanh đen": "#1e2d3d",
+  "xanh slate": "#475569", "xanh rêu": "#4d7c0f", "xanh lá": "#22c55e",
+  "xanh wash": "#4a6fa5", "xanh trung": "#3a6496",
+  "navy": "#0f172a",
+  "tím": "#a855f7", "tím nhạt": "#d8b4fe",
+  "nâu": "#92400e", "nâu đất": "#78350f", "nâu cognac": "#8b4513", "nâu mocha": "#6b4423",
+  "be": "#d4b896", "be cát": "#c4a882", "kem": "#fef9ee",
+  "urban core": "#2f2f2e",
+  "đen tech": "#111827",
+  "trắng/đen": "#a0a0a0",
+  "xám wash": "#8a9ba8",
+  "đen/nâu": "#5c3a1e",
+};
+
+const guessHex = (name) => COLOR_MAP[name?.trim().toLowerCase()] ?? null;
 import { ImageOff, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -27,6 +52,7 @@ export default function ProductForm() {
     handleSubmit,
     control,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(productSchema),
@@ -380,7 +406,12 @@ export default function ProductForm() {
                       </div>
                       <div>
                         <input
-                          {...register(`variants.${index}.color`)}
+                          {...register(`variants.${index}.color`, {
+                            onChange: (e) => {
+                              const hex = guessHex(e.target.value);
+                              if (hex) setValue(`variants.${index}.colorHex`, hex);
+                            },
+                          })}
                           placeholder="Đỏ, Xanh navy..."
                           className={inputCls(errors.variants?.[index]?.color)}
                         />
@@ -395,7 +426,7 @@ export default function ProductForm() {
                           {...register(`variants.${index}.colorHex`)}
                           type="color"
                           title="Chọn mã màu"
-                          className="h-[42px] w-[44px] cursor-pointer rounded-lg border border-neutral-300 bg-white p-1 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                          className="h-10.5 w-11 cursor-pointer rounded-lg border border-neutral-300 bg-white p-1 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
                         />
                       </div>
                       <div>
@@ -415,7 +446,7 @@ export default function ProductForm() {
                       <button
                         type="button"
                         onClick={() => remove(index)}
-                        className="flex h-[42px] w-[40px] items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                        className="flex h-10.5 w-10 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
                       >
                         <Trash2 size={14} />
                       </button>

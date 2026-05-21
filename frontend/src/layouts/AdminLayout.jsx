@@ -9,6 +9,7 @@ import {
   Ticket,
   BookImage,
   Tag,
+  Info,
   LogOut,
   Home,
   ChevronRight,
@@ -23,6 +24,7 @@ const MENU = [
   { to: "/admin/coupons", label: "Mã giảm giá", icon: Ticket },
   { to: "/admin/lookbook", label: "Lookbook", icon: BookImage },
   { to: "/admin/sale", label: "Khuyến Mãi", icon: Tag },
+  { to: "/admin/about", label: "Về chúng tôi", icon: Info },
 ];
 
 export default function AdminLayout() {

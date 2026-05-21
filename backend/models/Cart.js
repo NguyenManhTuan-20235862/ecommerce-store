@@ -33,6 +33,9 @@ const cartItemSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    comboGroupId: { type: String, default: null },
+    comboName:    { type: String, default: null },
+    originalPrice: { type: Number, default: null },
   },
   { _id: true },
 );

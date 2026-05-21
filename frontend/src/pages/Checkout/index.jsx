@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
+import { saleConfigService } from "../../services/saleConfig.service";
+import { computeTierDiscount, getApplicableTier } from "../../utils/tierUtils";
 import AddressSelectorModal from "./components/AddressSelectorModal";
 import CheckoutProgress from "./components/CheckoutProgress";
 import ShippingDeploymentForm from "./components/ShippingDeploymentForm";
@@ -26,6 +28,13 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [tiers, setTiers] = useState([]);
+
+  useEffect(() => {
+    saleConfigService.getTiers()
+      .then((res) => setTiers(res.data.data ?? []))
+      .catch(() => {});
+  }, []);
 
   // React Hook Form với Zod validation
   const {
@@ -50,11 +59,13 @@ export default function Checkout() {
   });
 
   // Tính toán giá tiền
-  const subtotal = useMemo(() => calculateSubtotal(items), [items]);
-  const shippingFee = useMemo(() => calculateShippingFee(subtotal), [subtotal]);
+  const subtotal     = useMemo(() => calculateSubtotal(items), [items]);
+  const shippingFee  = useMemo(() => calculateShippingFee(subtotal), [subtotal]);
+  const activeTier   = useMemo(() => getApplicableTier(subtotal, tiers), [subtotal, tiers]);
+  const tierDiscount = useMemo(() => computeTierDiscount(subtotal, tiers), [subtotal, tiers]);
   const total = useMemo(
-    () => calculateFinalAmount(subtotal, shippingFee, couponDiscount),
-    [subtotal, shippingFee, couponDiscount]
+    () => calculateFinalAmount(subtotal, shippingFee, couponDiscount, tierDiscount),
+    [subtotal, shippingFee, couponDiscount, tierDiscount],
   );
 
   // Fetch địa chỉ đã lưu và pre-fill form với địa chỉ mặc định
@@ -223,6 +234,14 @@ export default function Checkout() {
                         {formatVnd(subtotal)}
                       </span>
                     </div>
+                    {tierDiscount > 0 && (
+                      <div className="flex justify-between text-[#004be3]">
+                        <span>Ưu đãi {activeTier?.label}</span>
+                        <span className="text-base normal-case tracking-normal">
+                          −{formatVnd(tierDiscount)}
+                        </span>
+                      </div>
+                    )}
                     {couponDiscount > 0 && (
                       <div className="flex justify-between text-emerald-600">
                         <span>Giảm giá {appliedCouponCode && `(${appliedCouponCode})`}</span>

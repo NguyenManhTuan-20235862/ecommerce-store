@@ -45,6 +45,7 @@ import AdminCustomersPage from "./pages/Admin/Customers";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import AdminLookbookPage from "./pages/Admin/Lookbook";
 import AdminSalePage from "./pages/Admin/Sale";
+import AdminAboutPage from "./pages/Admin/About";
 import AdminOrdersPage from "./pages/Admin/Orders";
 import AdminProductsPage from "./pages/Admin/Products";
 import ProductForm from "./pages/Admin/Products/ProductForm";
@@ -83,6 +84,7 @@ function App() {
           <Route path="coupons" element={<AdminCouponsPage />} />
           <Route path="lookbook" element={<AdminLookbookPage />} />
           <Route path="sale" element={<AdminSalePage />} />
+          <Route path="about" element={<AdminAboutPage />} />
         </Route>
 
         {/* ====== CUSTOMER PAGES (có Header, Footer) ====== */}

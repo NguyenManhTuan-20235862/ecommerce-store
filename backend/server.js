@@ -17,6 +17,9 @@ import lookbookRoute from "./routes/lookbookRoute.js";
 import orderRoute from "./routes/orderRoute.js";
 import saleConfigRoute from "./routes/saleConfigRoute.js";
 import comboRoute from "./routes/comboRoute.js";
+import storeRoute from "./routes/storeRoute.js";
+import teamRoute from "./routes/teamRoute.js";
+import siteConfigRoute from "./routes/siteConfigRoute.js";
 
 dotenv.config();
 
@@ -78,6 +81,9 @@ app.use("/api/lookbook", lookbookRoute);
 app.use("/api/sale-config", saleConfigRoute);
 app.use("/api/combos", comboRoute);
 app.use("/api/coupons", couponRoute);
+app.use("/api/stores", storeRoute);
+app.use("/api/team", teamRoute);
+app.use("/api/about-config", siteConfigRoute);
 
 // ====== PRIVATE ROUTES (cần đăng nhập) ======
 app.use(protectedRoute);

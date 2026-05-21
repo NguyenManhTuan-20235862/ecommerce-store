@@ -3,6 +3,7 @@ import {
   createOrder,
   getAllOrders,
   getDashboardStats,
+  getDailyStats,
   getMyOrders,
   getOrderById,
   updateOrderStatus,
@@ -27,6 +28,7 @@ router.put("/:id/cancel", cancelOrder);
 // ====== ADMIN ROUTES ======
 // Thống kê dashboard (phải đặt trước /:id)
 router.get("/stats", adminRoute, getDashboardStats);
+router.get("/stats/daily", adminRoute, getDailyStats);
 
 // Lấy danh sách toàn bộ đơn hàng
 router.get("/", adminRoute, getAllOrders);

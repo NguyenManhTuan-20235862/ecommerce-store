@@ -1,8 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { couponService } from "../../services/coupon.service";
+import { saleConfigService } from "../../services/saleConfig.service";
+import * as cartService from "../../services/cartService";
 import { useCartStore } from "../../store/cartStore";
+import { computeTierDiscount, getApplicableTier, getNextTier } from "../../utils/tierUtils";
 import CartItem from "./CartItem";
+import ComboCartGroup from "./ComboCartGroup";
 import CartSummary from "./CartSummary";
 import VibeLoyaltyCard from "./VibeLoyaltyCard";
 import { figmaItems, promoBadge } from "./cartConstants";
@@ -22,12 +26,40 @@ export default function Cart() {
   const hasStoreItems = items.length > 0;
   const [demoItems, setDemoItems] = useState(figmaItems);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [tiers, setTiers] = useState([]);
+
+  useEffect(() => {
+    saleConfigService.getTiers()
+      .then((res) => setTiers(res.data.data ?? []))
+      .catch(() => {});
+  }, []);
 
   // Determine which items to display (store items or demo items)
   const displayItems = useMemo(
     () => (hasStoreItems ? items.map(mapStoreItem) : demoItems),
     [hasStoreItems, items, demoItems],
   );
+
+  // Tách items thường và nhóm combo
+  const { soloItems, comboGroups } = useMemo(() => {
+    const solo = [];
+    const groupMap = new Map();
+    for (const item of displayItems) {
+      if (!item.comboGroupId) {
+        solo.push(item);
+      } else {
+        if (!groupMap.has(item.comboGroupId)) {
+          groupMap.set(item.comboGroupId, {
+            comboGroupId: item.comboGroupId,
+            comboName:    item.comboName ?? "Combo",
+            items:        [],
+          });
+        }
+        groupMap.get(item.comboGroupId).items.push(item);
+      }
+    }
+    return { soloItems: solo, comboGroups: [...groupMap.values()] };
+  }, [displayItems]);
 
   // Calculate totals
   const subtotal = useMemo(
@@ -38,7 +70,13 @@ export default function Cart() {
 
   // Phí ship khớp với backend: miễn phí nếu >= 500k, ngược lại 30k
   const shipping = hasStoreItems ? (subtotal >= 500000 ? 0 : 30000) : 0;
-  const total = subtotal - couponDiscount + shipping;
+
+  // Tier discount — chỉ tính khi có real items
+  const activeTier   = useMemo(() => hasStoreItems ? getApplicableTier(subtotal, tiers) : null, [subtotal, tiers, hasStoreItems]);
+  const tierDiscount = useMemo(() => hasStoreItems ? computeTierDiscount(subtotal, tiers) : 0, [subtotal, tiers, hasStoreItems]);
+  const nextTier     = useMemo(() => hasStoreItems ? getNextTier(subtotal, tiers) : null, [subtotal, tiers, hasStoreItems]);
+
+  const total = subtotal - couponDiscount - tierDiscount + shipping;
 
   // Handle quantity change
   const handleQtyChange = (productId, nextQty) => {
@@ -82,6 +120,18 @@ export default function Cart() {
     setDemoItems((prev) => prev.filter((item) => item.productId !== productId));
   };
 
+  // Xóa toàn bộ một combo group
+  const handleRemoveCombo = async (comboGroupId) => {
+    if (!hasStoreItems) return;
+    const groupItems = displayItems.filter((i) => i.comboGroupId === comboGroupId);
+    for (const item of groupItems) {
+      try {
+        await cartService.removeItemAPI(item.cartItemId);
+      } catch {}
+    }
+    useCartStore.getState().fetchCart();
+  };
+
   return (
     <section className="bg-[#f9f6f5] px-4 pb-10 pt-8 sm:px-6 lg:px-6 lg:pb-20 lg:pt-24">
       <div className="mx-auto grid w-full max-w-7xl gap-8 lg:grid-cols-12 lg:gap-12">
@@ -97,16 +147,28 @@ export default function Cart() {
           </div>
 
           <div className="mt-10 space-y-6">
-            {displayItems.map((item) => (
+            {/* Combo groups */}
+            {comboGroups.map((group) => (
+              <ComboCartGroup
+                key={group.comboGroupId}
+                group={group}
+                onQuantityChange={handleQtyChange}
+                onRemove={handleRemove}
+                onRemoveGroup={handleRemoveCombo}
+              />
+            ))}
+
+            {/* Items thường */}
+            {soloItems.map((item) => (
               <CartItem
-                key={item.productId}
+                key={item.cartItemId ?? item.productId}
                 item={item}
                 onQuantityChange={handleQtyChange}
                 onRemove={handleRemove}
               />
             ))}
 
-            {displayItems.length === 0 ? (
+            {displayItems.length === 0 && (
               <div className="rounded-xl border border-dashed border-[#dfdcdc] bg-white p-10 text-center">
                 <p className="font-heading text-2xl font-bold uppercase tracking-[-0.03em] text-[#2f2f2e]">
                   Cart Is Empty
@@ -115,7 +177,7 @@ export default function Cart() {
                   Add some style payloads from Shop to continue checkout.
                 </p>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
 
@@ -134,6 +196,10 @@ export default function Cart() {
               onApplyCoupon={handleApplyCoupon}
               couponDiscount={couponDiscount}
               couponLoading={couponLoading}
+              tierDiscount={tierDiscount}
+              tierLabel={activeTier?.label ?? ""}
+              nextTier={nextTier}
+              subtotalForTier={subtotal}
             />
 
             <VibeLoyaltyCard promoBadge={promoBadge} />

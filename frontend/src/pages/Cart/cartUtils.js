@@ -9,14 +9,17 @@ export const formatVND = (value) =>
 // Map dữ liệu item từ store sang format hiển thị
 export function mapStoreItem(item) {
   return {
-    cartItemId: item._id,                                        // subdoc _id — dùng cho API update/remove
-    productId: item.productId?._id || item.productId,            // product ID (sau populate là object)
-    title: (item.productName || item.name || "UNTITLED ITEM").toUpperCase(),
-    price: Number(item.price) || 0,
-    size: item.selectedSize || item.size || "M",
-    color: item.selectedColor || item.color || "URBAN CORE",
-    quantity: Number(item.quantity) || 1,
-    accent: "border-[#004be3]",
+    cartItemId:    item._id,
+    productId:     item.productId?._id || item.productId,
+    title:         (item.productName || item.name || "UNTITLED ITEM").toUpperCase(),
+    price:         Number(item.price) || 0,
+    originalPrice: item.originalPrice != null ? Number(item.originalPrice) : null,
+    size:          item.selectedSize || item.size || "M",
+    color:         item.selectedColor || item.color || "URBAN CORE",
+    quantity:      Number(item.quantity) || 1,
+    accent:        "border-[#004be3]",
+    comboGroupId:  item.comboGroupId || null,
+    comboName:     item.comboName    || null,
     image:
       item.productImage ||
       item.image ||

@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowLeft,
   FolderTree,
   Package,
   ShoppingBag,
@@ -34,6 +35,11 @@ export default function AdminDashboard() {
   const [error, setError] = useState(false);
   const [orderStats, setOrderStats] = useState(null);
   const [productStats, setProductStats] = useState({ totalProducts: 0, totalCategories: 0, featuredProducts: 0 });
+
+  const [drillDown, setDrillDown] = useState(null); // { year, month, label }
+  const [dailyData, setDailyData] = useState([]);
+  const [dailyLoading, setDailyLoading] = useState(false);
+  const [hoveredBar, setHoveredBar] = useState(null);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -115,6 +121,39 @@ export default function AdminDashboard() {
   const monthlyData = orderStats ? buildMonthlyChart(orderStats.revenueByMonth) : [];
   const maxRevenue = Math.max(...monthlyData.map((m) => m.revenue), 1);
 
+  const openDrillDown = async (m) => {
+    const label = `${MONTH_NAMES[m.month - 1]}/${m.year}`;
+    setDrillDown({ year: m.year, month: m.month, label });
+    setDailyLoading(true);
+    try {
+      const res = await orderService.getDailyStats(m.year, m.month);
+      setDailyData(res.data.data);
+    } catch {
+      setDailyData([]);
+    } finally {
+      setDailyLoading(false);
+    }
+  };
+
+  const closeDrillDown = () => { setDrillDown(null); setDailyData([]); setHoveredBar(null); };
+
+  const maxDailyRevenue = Math.max(...dailyData.map((d) => d.revenue), 1);
+
+  const formatShort = (val) => {
+    if (val === 0) return "0";
+    if (val >= 1_000_000) {
+      const n = val / 1_000_000;
+      return `${n % 1 === 0 ? n : n.toFixed(1)}tr`;
+    }
+    if (val >= 1_000) return `${Math.round(val / 1_000)}k`;
+    return String(val);
+  };
+
+  const buildYTicks = (maxVal, steps = 4) =>
+    Array.from({ length: steps + 1 }, (_, i) => (maxVal / steps) * (steps - i));
+
+  const CHART_H = 200;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -152,39 +191,209 @@ export default function AdminDashboard() {
 
       {/* Doanh thu + Đơn hàng theo trạng thái */}
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Biểu đồ doanh thu 6 tháng */}
+        {/* Biểu đồ doanh thu */}
         <div className="col-span-2 rounded-xl border border-neutral-200 bg-white p-6">
-          <h2 className="text-sm font-semibold text-neutral-900">Doanh thu 6 tháng gần nhất</h2>
-          <p className="text-xs text-neutral-400">(chỉ tính đơn đã giao)</p>
-          {loading ? (
-            <div className="mt-6 space-y-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-8 animate-pulse rounded bg-neutral-100" />
+          {/* Header */}
+          <div className="flex items-center gap-2">
+            {drillDown && (
+              <button
+                onClick={closeDrillDown}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-500 transition hover:bg-neutral-50"
+              >
+                <ArrowLeft size={14} />
+              </button>
+            )}
+            <div>
+              <h2 className="text-sm font-semibold text-neutral-900">
+                {drillDown ? `Doanh thu từng ngày — ${drillDown.label}` : "Doanh thu 6 tháng gần nhất"}
+              </h2>
+              <p className="text-xs text-neutral-400">
+                {drillDown ? "Nhấn ← để quay lại" : "Nhấn vào cột để xem chi tiết theo ngày · chỉ tính đơn đã giao"}
+              </p>
+            </div>
+          </div>
+
+          {/* Loading skeleton */}
+          {(loading || dailyLoading) && (
+            <div className="mt-6 flex items-end gap-2" style={{ height: CHART_H }}>
+              {[...Array(drillDown ? 10 : 6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-1 animate-pulse rounded-t-lg bg-neutral-100"
+                  style={{ height: `${40 + Math.random() * 60}%` }}
+                />
               ))}
             </div>
-          ) : (
-            <div className="mt-5 space-y-3">
-              {monthlyData.map((m) => {
-                const pct = maxRevenue > 0 ? (m.revenue / maxRevenue) * 100 : 0;
-                return (
-                  <div key={`${m.year}-${m.month}`} className="flex items-center gap-3">
-                    <span className="w-6 shrink-0 text-right text-xs text-neutral-400">
-                      {MONTH_NAMES[m.month - 1]}
-                    </span>
-                    <div className="flex-1 overflow-hidden rounded-full bg-neutral-100">
-                      <div
-                        className="h-5 rounded-full bg-[#004BE3] transition-all duration-500"
-                        style={{ width: `${pct}%`, minWidth: m.revenue > 0 ? "2px" : "0" }}
-                      />
-                    </div>
-                    <span className="w-28 shrink-0 text-right text-xs text-neutral-600">
-                      {m.revenue > 0 ? formatCurrency(m.revenue) : "—"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
           )}
+
+          {/* Vertical bar chart — tháng */}
+          {!drillDown && !loading && (() => {
+            const ticks = buildYTicks(maxRevenue);
+            return (
+              <div className="mt-4 flex gap-2">
+                {/* Y-axis */}
+                <div className="flex flex-col justify-between pb-6 text-right" style={{ height: CHART_H + 24 }}>
+                  {ticks.map((t, i) => (
+                    <span key={i} className="text-[11px] leading-none text-neutral-400">
+                      {formatShort(t)}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Chart area */}
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="relative" style={{ height: CHART_H }}>
+                    {/* Grid lines */}
+                    <div className="pointer-events-none absolute inset-0 flex flex-col justify-between">
+                      {ticks.map((_, i) => (
+                        <div key={i} className={`w-full ${i === ticks.length - 1 ? "border-b border-neutral-200" : "border-t border-neutral-100"}`} />
+                      ))}
+                    </div>
+
+                    {/* Bars */}
+                    <div className="absolute inset-x-0 bottom-0 flex items-end gap-2" style={{ height: CHART_H }}>
+                      {monthlyData.map((m, idx) => {
+                        const barH = maxRevenue > 0 ? Math.max((m.revenue / maxRevenue) * CHART_H, m.revenue > 0 ? 4 : 0) : 0;
+                        const tooltipAbove = barH < CHART_H - 95;
+                        return (
+                          <div
+                            key={`${m.year}-${m.month}`}
+                            className="relative flex flex-1 flex-col items-center"
+                            onMouseEnter={() => setHoveredBar(idx)}
+                            onMouseLeave={() => setHoveredBar(null)}
+                          >
+                            {/* Tooltip */}
+                            {hoveredBar === idx && (
+                              <div className={`absolute left-1/2 z-10 w-44 -translate-x-1/2 rounded-xl border border-neutral-100 bg-white p-3 shadow-lg ${tooltipAbove ? "bottom-full mb-2" : "top-2"}`}>
+                                <p className="mb-2 text-xs font-semibold text-neutral-800">
+                                  Tháng {m.month}/{m.year}
+                                </p>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-neutral-500">Doanh thu</span>
+                                  <span className="text-xs font-semibold text-[#004BE3]">{m.revenue > 0 ? formatCurrency(m.revenue) : "—"}</span>
+                                </div>
+                                <div className="mt-1 flex items-center justify-between">
+                                  <span className="text-xs text-neutral-500">Đơn hàng</span>
+                                  <span className="text-xs font-semibold text-neutral-700">{m.orders}</span>
+                                </div>
+                                {tooltipAbove && (
+                                  <div className="absolute left-1/2 top-full -translate-x-1/2 border-x-[5px] border-t-[5px] border-x-transparent border-t-white" style={{ filter: "drop-shadow(0 1px 0 #e5e7eb)" }} />
+                                )}
+                              </div>
+                            )}
+                            {/* Bar */}
+                            <button
+                              onClick={() => openDrillDown(m)}
+                              className="w-full rounded-t-lg transition-all duration-200 hover:brightness-110"
+                              style={{
+                                height: `${barH}px`,
+                                background: m.revenue > 0
+                                  ? "linear-gradient(to top, #004BE3, #819BFF)"
+                                  : "#f3f4f6",
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* X-axis labels */}
+                  <div className="mt-1.5 flex gap-2">
+                    {monthlyData.map((m) => (
+                      <div key={`${m.year}-${m.month}`} className="flex-1 text-center text-[11px] text-neutral-400">
+                        {MONTH_NAMES[m.month - 1]}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Vertical bar chart — ngày (drill-down) */}
+          {drillDown && !dailyLoading && (() => {
+            const ticks = buildYTicks(maxDailyRevenue);
+            return (
+              <div className="mt-4 flex gap-2">
+                {/* Y-axis */}
+                <div className="flex flex-col justify-between pb-6 text-right" style={{ height: CHART_H + 24 }}>
+                  {ticks.map((t, i) => (
+                    <span key={i} className="text-[11px] leading-none text-neutral-400">
+                      {formatShort(t)}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Chart area */}
+                <div className="flex min-w-0 flex-1 flex-col overflow-x-auto">
+                  <div className="relative min-w-120" style={{ height: CHART_H }}>
+                    {/* Grid lines */}
+                    <div className="pointer-events-none absolute inset-0 flex flex-col justify-between">
+                      {ticks.map((_, i) => (
+                        <div key={i} className={`w-full ${i === ticks.length - 1 ? "border-b border-neutral-200" : "border-t border-neutral-100"}`} />
+                      ))}
+                    </div>
+
+                    {/* Bars */}
+                    <div className="absolute inset-x-0 bottom-0 flex items-end gap-1" style={{ height: CHART_H }}>
+                      {dailyData.map((d, idx) => {
+                        const barH = maxDailyRevenue > 0 ? Math.max((d.revenue / maxDailyRevenue) * CHART_H, d.revenue > 0 ? 3 : 0) : 0;
+                        const tooltipAbove = barH < CHART_H - 95;
+                        return (
+                          <div
+                            key={d.day}
+                            className="relative flex flex-1 flex-col items-center"
+                            onMouseEnter={() => setHoveredBar(idx)}
+                            onMouseLeave={() => setHoveredBar(null)}
+                          >
+                            {/* Tooltip */}
+                            {hoveredBar === idx && (
+                              <div className={`absolute left-1/2 z-10 w-40 -translate-x-1/2 rounded-xl border border-neutral-100 bg-white p-3 shadow-lg ${tooltipAbove ? "bottom-full mb-2" : "top-2"}`}>
+                                <p className="mb-2 text-xs font-semibold text-neutral-800">
+                                  Ngày {d.day}/{drillDown.month}/{drillDown.year}
+                                </p>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-neutral-500">Doanh thu</span>
+                                  <span className="text-xs font-semibold text-[#004BE3]">{d.revenue > 0 ? formatCurrency(d.revenue) : "—"}</span>
+                                </div>
+                                <div className="mt-1 flex items-center justify-between">
+                                  <span className="text-xs text-neutral-500">Đơn hàng</span>
+                                  <span className="text-xs font-semibold text-neutral-700">{d.orders}</span>
+                                </div>
+                                {tooltipAbove && (
+                                  <div className="absolute left-1/2 top-full -translate-x-1/2 border-x-[5px] border-t-[5px] border-x-transparent border-t-white" style={{ filter: "drop-shadow(0 1px 0 #e5e7eb)" }} />
+                                )}
+                              </div>
+                            )}
+                            {/* Bar */}
+                            <div
+                              className="w-full rounded-t-md transition-all duration-200 hover:brightness-110"
+                              style={{
+                                height: `${barH}px`,
+                                background: d.revenue > 0
+                                  ? "linear-gradient(to top, #004BE3, #819BFF)"
+                                  : "#f3f4f6",
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* X-axis labels — chỉ hiện ngày 1,5,10,15,20,25,31 */}
+                  <div className="mt-1.5 flex min-w-120 gap-1">
+                    {dailyData.map((d) => (
+                      <div key={d.day} className="flex-1 text-center text-[10px] text-neutral-400">
+                        {[1, 5, 10, 15, 20, 25, d.day === dailyData.length ? d.day : 0].includes(d.day) ? d.day : ""}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Đơn hàng theo trạng thái */}

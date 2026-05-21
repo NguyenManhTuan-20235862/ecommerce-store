@@ -54,6 +54,10 @@ export const orderService = {
     return api.get("/orders/stats");
   },
 
+  getDailyStats(year, month) {
+    return api.get("/orders/stats/daily", { params: { year, month } });
+  },
+
   getAllOrders() {
     return api.get("/orders");
   },
