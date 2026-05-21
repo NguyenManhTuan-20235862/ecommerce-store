@@ -4,7 +4,6 @@ import { useAuthStore } from "../../store/authStore";
 import { getImageUrl } from "../../utils/getImageUrl";
 import DropsSection from "./components/DropsSection";
 import HeroSection from "./components/HeroSection";
-import LandingFooter from "./components/LandingFooter";
 import LookbookSection from "./components/LookbookSection";
 import MarqueeSection from "./components/MarqueeSection";
 import SectionNavBar from "./components/SectionNavBar";
@@ -12,7 +11,6 @@ import TrendingSection from "./components/TrendingSection";
 import {
   categories,
   drops,
-  footerLinks,
   heroFeatureItems,
   heroStats,
   sectionNavItems,
@@ -44,6 +42,7 @@ export default function Landing({ isHomeMode = false }) {
               title: p.name,
               category: p.category?.name || "Clothing",
               price: p.price,
+              compareAtPrice: p.compareAtPrice || 0,
               badge: BADGE_BY_CATEGORY[p.category?.slug] || "New Drop",
               tone: "from-[#1a1a1e] via-[#21212a] to-[#2f2f2e]",
               image: getImageUrl(p.images?.[0] || ""),
@@ -74,7 +73,6 @@ export default function Landing({ isHomeMode = false }) {
         categories={categories}
         isAuthenticated={isAuthenticated}
       />
-      <LandingFooter footerLinks={footerLinks} />
     </main>
   );
 }

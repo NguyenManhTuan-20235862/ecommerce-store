@@ -22,9 +22,9 @@ const productMenu = [
 ];
 
 const supportMenu = [
-  { label: "FAQ", to: "/" },
-  { label: "Giao hàng và đổi trả", to: "/" },
-  { label: "Liên hệ", to: "/" },
+  { label: "FAQ", to: "/support#faq" },
+  { label: "Giao hàng và đổi trả", to: "/support#shipping" },
+  { label: "Liên hệ", to: "/support#contact" },
 ];
 
 export default function Header() {
@@ -118,12 +118,12 @@ export default function Header() {
             onMouseEnter={() => setActiveDesktopSubmenu("support")}
             onMouseLeave={() => setActiveDesktopSubmenu(null)}
           >
-            <button
-              type="button"
+            <Link
+              to="/support"
               className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-[#5c5b5b] transition hover:text-[#004be3]"
             >
               Hỗ trợ <ChevronDown className="h-3.5 w-3.5" />
-            </button>
+            </Link>
             <div
               className={`absolute right-0 top-full z-20 pt-2 transition ${
                 activeDesktopSubmenu === "support"

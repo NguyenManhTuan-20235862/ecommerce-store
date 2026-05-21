@@ -285,10 +285,41 @@ export const getDashboardStats = async () => {
     variants: { $not: { $elemMatch: { stock: { $gt: 0 } } } },
   });
 
+  // 6. Tổng giá vốn hàng đã bán (chỉ tính đơn delivered) — $lookup sang Product lấy costPrice
+  const cogResult = await Order.aggregate([
+    { $match: { status: "delivered" } },
+    { $unwind: "$items" },
+    {
+      $lookup: {
+        from: "products",
+        localField: "items.productId",
+        foreignField: "_id",
+        as: "productInfo",
+      },
+    },
+    { $unwind: { path: "$productInfo", preserveNullAndEmptyArrays: true } },
+    {
+      $group: {
+        _id: null,
+        totalCost: {
+          $sum: {
+            $multiply: [
+              { $ifNull: ["$productInfo.costPrice", 0] },
+              "$items.quantity",
+            ],
+          },
+        },
+      },
+    },
+  ]);
+  const totalCost = cogResult[0]?.totalCost || 0;
+  const estimatedProfit = totalRevenue - totalCost;
+
   return {
     totalOrders,
     ordersByStatus,
     totalRevenue,
+    estimatedProfit,
     revenueByMonth,
     topProducts,
     outOfStock: outOfStockCount,

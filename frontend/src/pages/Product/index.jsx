@@ -127,6 +127,7 @@ export default function Product() {
             productImages={product.images}
             title={product.name}
             price={product.price}
+            compareAtPrice={product.compareAtPrice || 0}
             description={product.description}
             colors={colors}
             sizes={sizes}

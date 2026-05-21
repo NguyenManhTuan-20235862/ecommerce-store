@@ -61,6 +61,12 @@ const productSchema = new mongoose.Schema(
       default: 0,
       min: [0, "Giá gốc không thể âm"],
     },
+    // Giá vốn / giá nhập hàng — dùng để tính lợi nhuận
+    costPrice: {
+      type: Number,
+      default: 0,
+      min: [0, "Giá vốn không thể âm"],
+    },
     // Liên kết đến danh mục
     category: {
       type: mongoose.Schema.Types.ObjectId,

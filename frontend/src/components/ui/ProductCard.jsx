@@ -28,9 +28,16 @@ export default function ProductCard({ item }) {
             {item.name}
           </h3>
         </Link>
-        <p className="text-[14px] text-red-600 font-bold tracking-tight">
-          {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}
-        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          {item.compareAtPrice > item.price && (
+            <span className="price line-through text-[#94a3b8]">
+              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.compareAtPrice)}
+            </span>
+          )}
+          <p className="price text-red-600">
+            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}
+          </p>
+        </div>
       </div>
     </div>
   );

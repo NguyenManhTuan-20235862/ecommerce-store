@@ -7,6 +7,7 @@ export const productSchema = z.object({
     .number({ invalid_type_error: "Nhập giá hợp lệ" })
     .min(0, "Giá phải >= 0"),
   compareAtPrice: z.coerce.number().min(0).default(0),
+  costPrice: z.coerce.number().min(0).default(0),
   category: z.string().min(1, "Vui lòng chọn danh mục"),
   brand: z.string().max(100).default(""),
   sku: z.string().max(50).default(""),

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import ProductTile from "../Shop/components/ProductTile";
 import { lookbookService } from "../../services/lookbook.service";
 import { productService } from "../../services/product.service";
 import { getImageUrl } from "../../utils/getImageUrl";
+import ProductTile from "../Shop/components/ProductTile";
 
 // Placeholder khi story chưa có ảnh, giữ nguyên text cũ
 const PLACEHOLDERS = [
@@ -17,7 +17,13 @@ const PLACEHOLDERS = [
 ];
 
 const DEFAULT_TITLES = [
-  "", "NIGHT RIDE", "GOLDEN HOUR", "CONCRETE", "WORKSHOP", "OFF-DUTY", "RIDE OUT",
+  "",
+  "NIGHT RIDE",
+  "GOLDEN HOUR",
+  "CONCRETE",
+  "WORKSHOP",
+  "OFF-DUTY",
+  "RIDE OUT",
 ];
 
 export default function Lookbook() {
@@ -27,27 +33,34 @@ export default function Lookbook() {
   useEffect(() => {
     let cancelled = false;
 
-    lookbookService.getStories()
+    lookbookService
+      .getStories()
       .then((res) => {
         if (!cancelled) setStories(res.data?.data ?? []);
       })
       .catch(() => {});
 
-    productService.list({ limit: 4, isFeatured: true })
+    productService
+      .list({ limit: 4, isFeatured: true })
       .then((res) => {
         if (!cancelled && res.data) setProducts(res.data.products);
       })
       .catch(() => {});
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Map story theo order value trực tiếp → story order=1 luôn vào slot 1
   const storyMap = {};
-  stories.forEach((s) => { storyMap[s.order] = s; });
+  stories.forEach((s) => {
+    storyMap[s.order] = s;
+  });
 
   const img = (index) => storyMap[index]?.imageUrl || PLACEHOLDERS[index] || "";
-  const title = (index) => storyMap[index]?.title || DEFAULT_TITLES[index] || "";
+  const title = (index) =>
+    storyMap[index]?.title || DEFAULT_TITLES[index] || "";
   const subtitle = (index) => storyMap[index]?.subtitle || "";
 
   const formattedProducts = products.map((p) => ({
@@ -71,24 +84,40 @@ export default function Lookbook() {
               LOOKBOOK VOL. 02 — WINTER/24
             </p>
             <h1 className="font-heading text-6xl font-extrabold uppercase leading-[0.85] tracking-tight text-[#0f172a] sm:text-8xl md:text-[140px] mb-12">
-              URBAN<br />CHRONI-<br />CLES.
+              URBAN
+              <br />
+              CHRONI-
+              <br />
+              CLES.
             </h1>
             <div className="grid grid-cols-4 gap-4 border-t border-black/10 pt-6 mt-auto">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#94a3b8] mb-1">SHOT BY</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#94a3b8] mb-1">
+                  SHOT BY
+                </p>
                 <p className="text-xs font-bold text-[#0f172a]">Linh Nguyen</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#94a3b8] mb-1">STYLED</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#94a3b8] mb-1">
+                  STYLED
+                </p>
                 <p className="text-xs font-bold text-[#0f172a]">Tùng Phạm</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#94a3b8] mb-1">ITEMS</p>
-                <p className="text-xs font-bold text-[#0f172a]">28 accessories</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#94a3b8] mb-1">
+                  ITEMS
+                </p>
+                <p className="text-xs font-bold text-[#0f172a]">
+                  28 accessories
+                </p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#94a3b8] mb-1">STORIES</p>
-                <p className="text-xs font-bold text-[#0f172a]">{String(Math.max(stories.length, 4)).padStart(2, "0")}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#94a3b8] mb-1">
+                  STORIES
+                </p>
+                <p className="text-xs font-bold text-[#0f172a]">
+                  {String(Math.max(stories.length, 4)).padStart(2, "0")}
+                </p>
               </div>
             </div>
           </div>
@@ -114,10 +143,15 @@ export default function Lookbook() {
         `}</style>
         <div className="flex whitespace-nowrap animate-marquee-custom w-[200%]">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex items-center gap-8 px-4 text-sm font-bold uppercase tracking-widest text-white w-1/4 justify-around">
+            <div
+              key={i}
+              className="flex items-center gap-8 px-4 text-sm font-bold uppercase tracking-widest text-white w-1/4 justify-around"
+            >
               <span>● MARQUEE ➔</span>
               <span>THE STORIES</span>
-              <span>● {String(Math.max(stories.length, 4)).padStart(2, "0")} ITEMS ●</span>
+              <span>
+                ● {String(Math.max(stories.length, 4)).padStart(2, "0")} ITEMS ●
+              </span>
               <span>MORE FROM URBAN CHRONICLES...</span>
             </div>
           ))}
@@ -127,7 +161,6 @@ export default function Lookbook() {
       {/* 3. Bento Box Gallery */}
       <section className="mx-auto w-full max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 md:gap-8">
-
           {/* Left Column */}
           <div className="flex flex-col gap-4 md:gap-8">
             <div className="flex flex-col gap-3">
@@ -190,7 +223,7 @@ export default function Lookbook() {
               </h2>
               <Link
                 to="/shop"
-                className="mt-4 inline-block bg-[#004be3] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-blue-700"
+                className="mt-4 inline-block bg-[#004be3] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-blue-700 rounded-full"
               >
                 SHOP THE LOOK <span className="ml-2">→</span>
               </Link>
@@ -231,7 +264,7 @@ export default function Lookbook() {
           </h2>
           <Link
             to="/shop"
-            className="hidden sm:inline-block bg-[#0f172a] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-black"
+            className="hidden sm:inline-block bg-[#0f172a] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-black rounded-full"
           >
             TẤT CẢ SẢN PHẨM <span className="ml-2">→</span>
           </Link>
@@ -239,14 +272,18 @@ export default function Lookbook() {
 
         <div className="grid grid-cols-2 gap-4 md:gap-6 xl:grid-cols-4">
           {formattedProducts.map((product) => (
-            <ProductTile key={product._id} product={product} className="col-span-1" />
+            <ProductTile
+              key={product._id}
+              product={product}
+              className="col-span-1"
+            />
           ))}
         </div>
 
         <div className="mt-8 text-center sm:hidden">
           <Link
             to="/shop"
-            className="inline-block bg-[#0f172a] px-8 py-4 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-black w-full"
+            className="inline-block bg-[#0f172a] px-8 py-4 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-black w-full rounded-full"
           >
             TẤT CẢ SẢN PHẨM <span className="ml-2">→</span>
           </Link>

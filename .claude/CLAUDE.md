@@ -32,53 +32,47 @@
 
 **Frontend ✅:** Auth · Landing · Header · Shop · Product Detail · Cart · Checkout · Profile · Wishlist · Reviews · Admin (Dashboard với vertical bar chart drill-down/Products/Categories/Orders/Customers/Coupons/About CMS)
 
-## Cập Nhật Phiên Này (2026-05-21) — Session 14
+## Cập Nhật Phiên Này (2026-05-21) — Session 15
 
 ### Hoàn thành
 
 | Hạng mục | Chi tiết |
 |---|---|
-| **Demo data seeder** ✅ | `backend/seeders/demoSeeder.js` — 6 users VN thực tế (pass: Demo@1234), 10 coupons ngẫu nhiên, 10 sản phẩm mới đầy đủ thông tin. Idempotent (skip nếu đã tồn tại). |
-| **Color auto-fill** ✅ | `ProductForm.jsx` — `COLOR_MAP` (~35 màu VN→hex) + `guessHex()`. Gõ tên màu → ô color picker tự chuyển. `setValue` từ RHF. |
-| **Color migration** ✅ | `backend/seeders/colorMigration.js` — cập nhật `colorHex` cho 33 sản phẩm có sẵn trong DB khớp bảng `COLOR_MAP`. |
-| **Dashboard vertical bar chart** ✅ | Biểu đồ dọc gradient (#004BE3→#819BFF), Y-axis nhãn rút gọn (tr/k), grid lines, tooltip hover (doanh thu + đơn). Nhấn cột tháng → drill-down ngày. Nút ← quay lại. |
-| **Drill-down API** ✅ | `GET /api/orders/stats/daily?year&month` — backend aggregate theo `$dayOfMonth`. FE `order.service.getDailyStats()`. |
-| **Tooltip smart position** ✅ | Khi bar cao (doanh thu lớn): tooltip hiện `top-2` bên trong bar thay vì `bottom-full` bị clip. |
+| **About seeder** ✅ | `backend/seeders/aboutSeeder.js` — 4 cửa hàng (SG/HN/ĐN/HP), 8 thành viên có ảnh `randomuser.me`, 1 SiteConfig. Chạy `node seeders/aboutSeeder.js`. |
+| **Lookbook seeder** ✅ | `backend/seeders/lookbookSeeder.js` — 7 story (order 0–6) cho URBAN CHRONICLES, title + subtitle thực tế, ảnh picsum. |
+| **PhilosophySection modal** ✅ | Click card → overlay modal chi tiết 4 đoạn văn, giữ màu card, nút × + click-outside đóng. |
+| **WorkshopSection lightbox** ✅ | Click bất kỳ ảnh quy trình → lightbox fullscreen, prev/next, dots navigation, zoom hint khi hover. |
+| **WorkshopSection text fix** ✅ | Thêm `text-white` explicit vào h2 — "để hoàn thành một đôi giày" trắng rõ trên nền `#1e293b`. |
+| **HeroSection ảnh** ✅ | User thay bằng `src/assets/vibe-urban-v2.jpg` (local). |
+| **StorySection ảnh** ✅ | User thay bằng `src/assets/image.png`, `Store1.jpg`, `Store4.jpg` (local). |
+| **WorkshopSection ảnh** ✅ | User thay bằng `src/assets/Cat.png`, `Khau.png`, `Danhso.png`, `Ktra.png`, `Goi.png` (local). |
 
-### Quyết định quan trọng (session 14)
+### Quyết định quan trọng (session 15)
 
 | Quyết định | Lý do |
 |---|---|
-| **`COLOR_MAP` đặt ngoài component** | Static constant — không cần re-create mỗi render. |
-| **`tooltipAbove = barH < CHART_H - 95`** | 95px ≈ chiều cao tooltip — đủ chỗ thì hiện phía trên, không thì hiện bên trong bar. |
-| **`demoSeeder.js` idempotent** | Check trùng username/email/code/slug trước khi insert — chạy lại không lỗi. |
-| **`colorMigration.js` tách riêng** | Không bao giờ chạy lại tự động — script 1 lần, tách khỏi demoSeeder để rõ intent. |
+| **Ảnh team dùng `randomuser.me`** | Không có dịch vụ nào cung cấp ảnh người Việt + đứng khoanh tay — user cần tự upload qua Admin. |
+| **Lightbox WorkshopSection inline** | Không tách component riêng — chỉ dùng 1 lần, đặt thẳng vào file. |
+| **Lookbook seeder xóa sạch rồi insert** | Stories luôn là content cố định, không cần idempotent như demoSeeder. |
 
-## Cập Nhật Phiên Trước (2026-05-21) — Session 13
+## Cập Nhật Phiên Trước (2026-05-21) — Session 14
 
 ### Hoàn thành
 
 | Hạng mục | Chi tiết |
 |---|---|
-| **About Page CMS — Backend** ✅ | Models: `Store` (cityKey enum SG/HN/ĐN/HP), `TeamMember`, `SiteConfig` (singleton). Routes tại `/api/stores`, `/api/team`, `/api/about-config`. |
-| **About Page CMS — Frontend** ✅ | Services + `cityColors.js` + `Admin/About/index.jsx` (3 tabs) + 4 Customer components fetch từ API. |
-| **QA + Bug fix** ✅ | 5 FAIL fixed: `data: null` trong DELETE, imgId `""` xóa file cũ, mass assignment qua `req.body`. |
-
-### Quyết định quan trọng (session 13)
-
-| Quyết định | Lý do |
-|---|---|
-| **`cityColors.js` dùng chung** | StoresSection + MapSection cùng cần map cityKey → màu. |
-| **`MapSection`: `useState(null)`** | Tránh hardcode "SG" — set `stores[0]?.cityKey` sau fetch. |
-| **`SiteConfig.getConfig()` trả `config ?? {}`** | Lần đầu deploy chưa có data, không crash. |
+| **Demo data seeder** ✅ | `backend/seeders/demoSeeder.js` — 6 users VN thực tế (pass: Demo@1234), 10 coupons ngẫu nhiên, 10 sản phẩm mới đầy đủ thông tin. Idempotent. |
+| **Color auto-fill** ✅ | `ProductForm.jsx` — `COLOR_MAP` (~35 màu VN→hex) + `guessHex()`. Gõ tên màu → ô color picker tự chuyển. |
+| **Dashboard vertical bar chart** ✅ | Biểu đồ dọc gradient, drill-down ngày, tooltip smart position. |
+| **Drill-down API** ✅ | `GET /api/orders/stats/daily?year&month`. |
 
 ## Ưu Tiên Phiên Tiếp Theo
 
-1. **Test thủ công About CMS** — Admin tạo store + member + contact → xác nhận render đúng trên `/about`
-2. **Test thủ công Sale CMS** — Tạo combo + tier + bật `isPublic` coupon → xác nhận `/sale`
+1. **Ảnh team người Việt** — Upload thủ công qua `/admin/about` → tab Thành viên (ảnh đứng khoanh tay)
+2. **Lookbook ảnh thật** — Upload qua `/admin` → Lookbook thay ảnh picsum
 3. **Cursor-based pagination** — Thay Load More + limit lớn bằng pagination thật
 4. **Refresh token rotation** — Thêm endpoint `/auth/refresh`
-5. **About/WorkshopSection ảnh thật** — Thay placeholder bằng ảnh upload
+5. **Test thủ công Sale CMS** — Tạo combo + tier + bật `isPublic` coupon → xác nhận `/sale`
 
 ## Quy tắc session
 

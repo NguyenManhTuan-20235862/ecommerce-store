@@ -61,6 +61,7 @@ export default function ProductForm() {
       description: "",
       price: "",
       compareAtPrice: "",
+      costPrice: "",
       category: "",
       brand: "",
       sku: "",
@@ -92,6 +93,7 @@ export default function ProductForm() {
           description: p.description || "",
           price: p.price ?? "",
           compareAtPrice: p.compareAtPrice || "",
+          costPrice: p.costPrice || "",
           category: p.category?._id || "",
           brand: p.brand || "",
           sku: p.sku || "",
@@ -264,8 +266,21 @@ export default function ProductForm() {
                   />
                 </div>
 
-                {/* Giá bán + Giá gốc */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Giá vốn + Giá bán + Giá gốc */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                      Giá vốn (VNĐ)
+                      <span className="ml-1 text-[11px] font-normal text-neutral-400">(nhập hàng)</span>
+                    </label>
+                    <input
+                      {...register("costPrice")}
+                      type="number"
+                      min={0}
+                      placeholder="200000"
+                      className={inputCls(false)}
+                    />
+                  </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-neutral-700">
                       Giá bán (VNĐ) <span className="text-red-500">*</span>
@@ -284,6 +299,7 @@ export default function ProductForm() {
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-neutral-700">
                       Giá gốc (VNĐ)
+                      <span className="ml-1 text-[11px] font-normal text-neutral-400">(gạch ngang)</span>
                     </label>
                     <input
                       {...register("compareAtPrice")}

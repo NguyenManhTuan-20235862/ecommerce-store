@@ -88,7 +88,7 @@ export const getRelatedProducts = async (req, res) => {
 export const createProduct = async (req, res) => {
   try {
     const {
-      name, description, price, compareAtPrice,
+      name, description, price, compareAtPrice, costPrice,
       category, brand, sku, images, variants,
       material, careInstructions, isFeatured, sizeChart,
     } = req.body;
@@ -116,6 +116,7 @@ export const createProduct = async (req, res) => {
       description: description?.trim() || "",
       price: Number(price),
       compareAtPrice: Number(compareAtPrice) || 0,
+      costPrice: Number(costPrice) || 0,
       category,
       brand: brand?.trim() || "",
       sku: sku?.trim().toUpperCase() || "",
@@ -144,7 +145,7 @@ export const updateProduct = async (req, res) => {
     }
 
     const {
-      name, description, price, compareAtPrice,
+      name, description, price, compareAtPrice, costPrice,
       category, brand, sku, images, variants,
       material, careInstructions, isFeatured, isActive, sizeChart,
     } = req.body;
@@ -157,6 +158,7 @@ export const updateProduct = async (req, res) => {
     if (description !== undefined)    product.description    = description.trim();
     if (price !== undefined)          product.price          = Number(price);
     if (compareAtPrice !== undefined) product.compareAtPrice = Number(compareAtPrice);
+    if (costPrice !== undefined)      product.costPrice      = Number(costPrice);
     if (brand !== undefined)          product.brand          = brand.trim();
     if (sku !== undefined)            product.sku            = sku.trim().toUpperCase();
     if (images !== undefined)         product.images         = images;

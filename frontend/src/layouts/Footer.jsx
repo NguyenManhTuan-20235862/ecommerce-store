@@ -18,7 +18,7 @@ export default function Footer() {
           </p>
           <ul className="space-y-2 text-[12px] text-[#5c5b5b]">
             <li>
-              <a href="/shop" className="hover:text-[#004be3]">
+              <a href="/new-drops" className="hover:text-[#004be3]">
                 Hàng mới
               </a>
             </li>
@@ -41,17 +41,17 @@ export default function Footer() {
           </p>
           <ul className="space-y-2 text-[12px] text-[#5c5b5b]">
             <li>
-              <a href="#" className="hover:text-[#004be3]">
+              <a href="/support#shipping" className="hover:text-[#004be3]">
                 Giao hàng & đổi trả
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-[#004be3]">
+              <a href="/support#faq" className="hover:text-[#004be3]">
                 Chính sách bảo mật
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-[#004be3]">
+              <a href="/support#contact" className="hover:text-[#004be3]">
                 Liên hệ
               </a>
             </li>

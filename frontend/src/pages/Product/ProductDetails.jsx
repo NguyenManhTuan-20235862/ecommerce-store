@@ -13,6 +13,7 @@ function formatVnd(price) {
 export default function ProductDetails({
   title,
   price,
+  compareAtPrice = 0,
   description,
   colors,
   sizes,
@@ -113,10 +114,17 @@ export default function ProductDetails({
           {title}
         </h1>
 
-        <div className="flex items-center gap-3">
-          <span className="text-3xl font-bold text-[#004be3]">
-            {formatVnd(price)} VND
-          </span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex flex-col leading-tight">
+            {compareAtPrice > price && (
+              <span className="price line-through text-[#94a3b8]">
+                {formatVnd(compareAtPrice)} VND
+              </span>
+            )}
+            <span className="price text-xl text-[#004be3]">
+              {formatVnd(price)} VND
+            </span>
+          </div>
           {selectedStock !== null && (
             <span
               className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
@@ -201,7 +209,7 @@ export default function ProductDetails({
         <button
           onClick={handleAddToCart}
           disabled={isLoading || isOutOfStock}
-          className="w-full rounded-full bg-gradient-to-r from-[#004be3] to-[#819bff] py-4 font-heading text-lg font-bold uppercase tracking-wide text-white transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full rounded-full bg-linear-to-r from-[#004be3] to-[#819bff] py-4 font-heading text-lg font-bold uppercase tracking-wide text-white transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? "Đang thêm..." : isOutOfStock ? "Hết hàng" : "Add to Pulse"}
         </button>

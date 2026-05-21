@@ -17,6 +17,7 @@ import Landing from "./pages/Landing";
 
 // Customer Pages
 import About from "./pages/About";
+import Support from "./pages/Support";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/Checkout/Success";
@@ -97,6 +98,7 @@ function App() {
           <Route path="/lookbook" element={<Lookbook />} />
           <Route path="/sale" element={<Sale />} />
           <Route path="/about" element={<About />} />
+          <Route path="/support" element={<Support />} />
           <Route path="/product/:productId" element={<Product />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/cart" element={<Cart />} />

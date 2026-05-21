@@ -4,6 +4,7 @@ import {
   FolderTree,
   Package,
   ShoppingBag,
+  TrendingDown,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -188,6 +189,45 @@ export default function AdminDashboard() {
           );
         })}
       </div>
+
+      {/* Banner lợi nhuận ước tính */}
+      {!loading && !error && (() => {
+        const profit = orderStats?.estimatedProfit ?? 0;
+        const revenue = orderStats?.totalRevenue ?? 0;
+        const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : "0.0";
+        const isPositive = profit >= 0;
+        return (
+          <div className={`rounded-xl border p-5 ${isPositive ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${isPositive ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-500"}`}>
+                  {isPositive ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                </div>
+                <div>
+                  <p className={`text-xs font-semibold uppercase tracking-wide ${isPositive ? "text-emerald-600" : "text-red-500"}`}>
+                    Lợi nhuận ước tính
+                  </p>
+                  <p className="text-[11px] text-neutral-400">Doanh thu − Giá vốn · chỉ tính đơn đã giao</p>
+                </div>
+              </div>
+              <div className="flex items-end gap-6">
+                <div className="text-right">
+                  <p className={`text-2xl font-bold ${isPositive ? "text-emerald-700" : "text-red-600"}`}>
+                    {formatCurrency(Math.abs(profit))}
+                    {profit < 0 && <span className="ml-1 text-sm">lỗ</span>}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-xl font-bold ${isPositive ? "text-emerald-600" : "text-red-500"}`}>
+                    {margin}%
+                  </p>
+                  <p className="text-[11px] text-neutral-400">Biên lợi nhuận</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Doanh thu + Đơn hàng theo trạng thái */}
       <div className="grid gap-4 lg:grid-cols-3">
@@ -406,18 +446,48 @@ export default function AdminDashboard() {
               ))}
             </div>
           ) : (
-            <div className="mt-4 space-y-2">
-              {Object.entries(STATUS_LABELS).map(([status, label]) => (
-                <div key={status} className="flex items-center justify-between">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[status]}`}>
-                    {label}
-                  </span>
-                  <span className="text-sm font-semibold text-neutral-900">
-                    {orderStats?.ordersByStatus?.[status] ?? 0}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="mt-4 space-y-2">
+                {Object.entries(STATUS_LABELS).map(([status, label]) => (
+                  <div key={status} className="flex items-center justify-between">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[status]}`}>
+                      {label}
+                    </span>
+                    <span className="text-sm font-semibold text-neutral-900">
+                      {orderStats?.ordersByStatus?.[status] ?? 0}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tỉ lệ hủy đơn */}
+              {(() => {
+                const cancelled = orderStats?.ordersByStatus?.cancelled ?? 0;
+                const total = orderStats?.totalOrders ?? 0;
+                const rate = total > 0 ? parseFloat(((cancelled / total) * 100).toFixed(1)) : 0;
+                const isHigh = rate > 10;
+                const isMid = rate > 5 && rate <= 10;
+                const colorText = isHigh ? "text-red-500" : isMid ? "text-amber-500" : "text-emerald-500";
+                const colorBar = isHigh ? "bg-red-400" : isMid ? "bg-amber-400" : "bg-emerald-400";
+                return (
+                  <div className="mt-4 border-t border-neutral-100 pt-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-neutral-500">Tỉ lệ hoàn hủy</span>
+                      <span className={`text-base font-bold ${colorText}`}>{rate}%</span>
+                    </div>
+                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${colorBar}`}
+                        style={{ width: `${Math.min(rate, 100)}%` }}
+                      />
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-neutral-400">
+                      {cancelled} đơn hủy / {total} đơn tổng
+                    </p>
+                  </div>
+                );
+              })()}
+            </>
           )}
         </div>
       </div>
