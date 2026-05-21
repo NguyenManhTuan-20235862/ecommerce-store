@@ -1,11 +1,11 @@
-import { useMemo, useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
-import { useSearchParams } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
+import { productService } from "../../services/product.service";
+import { getImageUrl } from "../../utils/getImageUrl";
 import FilterSidebar from "./components/FilterSidebar";
 import ProductTile from "./components/ProductTile";
 import { maxPrice } from "./components/shopData";
-import { productService } from "../../services/product.service";
-import { getImageUrl } from "../../utils/getImageUrl";
 
 const sortOptions = [
   { value: "newest", label: "Newest Arrivals" },
@@ -13,9 +13,9 @@ const sortOptions = [
   { value: "price_desc", label: "Price: High to Low" },
 ];
 
-
 export default function Shop() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState(
     searchParams.get("category") || "",
   );
@@ -50,18 +50,25 @@ export default function Shop() {
           limit: apiLimit,
           category: activeCategory || undefined,
           size: selectedSizes.length > 0 ? selectedSizes.join(",") : undefined,
-          maxPrice: appliedPriceLimit < maxPrice ? appliedPriceLimit : undefined,
+          maxPrice:
+            appliedPriceLimit < maxPrice ? appliedPriceLimit : undefined,
           sort: sortBy,
           search: debouncedSearch || undefined,
         };
         const res = await productService.list(params);
         if (!cancelled && res.data) {
           const incoming = res.data.products;
-          setProducts(page === 1 ? incoming : (prev) => {
-            const existingIds = new Set(prev.map(p => p._id));
-            const newProducts = incoming.filter(p => !existingIds.has(p._id));
-            return [...prev, ...newProducts];
-          });
+          setProducts(
+            page === 1
+              ? incoming
+              : (prev) => {
+                  const existingIds = new Set(prev.map((p) => p._id));
+                  const newProducts = incoming.filter(
+                    (p) => !existingIds.has(p._id),
+                  );
+                  return [...prev, ...newProducts];
+                },
+          );
           setTotal(res.data.pagination.total);
         }
       } catch (error) {
@@ -72,7 +79,14 @@ export default function Shop() {
     return () => {
       cancelled = true;
     };
-  }, [page, activeCategory, selectedSizes, appliedPriceLimit, sortBy, debouncedSearch]);
+  }, [
+    page,
+    activeCategory,
+    selectedSizes,
+    appliedPriceLimit,
+    sortBy,
+    debouncedSearch,
+  ]);
 
   const formattedProducts = useMemo(() => {
     return products.map((p) => {
@@ -86,7 +100,8 @@ export default function Shop() {
       }
 
       const outOfStock = (p.totalStock ?? 0) === 0;
-      const defaultVariant = p.variants?.find((variant) => variant.stock > 0) || p.variants?.[0];
+      const defaultVariant =
+        p.variants?.find((variant) => variant.stock > 0) || p.variants?.[0];
 
       return {
         _id: p._id,
@@ -137,10 +152,13 @@ export default function Shop() {
             </h1>
             <div className="mt-8 flex flex-col justify-between gap-4 border-t border-black/10 pt-6 sm:flex-row sm:items-center">
               <p className="max-w-md text-sm text-[#334155]">
-                Phụ kiện và giày cho nam — bộ sưu tập urban core. Bộ lọc theo danh
-                mục, kích cỡ và bộ sưu tập ở thanh dọc bên trái.
+                Phụ kiện và giày cho nam — bộ sưu tập urban core. Bộ lọc theo
+                danh mục, kích cỡ và bộ sưu tập ở thanh dọc bên trái.
               </p>
-              <button className="whitespace-nowrap rounded-full bg-[#004be3] px-8 py-3 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-blue-700">
+              <button
+                onClick={() => navigate("/lookbook")}
+                className="whitespace-nowrap rounded-full bg-[#004be3] px-8 py-3 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-blue-700"
+              >
                 XEM LOOKBOOK <span className="ml-2">→</span>
               </button>
             </div>

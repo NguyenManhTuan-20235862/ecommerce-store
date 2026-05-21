@@ -1,6 +1,14 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router";
 
+const scrollToSection = (href) => {
+  const id = href.replace("#", "");
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({ behavior: "smooth" });
+  }
+};
+
 export default function SectionNavBar({ isAuthenticated, sectionNavItems }) {
   return (
     <section className="px-4 pb-0 pt-4 sm:px-6 lg:px-10 lg:pt-6">
@@ -22,13 +30,13 @@ export default function SectionNavBar({ isAuthenticated, sectionNavItems }) {
 
           <nav className="hidden flex-1 items-center justify-center gap-10 text-sm font-semibold text-[#5c5b5b] lg:flex">
             {sectionNavItems.map((item) => (
-              <a
+              <button
                 key={item.label}
-                href={item.href}
-                className="transition hover:text-[#004be3]"
+                onClick={() => scrollToSection(item.href)}
+                className="cursor-pointer transition hover:text-[#004be3]"
               >
                 {item.label}
-              </a>
+              </button>
             ))}
           </nav>
 

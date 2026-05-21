@@ -25,7 +25,10 @@ export default function MapSection() {
   const colors = getCityColors(current.cityKey);
 
   return (
-    <section className="mx-auto w-full max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8 border-t border-black/10">
+    <section
+      id="map-section"
+      className="mx-auto w-full max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8 border-t border-black/10"
+    >
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-6 mb-8">
         <div>
@@ -33,7 +36,7 @@ export default function MapSection() {
             05 - Bản đồ
           </div>
           <h2 className="font-heading text-4xl sm:text-5xl font-extrabold tracking-tight text-[#0f172a]">
-            {stores.map((s) => s.cityKey).join(" • ")}.
+            {stores.map((s) => s.cityKey).join(" • ")}
           </h2>
         </div>
 
@@ -56,24 +59,36 @@ export default function MapSection() {
       </div>
 
       {/* Map + Sidebar */}
-      <div className="flex flex-col lg:flex-row gap-0 rounded-[2rem] overflow-hidden border border-black/10 shadow-sm" style={{ minHeight: "520px" }}>
-
+      <div
+        className="flex flex-col lg:flex-row gap-0 rounded-[2rem] overflow-hidden border border-black/10 shadow-sm"
+        style={{ minHeight: "520px" }}
+      >
         {/* Info Sidebar */}
         <div className="bg-white p-8 flex flex-col justify-between gap-6 lg:w-[300px] shrink-0">
           <div>
-            <span className={`inline-block px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest rounded-full mb-4 ${colors.tagColor}`}>
+            <span
+              className={`inline-block px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest rounded-full mb-4 ${colors.tagColor}`}
+            >
               {current.tag || current.cityKey}
             </span>
-            <h3 className="text-2xl font-extrabold text-[#0f172a] mb-1">{current.name}</h3>
-            <p className="text-sm text-[#5c5b5b] font-medium mb-6">{current.address}</p>
+            <h3 className="text-2xl font-extrabold text-[#0f172a] mb-1">
+              {current.name}
+            </h3>
+            <p className="text-sm text-[#5c5b5b] font-medium mb-6">
+              {current.address}
+            </p>
 
             {/* Rating */}
             {current.rating > 0 && (
               <div className="flex items-center gap-2 mb-6">
                 <span className="text-yellow-400 text-sm">★★★★★</span>
-                <span className="text-sm font-bold text-[#0f172a]">{current.rating}</span>
+                <span className="text-sm font-bold text-[#0f172a]">
+                  {current.rating}
+                </span>
                 {current.reviews > 0 && (
-                  <span className="text-xs text-[#94a3b8]">({current.reviews} đánh giá)</span>
+                  <span className="text-xs text-[#94a3b8]">
+                    ({current.reviews} đánh giá)
+                  </span>
                 )}
               </div>
             )}
@@ -83,8 +98,12 @@ export default function MapSection() {
               <div className="bg-[#f3f0ef] rounded-xl p-4 flex items-center gap-3 mb-4">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shrink-0"></div>
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-[#94a3b8] mb-0.5">Giờ mở cửa</p>
-                  <p className="text-sm font-bold text-[#0f172a]">{current.time}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-[#94a3b8] mb-0.5">
+                    Giờ mở cửa
+                  </p>
+                  <p className="text-sm font-bold text-[#0f172a]">
+                    {current.time}
+                  </p>
                 </div>
               </div>
             )}
@@ -92,8 +111,12 @@ export default function MapSection() {
             {/* Phone */}
             {current.phone && (
               <div className="bg-[#f3f0ef] rounded-xl p-4">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-[#94a3b8] mb-0.5">Hotline</p>
-                <p className="text-sm font-bold text-[#0f172a]">{current.phone}</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-[#94a3b8] mb-0.5">
+                  Hotline
+                </p>
+                <p className="text-sm font-bold text-[#0f172a]">
+                  {current.phone}
+                </p>
               </div>
             )}
           </div>
@@ -131,7 +154,7 @@ export default function MapSection() {
 
         {/* Google Maps Embed */}
         <div className="flex-1 relative min-h-[400px]">
-          {stores.map((s) => (
+          {stores.map((s) =>
             s.mapSrc ? (
               <iframe
                 key={s.cityKey}
@@ -155,8 +178,8 @@ export default function MapSection() {
                   Chưa có bản đồ — {s.name}
                 </p>
               </div>
-            )
-          ))}
+            ),
+          )}
         </div>
       </div>
     </section>
