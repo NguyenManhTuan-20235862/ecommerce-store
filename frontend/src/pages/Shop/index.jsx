@@ -1,6 +1,8 @@
+import { motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
+import { fadeUpItem, staggerContainer } from "../../animations/variants";
 import { productService } from "../../services/product.service";
 import { getImageUrl } from "../../utils/getImageUrl";
 import FilterSidebar from "./components/FilterSidebar";
@@ -132,6 +134,11 @@ export default function Shop() {
     });
   }, [products]);
 
+  const filterKey = useMemo(
+    () => `${activeCategory}-${selectedSizes.join(",")}-${appliedPriceLimit}-${sortBy}-${debouncedSearch}`,
+    [activeCategory, selectedSizes, appliedPriceLimit, sortBy, debouncedSearch],
+  );
+
   const shown = formattedProducts.length;
   const canLoadMore = shown < total;
   const progress = total > 0 ? Math.min((shown / total) * 100, 100) : 0;
@@ -261,15 +268,23 @@ export default function Shop() {
               </label>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <motion.div
+              key={filterKey}
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+            >
               {formattedProducts.map((product, index) => (
-                <ProductTile
+                <motion.div
                   key={product.id}
-                  product={product}
+                  variants={fadeUpItem}
                   className={index % 4 === 0 ? "md:col-span-2" : "col-span-1"}
-                />
+                >
+                  <ProductTile product={product} />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             <div className="mt-14 flex flex-col items-center gap-6">
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#94a3b8]">

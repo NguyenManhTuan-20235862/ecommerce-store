@@ -1,5 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { motion } from "framer-motion";
 import { Star, X } from "lucide-react";
+import { modalContent, modalOverlay } from "../../animations/variants";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -51,8 +53,14 @@ export default function ReviewModal({ productId, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
+    <motion.div
+      {...modalOverlay}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    >
+      <motion.div
+        {...modalContent}
+        className="w-full max-w-md rounded-2xl bg-white shadow-xl"
+      >
         <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
           <h2 className="font-heading text-base font-bold uppercase tracking-widest text-[#2f2f2e]">
             POST YOUR FIT
@@ -129,7 +137,7 @@ export default function ReviewModal({ productId, onClose, onSuccess }) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

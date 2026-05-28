@@ -1,5 +1,7 @@
+import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router";
+import { fadeUpItem, scrollFadeUp, staggerContainer } from "../../../animations/variants";
 import ProductCard from "./ProductCard";
 
 export default function DropsSection({ drops }) {
@@ -9,7 +11,7 @@ export default function DropsSection({ drops }) {
       className="bg-[#f3f0ef] px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-24"
     >
       <div className="mx-auto flex w-full max-w-400 flex-col gap-10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <motion.div {...scrollFadeUp} className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#004be3]">
               Available now
@@ -25,13 +27,20 @@ export default function DropsSection({ drops }) {
             Xem toàn bộ archive
             <ChevronRight className="h-4 w-4" />
           </Link>
-        </div>
+        </motion.div>
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <motion.div
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="grid gap-5 md:grid-cols-2 xl:grid-cols-4"
+        >
           {drops.map((drop) => (
-            <ProductCard key={drop.title} {...drop} />
+            <motion.div key={drop.title} variants={fadeUpItem}>
+              <ProductCard {...drop} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

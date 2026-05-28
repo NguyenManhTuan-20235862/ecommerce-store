@@ -1,5 +1,7 @@
+import { motion } from "framer-motion";
 import { ArrowRight, ChevronRight } from "lucide-react";
 import { Link } from "react-router";
+import { scrollSlideLeft, scrollSlideRight } from "../../../animations/variants";
 
 export default function HeroSection({
   isAuthenticated,
@@ -10,7 +12,7 @@ export default function HeroSection({
   return (
     <section className="relative px-4 pb-11 pt-4 sm:px-6 sm:pb-14 lg:px-10 lg:pb-20 lg:pt-6">
       <div className="relative mx-auto mt-2 grid w-full max-w-400 gap-4.5 sm:mt-4 sm:gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
-        <div className="relative overflow-hidden rounded-4xl border border-black/5 bg-white/70 p-5 shadow-[0_32px_90px_rgba(47,47,46,0.08)] backdrop-blur-sm sm:p-7 lg:p-10 xl:p-11">
+        <motion.div {...scrollSlideLeft} className="relative overflow-hidden rounded-4xl border border-black/5 bg-white/70 p-5 shadow-[0_32px_90px_rgba(47,47,46,0.08)] backdrop-blur-sm sm:p-7 lg:p-10 xl:p-11">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#004be3]">
             Available now
           </p>
@@ -73,9 +75,9 @@ export default function HeroSection({
           <div className="pointer-events-none absolute -left-20 top-20 select-none font-heading text-[9rem] font-extrabold italic uppercase tracking-[-0.08em] text-[#2f2f2e] opacity-[0.03] sm:-left-24 sm:text-[18rem]">
             vibe urban vibe urban
           </div>
-        </div>
+        </motion.div>
 
-        <div className="relative min-h-140 overflow-hidden rounded-4xl border border-black/5 bg-[#2f2f2e] shadow-[0_32px_90px_rgba(47,47,46,0.16)] sm:min-h-160 lg:min-h-180">
+        <motion.div {...scrollSlideRight} className="relative min-h-140 overflow-hidden rounded-4xl border border-black/5 bg-[#2f2f2e] shadow-[0_32px_90px_rgba(47,47,46,0.16)] sm:min-h-160 lg:min-h-180">
           <img
             src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&h=1100&q=80&fit=crop"
             alt="Hero fashion"
@@ -132,7 +134,7 @@ export default function HeroSection({
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

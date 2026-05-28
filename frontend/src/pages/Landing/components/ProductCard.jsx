@@ -1,5 +1,7 @@
+import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
+import { buttonTap, cardHover } from "../../../animations/variants";
 import { useAuthStore } from "../../../store/authStore";
 import { useCartStore } from "../../../store/cartStore";
 
@@ -67,7 +69,10 @@ export default function ProductCard({
   };
 
   const card = (
-    <article className="group relative flex flex-col overflow-hidden rounded-3xl border border-black/5 bg-white shadow-[0_20px_50px_rgba(47,47,46,0.08)] transition duration-300 hover:-translate-y-px hover:shadow-[0_30px_70px_rgba(47,47,46,0.12)]">
+    <motion.article
+      {...cardHover}
+      className="group relative flex flex-col overflow-hidden rounded-3xl border border-black/5 bg-white shadow-[0_20px_50px_rgba(47,47,46,0.08)] hover:shadow-[0_30px_70px_rgba(47,47,46,0.12)]"
+    >
       <div
         className={`relative aspect-4/3 overflow-hidden bg-linear-to-br ${tone || "from-[#1a1a1e] via-[#21212a] to-[#2f2f2e]"}`}
       >
@@ -101,15 +106,16 @@ export default function ProductCard({
           </span>
           <span className="price text-[#004be3]">{formatPrice(price)}</span>
         </div>
-        <button
+        <motion.button
           type="button"
           onClick={handleAddToCart}
+          {...buttonTap}
           className="inline-flex items-center justify-center rounded-full bg-[#004be3] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-white transition hover:bg-[#003cc0]"
         >
           Thêm vào giỏ
-        </button>
+        </motion.button>
       </div>
-    </article>
+    </motion.article>
   );
 
   if (isRealProduct) {

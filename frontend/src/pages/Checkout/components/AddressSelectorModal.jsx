@@ -1,9 +1,17 @@
+import { motion } from "framer-motion";
 import { MapPin, Star, X } from "lucide-react";
+import { modalContent, modalOverlay } from "../../../animations/variants";
 
 export default function AddressSelectorModal({ addresses, onSelect, onClose }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="relative w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl">
+    <motion.div
+      {...modalOverlay}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    >
+      <motion.div
+        {...modalContent}
+        className="relative w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl"
+      >
         <button
           type="button"
           onClick={onClose}
@@ -43,7 +51,7 @@ export default function AddressSelectorModal({ addresses, onSelect, onClose }) {
             </button>
           ))}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

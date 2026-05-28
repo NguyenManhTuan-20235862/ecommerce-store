@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 export default function Button({
   type = "button",
   className = "",
@@ -15,8 +17,9 @@ export default function Button({
   };
 
   return (
-    <button
+    <motion.button
       type={type}
+      whileTap={{ scale: 0.96 }}
       className={`${base} ${variants[variant] || variants.primary} ${className}`.trim()}
       {...props}
     />

@@ -1,5 +1,7 @@
+import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router";
+import { scrollSlideLeft, scrollSlideRight } from "../../../animations/variants";
 
 export default function LookbookSection({ categories, isAuthenticated }) {
   return (
@@ -8,7 +10,7 @@ export default function LookbookSection({ categories, isAuthenticated }) {
       className="bg-[#f3f0ef] px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-24"
     >
       <div className="mx-auto grid w-full max-w-400 gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center xl:grid-cols-[0.86fr_1.14fr]">
-        <div>
+        <motion.div {...scrollSlideLeft}>
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#004be3]">
             Lookbook
           </p>
@@ -47,9 +49,9 @@ export default function LookbookSection({ categories, isAuthenticated }) {
               </Link>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <motion.div {...scrollSlideRight} className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {categories.map((item, index) => (
             <article
               key={item.label}
@@ -97,7 +99,7 @@ export default function LookbookSection({ categories, isAuthenticated }) {
               </div>
             </article>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

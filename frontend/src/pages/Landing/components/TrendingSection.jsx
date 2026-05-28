@@ -1,5 +1,7 @@
+import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router";
+import { fadeUpItem, scrollFadeUp, staggerContainer } from "../../../animations/variants";
 
 export default function TrendingSection({ trendCards }) {
   return (
@@ -8,7 +10,7 @@ export default function TrendingSection({ trendCards }) {
       className="bg-[#f9f6f5] px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-24"
     >
       <div className="mx-auto flex w-full max-w-400 flex-col gap-12">
-        <div className="mx-auto max-w-3xl text-center">
+        <motion.div {...scrollFadeUp} className="mx-auto max-w-3xl text-center">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#004be3]">
             Trending now
           </p>
@@ -19,10 +21,10 @@ export default function TrendingSection({ trendCards }) {
             Ưu tiên hàng đầu của chúng tôi là sự hài lòng tuyệt đối của khách
             hàng.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
-          <article className="relative min-h-110 overflow-hidden rounded-4xl bg-[#111827] shadow-[0_30px_90px_rgba(47,47,46,0.16)] sm:min-h-130 lg:min-h-140">
+          <motion.article {...scrollFadeUp} className="relative min-h-110 overflow-hidden rounded-4xl bg-[#111827] shadow-[0_30px_90px_rgba(47,47,46,0.16)] sm:min-h-130 lg:min-h-140">
             <img
               src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=800&q=80&fit=crop"
               alt="The Saigon Techwear Scene"
@@ -52,12 +54,19 @@ export default function TrendingSection({ trendCards }) {
                 </Link>
               </div>
             </div>
-          </article>
+          </motion.article>
 
-          <div className="grid gap-5">
+          <motion.div
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, margin: "-80px" }}
+            className="grid gap-5"
+          >
             {trendCards.map((card) => (
-              <article
+              <motion.article
                 key={card.title}
+                variants={fadeUpItem}
                 className={`relative min-h-61.75 overflow-hidden rounded-4xl bg-linear-to-br ${card.tone} p-7 text-white shadow-[0_20px_50px_rgba(47,47,46,0.12)]`}
               >
                 {card.image && (
@@ -79,9 +88,9 @@ export default function TrendingSection({ trendCards }) {
                     {card.subtitle}
                   </p>
                 </div>
-              </article>
+              </motion.article>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
