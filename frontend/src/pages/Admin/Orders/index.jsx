@@ -1,6 +1,8 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Eye, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { drawerSlideIn, fadeInItem, fadeUpItem, modalOverlay, staggerContainer } from "../../../animations/variants";
 import { orderService } from "../../../services/order.service";
 
 const STATUS_LABELS = {
@@ -111,17 +113,17 @@ export default function AdminOrdersPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6">
+      <motion.div variants={fadeUpItem} initial="initial" animate="animate" className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
           Quản lý đơn hàng
         </h1>
         <p className="mt-1 text-sm text-neutral-500">
           {loading ? "Đang tải..." : `${orders.length} đơn hàng trong hệ thống`}
         </p>
-      </div>
+      </motion.div>
 
       {/* Filter Tabs */}
-      <div className="mb-4 flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-sm">
+      <motion.div variants={fadeInItem} initial="initial" animate="animate" transition={{ delay: 0.06 }} className="mb-4 flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-sm">
         {FILTER_TABS.map((tab) => (
           <button
             key={tab.key}
@@ -146,10 +148,10 @@ export default function AdminOrdersPage() {
             )}
           </button>
         ))}
-      </div>
+      </motion.div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+      <motion.div variants={fadeInItem} initial="initial" animate="animate" transition={{ delay: 0.1 }} className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -180,7 +182,12 @@ export default function AdminOrdersPage() {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody
+              key={`${activeTab}-${page}-${pageOrders[0]?._id ?? 'empty'}`}
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
               {loading ? (
                 <tr>
                   <td
@@ -201,8 +208,9 @@ export default function AdminOrdersPage() {
                 </tr>
               ) : (
                 pageOrders.map((order) => (
-                  <tr
+                  <motion.tr
                     key={order._id}
+                    variants={fadeInItem}
                     className="border-b border-neutral-100 transition last:border-0 hover:bg-neutral-50"
                   >
                     {/* Mã đơn */}
@@ -300,10 +308,10 @@ export default function AdminOrdersPage() {
                         <Eye size={15} />
                       </button>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))
               )}
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
 
@@ -344,15 +352,17 @@ export default function AdminOrdersPage() {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Detail Drawer */}
+      <AnimatePresence>
       {selectedOrder && (
-        <div
+        <motion.div
+          {...modalOverlay}
           className="fixed inset-0 z-50 flex items-start justify-end bg-black/40"
           onClick={(e) => e.target === e.currentTarget && setSelectedOrder(null)}
         >
-          <div className="h-full w-full max-w-lg overflow-y-auto bg-white shadow-2xl">
+          <motion.div {...drawerSlideIn} className="h-full w-full max-w-lg overflow-y-auto bg-white shadow-2xl">
             {/* Drawer Header */}
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white px-6 py-4">
               <div>
@@ -528,9 +538,10 @@ export default function AdminOrdersPage() {
                 Đặt lúc: {formatDateTime(selectedOrder.createdAt)}
               </p>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

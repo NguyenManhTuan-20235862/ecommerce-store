@@ -30,9 +30,41 @@
 
 **Backend ✅:** Auth · Middleware · Product · Category · Cart · Order (+ daily stats drill-down) · Upload · User (profile/avatar/addresses/wishlist) · Coupon · Review · Store/Team/SiteConfig (About CMS)
 
-**Frontend ✅:** Auth · Landing · Header · Shop · Product Detail · Cart · Checkout · Profile · Wishlist · Reviews · Admin (Dashboard với vertical bar chart drill-down/Products/Categories/Orders/Customers/Coupons/About CMS)
+**Frontend ✅:** Auth · Landing (+ scroll-triggered animations) · Header · Shop · Product Detail · Cart · Checkout · Profile · Wishlist · Reviews · Admin (Dashboard/Products/Categories/Orders/Customers/Coupons/Lookbook/Sale/About — tất cả có full animation)
 
-## Cập Nhật Phiên Này (2026-05-21) — Session 16
+## Cập Nhật Phiên Này (2026-05-28) — Session 17
+
+### Hoàn thành
+
+| Hạng mục | Chi tiết |
+|---|---|
+| **Landing scroll animations** ✅ | HeroSection (`scrollSlideLeft/Right`), DropsSection (`scrollFadeUp`), TrendingSection (`scrollFadeUp` + `whileInView` stagger), LookbookSection (`scrollSlideLeft/Right`), MarqueeSection (`scrollFadeIn`). |
+| **Admin animations — toàn bộ** ✅ | 10 file cập nhật đồng bộ, build 0 lỗi. Chi tiết bên dưới. |
+
+### Admin Animation — Chi tiết
+
+| File | Animation đã thêm |
+|---|---|
+| `animations/variants.js` | Thêm `drawerSlideIn` (slide từ phải, ease `[0.32,0.72,0,1]`) |
+| `Admin/Dashboard` | Stagger 4 stat cards, profit banner fadeUp, charts grid stagger, top products tbody stagger |
+| `Admin/Products` | Header fadeUp, table container fadeIn, tbody/tr stagger + key reset |
+| `Admin/Categories` | Header + table + modal `AnimatePresence` + `modalOverlay/modalContent` |
+| `Admin/Coupons` | Giống Categories |
+| `Admin/Orders` | Header + filter tabs + table stagger, drawer `drawerSlideIn` |
+| `Admin/Customers` | Header + search bar + table stagger, drawer `drawerSlideIn` |
+| `Admin/Lookbook` | Header fadeUp, story grid stagger (`key={stories.length}`), 2 modal animated |
+| `Admin/Sale` | Header fadeUp, tab fade transition (`AnimatePresence mode="wait"`), TiersTab stagger, CombosTab grid stagger + modal |
+| `Admin/About` | Header fadeUp, tab fade transition, StoresTab/TeamTab grid stagger + 2 modal mỗi tab |
+
+### Quyết định quan trọng (session 17)
+
+| Quyết định | Lý do |
+|---|---|
+| **key reset trên motion.tbody** | `key={\`${firstId}-${length}\`}` ép re-mount → stagger lại khi search/pagination/CRUD thay đổi data |
+| **Chỉ overlay + panel là motion.div** | Inner content div (buttons row, form body) vẫn là `<div>` thường — chỉ 2 lớp ngoài cùng của modal/drawer cần motion |
+| **drawerSlideIn spread như props** | `{...drawerSlideIn}` trên panel thay vì variants để giữ transition riêng của drawer độc lập với stagger cha |
+
+## Cập Nhật Phiên Trước (2026-05-21) — Session 16
 
 ### Hoàn thành
 
@@ -85,6 +117,7 @@
 3. **Cursor-based pagination** — Thay Load More + limit lớn bằng pagination thật
 4. **Refresh token rotation** — Thêm endpoint `/auth/refresh`
 5. **costPrice sản phẩm mới** — Khi tạo sản phẩm mới qua Admin form, nhớ điền Giá vốn (cột đầu tiên trong grid 3 cột)
+6. **Sale page — CouponsTab animation** — Tab này chưa có stagger (chỉ TiersTab + CombosTab được thêm trong session 17)
 
 ## Quy tắc session
 

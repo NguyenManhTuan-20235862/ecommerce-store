@@ -1,5 +1,7 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Image, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { fadeUpItem, modalContent, modalOverlay, staggerContainer } from "../../../animations/variants";
 import { toast } from "sonner";
 import { storeService } from "../../../services/store.service";
 import { teamService } from "../../../services/team.service";
@@ -215,10 +217,17 @@ function StoresTab() {
           Chưa có cửa hàng nào.
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <motion.div
+          key={stores.length}
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        >
           {stores.map((store) => (
-            <div
+            <motion.div
               key={store._id}
+              variants={fadeUpItem}
               className={`group relative rounded-xl border border-neutral-200 bg-white overflow-hidden transition hover:shadow-md ${!store.isActive ? "opacity-60" : ""}`}
             >
               <div className="h-32 bg-neutral-100 relative overflow-hidden">
@@ -262,15 +271,16 @@ function StoresTab() {
                   </span>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Modal */}
+      <AnimatePresence>
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="flex w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl max-h-[calc(100vh-2rem)]">
+        <motion.div {...modalOverlay} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <motion.div {...modalContent} className="flex w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl max-h-[calc(100vh-2rem)]">
             <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
               <h2 className="text-base font-bold text-neutral-900">
                 {editing ? "Chỉnh sửa cửa hàng" : "Thêm cửa hàng mới"}
@@ -364,14 +374,16 @@ function StoresTab() {
                 {saving ? "Đang lưu..." : editing ? "Lưu thay đổi" : "Tạo mới"}
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Delete Confirm */}
+      <AnimatePresence>
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+        <motion.div {...modalOverlay} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <motion.div {...modalContent} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
             <h3 className="mb-2 text-base font-bold text-neutral-900">Xóa cửa hàng?</h3>
             <p className="mb-6 text-sm text-neutral-500">
               Cửa hàng <strong>"{deleteTarget.name}"</strong> sẽ bị xóa vĩnh viễn.
@@ -380,9 +392,10 @@ function StoresTab() {
               <button onClick={() => setDeleteTarget(null)} className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50">Hủy</button>
               <button onClick={handleDelete} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Xóa</button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -498,10 +511,17 @@ function TeamTab() {
           Chưa có thành viên nào.
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <motion.div
+          key={members.length}
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
           {members.map((member) => (
-            <div
+            <motion.div
               key={member._id}
+              variants={fadeUpItem}
               className={`group relative rounded-xl border border-neutral-200 bg-white overflow-hidden transition hover:shadow-md ${!member.isActive ? "opacity-60" : ""}`}
             >
               <div className="aspect-[3/4] bg-neutral-100 relative overflow-hidden">
@@ -545,15 +565,16 @@ function TeamTab() {
                   </span>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Modal */}
+      <AnimatePresence>
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="flex w-full max-w-md flex-col rounded-2xl bg-white shadow-2xl max-h-[calc(100vh-2rem)]">
+        <motion.div {...modalOverlay} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <motion.div {...modalContent} className="flex w-full max-w-md flex-col rounded-2xl bg-white shadow-2xl max-h-[calc(100vh-2rem)]">
             <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
               <h2 className="text-base font-bold text-neutral-900">
                 {editing ? "Chỉnh sửa thành viên" : "Thêm thành viên mới"}
@@ -599,14 +620,16 @@ function TeamTab() {
                 {saving ? "Đang lưu..." : editing ? "Lưu thay đổi" : "Tạo mới"}
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Delete Confirm */}
+      <AnimatePresence>
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+        <motion.div {...modalOverlay} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <motion.div {...modalContent} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
             <h3 className="mb-2 text-base font-bold text-neutral-900">Xóa thành viên?</h3>
             <p className="mb-6 text-sm text-neutral-500">
               Thành viên <strong>"{deleteTarget.name}"</strong> sẽ bị xóa vĩnh viễn.
@@ -615,9 +638,10 @@ function TeamTab() {
               <button onClick={() => setDeleteTarget(null)} className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50">Hủy</button>
               <button onClick={handleDelete} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Xóa</button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -707,12 +731,12 @@ export default function AdminAboutPage() {
 
   return (
     <div>
-      <div className="mb-6">
+      <motion.div variants={fadeUpItem} initial="initial" animate="animate" className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Quản lý Về chúng tôi</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Cửa hàng, đội ngũ và thông tin liên hệ trên trang About
         </p>
-      </div>
+      </motion.div>
 
       <div className="mb-6 flex gap-1 rounded-xl bg-neutral-100 p-1 w-fit">
         {TABS.map((tab, i) => (
@@ -731,9 +755,19 @@ export default function AdminAboutPage() {
       </div>
 
       <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        {activeTab === 0 && <StoresTab />}
-        {activeTab === 1 && <TeamTab />}
-        {activeTab === 2 && <ContactTab />}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            {activeTab === 0 && <StoresTab />}
+            {activeTab === 1 && <TeamTab />}
+            {activeTab === 2 && <ContactTab />}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

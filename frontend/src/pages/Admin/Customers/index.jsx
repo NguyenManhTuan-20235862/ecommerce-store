@@ -1,6 +1,8 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Search, User, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { drawerSlideIn, fadeInItem, fadeUpItem, modalOverlay, staggerContainer } from "../../../animations/variants";
 import { userService } from "../../../services/user.service";
 
 const formatDate = (dateStr) =>
@@ -56,7 +58,7 @@ export default function AdminCustomersPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <motion.div variants={fadeUpItem} initial="initial" animate="animate" className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
             Quản lý khách hàng
@@ -67,10 +69,10 @@ export default function AdminCustomersPage() {
               : `${customers.length} khách hàng · ${admins.length} quản trị viên`}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Search */}
-      <div className="mb-4">
+      <motion.div variants={fadeInItem} initial="initial" animate="animate" transition={{ delay: 0.06 }} className="mb-4">
         <div className="relative max-w-md">
           <Search
             size={16}
@@ -84,10 +86,10 @@ export default function AdminCustomersPage() {
             className="w-full rounded-lg border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100"
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+      <motion.div variants={fadeInItem} initial="initial" animate="animate" transition={{ delay: 0.1 }} className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -115,7 +117,12 @@ export default function AdminCustomersPage() {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody
+              key={`${pageUsers[0]?._id ?? 'empty'}-${pageUsers.length}-${page}`}
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
               {loading ? (
                 <tr>
                   <td
@@ -138,8 +145,9 @@ export default function AdminCustomersPage() {
                 </tr>
               ) : (
                 pageUsers.map((user) => (
-                  <tr
+                  <motion.tr
                     key={user._id}
+                    variants={fadeInItem}
                     className="cursor-pointer border-b border-neutral-100 transition last:border-0 hover:bg-neutral-50"
                     onClick={() => setSelectedUser(user)}
                   >
@@ -202,10 +210,10 @@ export default function AdminCustomersPage() {
                         Xem →
                       </span>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))
               )}
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
 
@@ -246,17 +254,19 @@ export default function AdminCustomersPage() {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Detail Drawer */}
+      <AnimatePresence>
       {selectedUser && (
-        <div
+        <motion.div
+          {...modalOverlay}
           className="fixed inset-0 z-50 flex items-start justify-end bg-black/40"
           onClick={(e) =>
             e.target === e.currentTarget && setSelectedUser(null)
           }
         >
-          <div className="h-full w-full max-w-sm overflow-y-auto bg-white shadow-2xl">
+          <motion.div {...drawerSlideIn} className="h-full w-full max-w-sm overflow-y-auto bg-white shadow-2xl">
             {/* Drawer Header */}
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white px-6 py-4">
               <h2 className="text-base font-semibold text-neutral-900">
@@ -334,9 +344,10 @@ export default function AdminCustomersPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

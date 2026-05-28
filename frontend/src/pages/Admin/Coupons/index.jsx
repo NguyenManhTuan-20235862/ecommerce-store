@@ -1,7 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AnimatePresence, motion } from "framer-motion";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { fadeInItem, fadeUpItem, modalContent, modalOverlay, staggerContainer } from "../../../animations/variants";
 import { toast } from "sonner";
 import { z } from "zod";
 import { couponService } from "../../../services/coupon.service";
@@ -165,7 +167,7 @@ export default function AdminCouponsPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <motion.div variants={fadeUpItem} initial="initial" animate="animate" className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
             Quản lý mã giảm giá
@@ -181,10 +183,10 @@ export default function AdminCouponsPage() {
           <Plus size={16} />
           Thêm mã giảm giá
         </button>
-      </div>
+      </motion.div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+      <motion.div variants={fadeInItem} initial="initial" animate="animate" transition={{ delay: 0.08 }} className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -201,7 +203,12 @@ export default function AdminCouponsPage() {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody
+              key={`${coupons[0]?._id ?? 'empty'}-${coupons.length}`}
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
               {loading ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-neutral-400">
@@ -216,8 +223,9 @@ export default function AdminCouponsPage() {
                 </tr>
               ) : (
                 coupons.map((coupon) => (
-                  <tr
+                  <motion.tr
                     key={coupon._id}
+                    variants={fadeInItem}
                     className="border-b border-neutral-100 transition last:border-0 hover:bg-neutral-50"
                   >
                     <td className="px-4 py-3">
@@ -283,18 +291,19 @@ export default function AdminCouponsPage() {
                         </button>
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))
               )}
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
 
       {/* Modal Create / Edit */}
+      <AnimatePresence>
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
+        <motion.div {...modalOverlay} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <motion.div {...modalContent} className="w-full max-w-md rounded-2xl bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
               <h2 className="text-base font-semibold text-neutral-900">
                 {editingCoupon ? "Chỉnh sửa mã giảm giá" : "Thêm mã giảm giá mới"}
@@ -455,9 +464,10 @@ export default function AdminCouponsPage() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

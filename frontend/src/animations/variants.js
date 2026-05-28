@@ -107,3 +107,10 @@ export const modalContent = {
   exit:    { opacity: 0, scale: 0.96, y: 12 },
   transition: { duration: 0.22, ease: "easeOut" },
 };
+
+export const drawerSlideIn = {
+  initial:    { opacity: 0, x: "100%" },
+  animate:    { opacity: 1, x: 0 },
+  exit:       { opacity: 0, x: "100%" },
+  transition: { duration: 0.28, ease: [0.32, 0.72, 0, 1] },
+};

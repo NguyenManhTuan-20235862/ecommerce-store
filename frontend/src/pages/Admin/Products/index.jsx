@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,6 +12,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
+import { fadeInItem, fadeUpItem, staggerContainer } from "../../../animations/variants";
 import { productService } from "../../../services/product.service";
 
 // Helper format VNĐ
@@ -86,7 +88,7 @@ export default function AdminProductsPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <motion.div variants={fadeUpItem} initial="initial" animate="animate" className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
             Quản lý sản phẩm
@@ -102,7 +104,7 @@ export default function AdminProductsPage() {
           <Plus size={16} />
           Thêm sản phẩm
         </Link>
-      </div>
+      </motion.div>
 
       {/* Search Bar */}
       <div className="mb-4">
@@ -122,7 +124,7 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+      <motion.div variants={fadeInItem} initial="initial" animate="animate" transition={{ delay: 0.08 }} className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -148,7 +150,12 @@ export default function AdminProductsPage() {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody
+              key={`${products[0]?._id ?? 'empty'}-${products.length}`}
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
               {loading ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center">
@@ -170,8 +177,9 @@ export default function AdminProductsPage() {
                 products.map((product) => {
                   const stock = getTotalStock(product);
                   return (
-                    <tr
+                    <motion.tr
                       key={product._id}
+                      variants={fadeInItem}
                       className="border-b border-neutral-100 transition hover:bg-neutral-50"
                     >
                       {/* Ảnh + Tên */}
@@ -280,11 +288,11 @@ export default function AdminProductsPage() {
                           </button>
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })
               )}
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
 
@@ -329,7 +337,7 @@ export default function AdminProductsPage() {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

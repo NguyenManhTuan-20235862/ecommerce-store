@@ -1,6 +1,8 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Image, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { fadeUpItem, modalContent, modalOverlay, staggerContainer } from "../../../animations/variants";
 import { lookbookService } from "../../../services/lookbook.service";
 import api from "../../../services/api";
 
@@ -139,7 +141,7 @@ export default function AdminLookbook() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <motion.div variants={fadeUpItem} initial="initial" animate="animate" className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-neutral-900">Lookbook Stories</h1>
           <p className="mt-0.5 text-sm text-neutral-500">
@@ -153,7 +155,7 @@ export default function AdminLookbook() {
           <Plus size={16} />
           Thêm Story
         </button>
-      </div>
+      </motion.div>
 
       {/* Grid */}
       {loading ? (
@@ -175,10 +177,17 @@ export default function AdminLookbook() {
           <p className="mt-1 text-sm text-neutral-400">Nhấn "Thêm Story" để bắt đầu</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <motion.div
+          key={stories.length}
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+        >
           {stories.map((story) => (
-            <div
+            <motion.div
               key={story._id}
+              variants={fadeUpItem}
               className={`group relative overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:shadow-md ${
                 !story.isActive ? "opacity-50" : ""
               }`}
@@ -228,15 +237,16 @@ export default function AdminLookbook() {
                   </span>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Create / Edit Modal */}
+      <AnimatePresence>
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl max-h-[calc(100vh-2rem)]">
+        <motion.div {...modalOverlay} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <motion.div {...modalContent} className="flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl max-h-[calc(100vh-2rem)]">
             {/* Modal header */}
             <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
               <h2 className="text-base font-bold text-neutral-900">
@@ -369,14 +379,16 @@ export default function AdminLookbook() {
                 {saving ? "Đang lưu..." : editing ? "Lưu thay đổi" : "Tạo mới"}
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* Delete Confirm */}
+      <AnimatePresence>
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+        <motion.div {...modalOverlay} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <motion.div {...modalContent} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
             <h3 className="mb-2 text-base font-bold text-neutral-900">Xóa story?</h3>
             <p className="mb-6 text-sm text-neutral-500">
               Story <strong>"{deleteTarget.title}"</strong> sẽ bị xóa vĩnh viễn cùng với ảnh.
@@ -395,9 +407,10 @@ export default function AdminLookbook() {
                 Xóa
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

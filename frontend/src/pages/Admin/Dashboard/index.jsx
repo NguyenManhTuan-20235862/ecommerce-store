@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { fadeInItem, fadeUpItem, staggerContainer } from "../../../animations/variants";
 import { categoryService } from "../../../services/category.service";
 import { orderService } from "../../../services/order.service";
 import { productService } from "../../../services/product.service";
@@ -158,10 +160,10 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
+      <motion.div variants={fadeUpItem} initial="initial" animate="animate">
         <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Dashboard</h1>
         <p className="mt-1 text-sm text-neutral-500">Tổng quan hệ thống quản trị VIBE URBAN</p>
-      </div>
+      </motion.div>
 
       {/* Error banner */}
       {error && (
@@ -171,24 +173,30 @@ export default function AdminDashboard() {
       )}
 
       {/* Stats Cards chính */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.div
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      >
         {mainCards.map((card) => {
           const Icon = card.icon;
           return (
-            <Link
-              key={card.label}
-              to={card.link}
-              className="group rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:shadow-md"
-            >
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${card.color}`}>
-                <Icon size={20} />
-              </div>
-              <p className="mt-4 text-2xl font-bold text-neutral-900">{card.value}</p>
-              <p className="mt-1 text-[13px] text-neutral-500">{card.label}</p>
-            </Link>
+            <motion.div key={card.label} variants={fadeUpItem}>
+              <Link
+                to={card.link}
+                className="group block rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+              >
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${card.color}`}>
+                  <Icon size={20} />
+                </div>
+                <p className="mt-4 text-2xl font-bold text-neutral-900">{card.value}</p>
+                <p className="mt-1 text-[13px] text-neutral-500">{card.label}</p>
+              </Link>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Banner lợi nhuận ước tính */}
       {!loading && !error && (() => {
@@ -197,7 +205,7 @@ export default function AdminDashboard() {
         const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : "0.0";
         const isPositive = profit >= 0;
         return (
-          <div className={`rounded-xl border p-5 ${isPositive ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}>
+          <motion.div variants={fadeUpItem} initial="initial" animate="animate" className={`rounded-xl border p-5 ${isPositive ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${isPositive ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-500"}`}>
@@ -225,14 +233,19 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       })()}
 
       {/* Doanh thu + Đơn hàng theo trạng thái */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <motion.div
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+        className="grid gap-4 lg:grid-cols-3"
+      >
         {/* Biểu đồ doanh thu */}
-        <div className="col-span-2 rounded-xl border border-neutral-200 bg-white p-6">
+        <motion.div variants={fadeInItem} className="col-span-2 rounded-xl border border-neutral-200 bg-white p-6">
           {/* Header */}
           <div className="flex items-center gap-2">
             {drillDown && (
@@ -434,10 +447,10 @@ export default function AdminDashboard() {
               </div>
             );
           })()}
-        </div>
+        </motion.div>
 
         {/* Đơn hàng theo trạng thái */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-6">
+        <motion.div variants={fadeInItem} className="rounded-xl border border-neutral-200 bg-white p-6">
           <h2 className="text-sm font-semibold text-neutral-900">Đơn hàng theo trạng thái</h2>
           {loading ? (
             <div className="mt-4 space-y-3">
@@ -489,13 +502,18 @@ export default function AdminDashboard() {
               })()}
             </>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Top sản phẩm + Thống kê phụ */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <motion.div
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+        className="grid gap-4 lg:grid-cols-3"
+      >
         {/* Top sản phẩm bán chạy */}
-        <div className="col-span-2 rounded-xl border border-neutral-200 bg-white p-6">
+        <motion.div variants={fadeInItem} className="col-span-2 rounded-xl border border-neutral-200 bg-white p-6">
           <h2 className="text-sm font-semibold text-neutral-900">Top sản phẩm bán chạy</h2>
           <p className="text-xs text-neutral-400">(không tính đơn đã hủy)</p>
           {loading ? (
@@ -516,9 +534,15 @@ export default function AdminDashboard() {
                   <th className="pb-2 text-right font-medium">Doanh thu</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100">
+              <motion.tbody
+                key={orderStats?.topProducts?.length ?? 0}
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+                className="divide-y divide-neutral-100"
+              >
                 {(orderStats?.topProducts ?? []).map((p, i) => (
-                  <tr key={p._id} className="text-neutral-700">
+                  <motion.tr key={p._id} variants={fadeInItem} className="text-neutral-700">
                     <td className="py-2.5 text-xs text-neutral-400">{i + 1}</td>
                     <td className="py-2.5">
                       <div className="flex items-center gap-2">
@@ -536,15 +560,15 @@ export default function AdminDashboard() {
                     </td>
                     <td className="py-2.5 text-right font-semibold">{p.totalSold}</td>
                     <td className="py-2.5 text-right text-neutral-500">{formatCurrency(p.revenue)}</td>
-                  </tr>
+                  </motion.tr>
                 ))}
-              </tbody>
+              </motion.tbody>
             </table>
           )}
-        </div>
+        </motion.div>
 
         {/* Thống kê phụ + Quick actions */}
-        <div className="space-y-4">
+        <motion.div variants={fadeInItem} className="space-y-4">
           <div className="rounded-xl border border-neutral-200 bg-white p-6">
             <h2 className="text-sm font-semibold text-neutral-900">Catalogue</h2>
             <div className="mt-4 space-y-3">
@@ -592,8 +616,8 @@ export default function AdminDashboard() {
               </Link>
             </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

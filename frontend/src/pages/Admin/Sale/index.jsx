@@ -1,6 +1,8 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { ExternalLink, GripVertical, Pencil, Plus, Save, Ticket, Trash2, X } from "lucide-react";
+import { fadeUpItem, modalContent, modalOverlay, staggerContainer } from "../../../animations/variants";
 import { toast } from "sonner";
 import { saleConfigService } from "../../../services/saleConfig.service";
 import { comboService } from "../../../services/combo.service";
@@ -141,10 +143,17 @@ function TiersTab() {
           Chưa có bậc nào. Nhấn "Thêm bậc" để bắt đầu.
         </div>
       ) : (
-        <div className="space-y-3">
+        <motion.div
+          key={tiers.length}
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="space-y-3"
+        >
           {tiers.map((tier, i) => (
-            <div
+            <motion.div
               key={i}
+              variants={fadeUpItem}
               className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm"
             >
               <div className="mb-3 flex items-center gap-2">
@@ -222,9 +231,9 @@ function TiersTab() {
                   + Thêm quyền lợi
                 </button>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -412,10 +421,17 @@ function CombosTab() {
           Chưa có combo nào.
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <motion.div
+          key={combos.length}
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+        >
           {combos.map((combo) => (
-            <div
+            <motion.div
               key={combo._id}
+              variants={fadeUpItem}
               className="group relative rounded-xl border border-neutral-200 bg-white p-4 shadow-sm"
             >
               <div className="mb-3 flex items-start justify-between gap-2">
@@ -485,15 +501,16 @@ function CombosTab() {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Modal create/edit */}
+      <AnimatePresence>
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl max-h-[calc(100vh-2rem)]">
+        <motion.div {...modalOverlay} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <motion.div {...modalContent} className="flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl max-h-[calc(100vh-2rem)]">
             {/* Header */}
             <div className="shrink-0 flex items-center justify-between border-b border-neutral-200 px-6 py-4">
               <h2 className="text-base font-semibold text-neutral-900">
@@ -700,9 +717,10 @@ function CombosTab() {
                 {submitting ? "Đang lưu..." : editingCombo ? "Cập nhật" : "Tạo combo"}
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -715,12 +733,12 @@ export default function AdminSalePage() {
 
   return (
     <div>
-      <div className="mb-6">
+      <motion.div variants={fadeUpItem} initial="initial" animate="animate" className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Quản lý Khuyến Mãi</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Cấu hình mã giảm giá, bậc thang ưu đãi và combo tiết kiệm
         </p>
-      </div>
+      </motion.div>
 
       {/* Tabs */}
       <div className="mb-6 flex gap-1 rounded-xl bg-neutral-100 p-1 w-fit">
@@ -741,9 +759,19 @@ export default function AdminSalePage() {
 
       {/* Tab content */}
       <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        {activeTab === 0 && <CouponsTab />}
-        {activeTab === 1 && <TiersTab />}
-        {activeTab === 2 && <CombosTab />}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            {activeTab === 0 && <CouponsTab />}
+            {activeTab === 1 && <TiersTab />}
+            {activeTab === 2 && <CombosTab />}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
