@@ -8,9 +8,10 @@ import {
 } from "../services/productService.js";
 
 // GET /api/products — Danh sách sản phẩm (phân trang, lọc, sắp xếp)
+// Hỗ trợ 2 chế độ: cursor-based (param `cursor`) và offset-based (param `page`)
 export const getProducts = async (req, res) => {
   try {
-    const { page = 1, limit = 12, sort = "newest" } = req.query;
+    const { page = 1, limit = 12, sort = "newest", cursor } = req.query;
 
     const filter = await buildProductFilter(req.query);
 
@@ -23,22 +24,81 @@ export const getProducts = async (req, res) => {
       default:           sortOption = { createdAt: -1, _id: -1 };
     }
 
-    const pageNum  = Math.max(1, Number(page));
     const limitNum = Math.min(200, Math.max(1, Number(limit)));
-    const skip     = (pageNum - 1) * limitNum;
 
-    const [products, total] = await Promise.all([
-      Product.find(filter)
-        .populate("category", "name slug")
-        .sort(sortOption)
-        .skip(skip)
-        .limit(limitNum),
-      Product.countDocuments(filter),
-    ]);
+    let products, total;
+
+    if (cursor) {
+      let cursorData;
+      try {
+        cursorData = JSON.parse(Buffer.from(cursor, "base64").toString("utf8"));
+      } catch {
+        return res.status(400).json({ message: "Cursor không hợp lệ" });
+      }
+
+      const { _id: lastId, price: lastPrice } = cursorData;
+      if (!lastId) {
+        return res.status(400).json({ message: "Cursor không hợp lệ" });
+      }
+      const cursorFilter = { ...filter };
+
+      switch (sort) {
+        case "price_asc":
+          cursorFilter.$or = [
+            { price: { $gt: lastPrice } },
+            { price: lastPrice, _id: { $lt: lastId } },
+          ];
+          break;
+        case "price_desc":
+          cursorFilter.$or = [
+            { price: { $lt: lastPrice } },
+            { price: lastPrice, _id: { $lt: lastId } },
+          ];
+          break;
+        default: // newest — _id giảm dần (encodes timestamp)
+          cursorFilter._id = { $lt: lastId };
+      }
+
+      [products, total] = await Promise.all([
+        Product.find(cursorFilter)
+          .populate("category", "name slug")
+          .sort(sortOption)
+          .limit(limitNum),
+        Product.countDocuments(filter),
+      ]);
+    } else {
+      const pageNum = Math.max(1, Number(page));
+      const skip    = (pageNum - 1) * limitNum;
+
+      [products, total] = await Promise.all([
+        Product.find(filter)
+          .populate("category", "name slug")
+          .sort(sortOption)
+          .skip(skip)
+          .limit(limitNum),
+        Product.countDocuments(filter),
+      ]);
+    }
+
+    const lastProduct = products[products.length - 1];
+    const nextCursor =
+      products.length === limitNum && lastProduct
+        ? Buffer.from(
+            JSON.stringify({ _id: lastProduct._id, price: lastProduct.price })
+          ).toString("base64")
+        : null;
+
+    const pageNum = cursor ? 1 : Math.max(1, Number(page));
 
     return res.status(200).json({
       products,
-      pagination: { page: pageNum, limit: limitNum, total, totalPages: Math.ceil(total / limitNum) },
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+        nextCursor,
+      },
     });
   } catch (error) {
     console.error("Lỗi khi lấy danh sách sản phẩm:", error);

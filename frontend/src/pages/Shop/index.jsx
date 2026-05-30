@@ -29,13 +29,15 @@ export default function Shop() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [products, setProducts] = useState([]);
-  const [page, setPage] = useState(1);
+  const [loadCursor, setLoadCursor] = useState(null); // null = fresh load, string = append
+  const [nextCursor, setNextCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-      setPage(1);
+      setLoadCursor(null); // reset về đầu khi search thay đổi
     }, 400);
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -44,33 +46,31 @@ export default function Shop() {
     let cancelled = false;
     const fetchProducts = async () => {
       try {
-        const apiLimit = page === 1 ? 8 : 4;
-        const apiPage = page === 1 ? 1 : page + 1;
-
         const params = {
-          page: apiPage,
-          limit: apiLimit,
+          cursor: loadCursor || undefined,
+          limit: 8,
           category: activeCategory || undefined,
           size: selectedSizes.length > 0 ? selectedSizes.join(",") : undefined,
-          maxPrice:
-            appliedPriceLimit < maxPrice ? appliedPriceLimit : undefined,
+          maxPrice: appliedPriceLimit < maxPrice ? appliedPriceLimit : undefined,
           sort: sortBy,
           search: debouncedSearch || undefined,
         };
         const res = await productService.list(params);
         if (!cancelled && res.data) {
           const incoming = res.data.products;
-          setProducts(
-            page === 1
-              ? incoming
-              : (prev) => {
-                  const existingIds = new Set(prev.map((p) => p._id));
-                  const newProducts = incoming.filter(
-                    (p) => !existingIds.has(p._id),
-                  );
-                  return [...prev, ...newProducts];
-                },
-          );
+          const newNextCursor = res.data.pagination.nextCursor ?? null;
+
+          if (loadCursor) {
+            setProducts((prev) => {
+              const existingIds = new Set(prev.map((p) => p._id));
+              return [...prev, ...incoming.filter((p) => !existingIds.has(p._id))];
+            });
+          } else {
+            setProducts(incoming);
+          }
+
+          setNextCursor(newNextCursor);
+          setHasMore(newNextCursor !== null);
           setTotal(res.data.pagination.total);
         }
       } catch (error) {
@@ -82,7 +82,7 @@ export default function Shop() {
       cancelled = true;
     };
   }, [
-    page,
+    loadCursor,
     activeCategory,
     selectedSizes,
     appliedPriceLimit,
@@ -140,7 +140,7 @@ export default function Shop() {
   );
 
   const shown = formattedProducts.length;
-  const canLoadMore = shown < total;
+  const canLoadMore = hasMore;
   const progress = total > 0 ? Math.min((shown / total) * 100, 100) : 0;
 
   return (
@@ -206,7 +206,7 @@ export default function Shop() {
                   prev === categoryKey ? "" : categoryKey,
                 );
                 setSelectedSizes([]);
-                setPage(1);
+                setLoadCursor(null);
               }}
               selectedSizes={selectedSizes}
               onSizeToggle={(size) => {
@@ -215,13 +215,13 @@ export default function Shop() {
                     ? prev.filter((item) => item !== size)
                     : [...prev, size],
                 );
-                setPage(1);
+                setLoadCursor(null);
               }}
               priceLimit={priceLimit}
               onPriceLimitChange={setPriceLimit}
               onApply={() => {
                 setAppliedPriceLimit(priceLimit);
-                setPage(1);
+                setLoadCursor(null);
               }}
             />
           </div>
@@ -255,7 +255,7 @@ export default function Shop() {
                   value={sortBy}
                   onChange={(event) => {
                     setSortBy(event.target.value);
-                    setPage(1);
+                    setLoadCursor(null);
                   }}
                   className="border-b-2 border-[#004be3] bg-transparent pb-1 text-xs font-bold uppercase tracking-widest text-[#0f172a] outline-none"
                 >
@@ -300,7 +300,7 @@ export default function Shop() {
 
               <button
                 type="button"
-                onClick={() => setPage((prev) => prev + 1)}
+                onClick={() => setLoadCursor(nextCursor)}
                 disabled={!canLoadMore}
                 className="rounded-full border-2 border-[#0f172a] bg-transparent px-10 py-4 font-heading text-sm font-extrabold uppercase tracking-widest text-[#0f172a] transition hover:border-[#004be3] hover:text-[#004be3] disabled:cursor-not-allowed disabled:opacity-50"
               >

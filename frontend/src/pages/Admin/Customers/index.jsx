@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Search, User, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { drawerSlideIn, fadeInItem, fadeUpItem, modalOverlay, staggerContainer } from "../../../animations/variants";
 import { userService } from "../../../services/user.service";
@@ -18,42 +18,45 @@ export default function AdminCustomersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const fetchUsers = useCallback(async (searchQuery = "") => {
-    setLoading(true);
-    try {
-      const res = await userService.getAllUsers(
-        searchQuery ? { search: searchQuery } : {},
-      );
-      setUsers(res.data.users || []);
-    } catch {
-      toast.error("Không thể tải danh sách khách hàng");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
+  // Debounce search + reset page khi query đổi
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchUsers(search);
+      setDebouncedSearch(search);
+      setPage(1);
     }, 400);
     return () => clearTimeout(timer);
-  }, [search, fetchUsers]);
+  }, [search]);
 
-  // Reset về trang 1 khi danh sách users thay đổi (sau search)
-  useEffect(() => { setPage(1); }, [users]);
-
-  const customers = users.filter((u) => u.role === "customer");
-  const admins = users.filter((u) => u.role === "admin");
-
-  const totalPages = Math.ceil(users.length / PAGE_SIZE);
-  const pageUsers = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  useEffect(() => {
+    let cancelled = false;
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const res = await userService.getAllUsers({
+          search: debouncedSearch || undefined,
+          page,
+          limit: PAGE_SIZE,
+        });
+        if (!cancelled) {
+          setUsers(res.data.users || []);
+          setTotalPages(res.data.pagination?.totalPages || 1);
+          setTotal(res.data.pagination?.total || 0);
+        }
+      } catch {
+        if (!cancelled) toast.error("Không thể tải danh sách khách hàng");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    fetchUsers();
+    return () => { cancelled = true; };
+  }, [page, debouncedSearch]);
 
   return (
     <div>
@@ -64,9 +67,7 @@ export default function AdminCustomersPage() {
             Quản lý khách hàng
           </h1>
           <p className="mt-1 text-sm text-neutral-500">
-            {loading
-              ? "Đang tải..."
-              : `${customers.length} khách hàng · ${admins.length} quản trị viên`}
+            {loading ? "Đang tải..." : `${total} tài khoản trong hệ thống`}
           </p>
         </div>
       </motion.div>
@@ -118,7 +119,7 @@ export default function AdminCustomersPage() {
               </tr>
             </thead>
             <motion.tbody
-              key={`${pageUsers[0]?._id ?? 'empty'}-${pageUsers.length}-${page}`}
+              key={`${users[0]?._id ?? 'empty'}-${users.length}-${page}`}
               variants={staggerContainer}
               initial="initial"
               animate="animate"
@@ -138,13 +139,13 @@ export default function AdminCustomersPage() {
                     colSpan={7}
                     className="px-4 py-12 text-center text-neutral-400"
                   >
-                    {search
+                    {debouncedSearch
                       ? "Không tìm thấy tài khoản nào"
                       : "Chưa có tài khoản nào"}
                   </td>
                 </tr>
               ) : (
-                pageUsers.map((user) => (
+                users.map((user) => (
                   <motion.tr
                     key={user._id}
                     variants={fadeInItem}
@@ -221,7 +222,7 @@ export default function AdminCustomersPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-neutral-200 px-4 py-3">
             <p className="text-xs text-neutral-500">
-              Trang {page} / {totalPages} ({users.length} tài khoản)
+              Trang {page} / {totalPages} ({total} tài khoản)
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -231,7 +232,7 @@ export default function AdminCustomersPage() {
               >
                 <ChevronLeft size={16} />
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n}
                   onClick={() => setPage(n)}

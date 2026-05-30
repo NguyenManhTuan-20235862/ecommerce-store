@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Env files có secrets — KHÔNG commit
+backend/.env
+backend/.env.docker
+backend/.env.*.local
+
+# Build output
+frontend/dist/
+
+# Uploads (ảnh do user tạo ra, không thuộc source)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+*.suo
+*.sw?

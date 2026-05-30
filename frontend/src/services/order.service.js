@@ -58,8 +58,8 @@ export const orderService = {
     return api.get("/orders/stats/daily", { params: { year, month } });
   },
 
-  getAllOrders() {
-    return api.get("/orders");
+  getAllOrders(params = {}) {
+    return api.get("/orders", { params });
   },
 
   updateOrderStatus(orderId, status) {

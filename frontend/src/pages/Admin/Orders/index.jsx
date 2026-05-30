@@ -58,22 +58,39 @@ export default function AdminOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [page, setPage] = useState(1);
-
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const res = await orderService.getAllOrders();
-      setOrders(res.data.data || []);
-    } catch {
-      toast.error("Không thể tải danh sách đơn hàng");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+    const fetchOrders = async () => {
+      setLoading(true);
+      try {
+        const params = {
+          page,
+          limit: PAGE_SIZE,
+          status: activeTab !== "all" ? activeTab : undefined,
+        };
+        const res = await orderService.getAllOrders(params);
+        if (!cancelled) {
+          setOrders(res.data.data || []);
+          setTotalPages(res.data.pagination?.totalPages || 1);
+          setTotal(res.data.pagination?.total || 0);
+        }
+      } catch {
+        if (!cancelled) toast.error("Không thể tải danh sách đơn hàng");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
     fetchOrders();
-  }, []);
+    return () => { cancelled = true; };
+  }, [page, activeTab]);
+
+  const handleTabChange = (tabKey) => {
+    setActiveTab(tabKey);
+    setPage(1);
+  };
 
   const handleStatusChange = async (orderId, newStatus) => {
     setUpdatingId(orderId);
@@ -93,22 +110,8 @@ export default function AdminOrdersPage() {
     }
   };
 
-  // Reset về trang 1 khi đổi tab
-  useEffect(() => { setPage(1); }, [activeTab]);
-
   const isFinalStatus = (status) =>
     status === "cancelled" || status === "delivered";
-
-  const filteredOrders =
-    activeTab === "all"
-      ? orders
-      : orders.filter((o) => o.status === activeTab);
-
-  const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
-  const pageOrders = filteredOrders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  const countByStatus = (status) =>
-    orders.filter((o) => o.status === status).length;
 
   return (
     <div>
@@ -118,7 +121,7 @@ export default function AdminOrdersPage() {
           Quản lý đơn hàng
         </h1>
         <p className="mt-1 text-sm text-neutral-500">
-          {loading ? "Đang tải..." : `${orders.length} đơn hàng trong hệ thống`}
+          {loading ? "Đang tải..." : `${total} đơn hàng trong hệ thống`}
         </p>
       </motion.div>
 
@@ -127,25 +130,14 @@ export default function AdminOrdersPage() {
         {FILTER_TABS.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+            onClick={() => handleTabChange(tab.key)}
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
               activeTab === tab.key
                 ? "bg-neutral-900 text-white"
                 : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
             }`}
           >
             {tab.label}
-            {tab.key !== "all" && (
-              <span
-                className={`rounded-full px-1.5 py-0.5 text-xs ${
-                  activeTab === tab.key
-                    ? "bg-white/20 text-white"
-                    : "bg-neutral-100 text-neutral-400"
-                }`}
-              >
-                {countByStatus(tab.key)}
-              </span>
-            )}
           </button>
         ))}
       </motion.div>
@@ -183,7 +175,7 @@ export default function AdminOrdersPage() {
               </tr>
             </thead>
             <motion.tbody
-              key={`${activeTab}-${page}-${pageOrders[0]?._id ?? 'empty'}`}
+              key={`${activeTab}-${page}-${orders[0]?._id ?? 'empty'}`}
               variants={staggerContainer}
               initial="initial"
               animate="animate"
@@ -197,7 +189,7 @@ export default function AdminOrdersPage() {
                     Đang tải...
                   </td>
                 </tr>
-              ) : filteredOrders.length === 0 ? (
+              ) : orders.length === 0 ? (
                 <tr>
                   <td
                     colSpan={8}
@@ -207,7 +199,7 @@ export default function AdminOrdersPage() {
                   </td>
                 </tr>
               ) : (
-                pageOrders.map((order) => (
+                orders.map((order) => (
                   <motion.tr
                     key={order._id}
                     variants={fadeInItem}
@@ -319,7 +311,7 @@ export default function AdminOrdersPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-neutral-200 px-4 py-3">
             <p className="text-xs text-neutral-500">
-              Trang {page} / {totalPages} ({filteredOrders.length} đơn hàng)
+              Trang {page} / {totalPages} ({total} đơn hàng)
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -329,7 +321,7 @@ export default function AdminOrdersPage() {
               >
                 <ChevronLeft size={16} />
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n}
                   onClick={() => setPage(n)}

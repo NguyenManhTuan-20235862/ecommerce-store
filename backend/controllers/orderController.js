@@ -44,11 +44,16 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-// GET /api/orders — Lấy toàn bộ đơn hàng (Dành cho Admin)
+// GET /api/orders — Lấy toàn bộ đơn hàng (Dành cho Admin) — có phân trang
 export const getAllOrders = async (req, res) => {
   try {
-    const orders = await orderService.getAllOrders();
-    res.status(200).json({ success: true, data: orders });
+    const { page = 1, limit = 10, status } = req.query;
+    const result = await orderService.getAllOrders({ page, limit, status });
+    res.status(200).json({
+      success: true,
+      data: result.orders,
+      pagination: { page: result.page, limit: result.limit, total: result.total, totalPages: result.totalPages },
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

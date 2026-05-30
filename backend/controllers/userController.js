@@ -3,10 +3,10 @@ import path from "path";
 import User from "../models/User.js";
 import * as userService from "../services/userService.js";
 
-// GET /api/users — Lấy danh sách tất cả users (Admin)
+// GET /api/users — Lấy danh sách tất cả users (Admin) — có phân trang server-side
 export const getAllUsers = async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, page = 1, limit = 10 } = req.query;
     const safeSearch = search
       ? search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
       : null;
@@ -20,11 +20,23 @@ export const getAllUsers = async (req, res) => {
         }
       : {};
 
-    const users = await User.find(query)
-      .select("-hashedPassword")
-      .sort({ createdAt: -1 });
+    const pageNum  = Math.max(1, Number(page));
+    const limitNum = Math.min(100, Math.max(1, Number(limit)));
+    const skip     = (pageNum - 1) * limitNum;
 
-    return res.status(200).json({ users });
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select("-hashedPassword")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      User.countDocuments(query),
+    ]);
+
+    return res.status(200).json({
+      users,
+      pagination: { page: pageNum, limit: limitNum, total, totalPages: Math.ceil(total / limitNum) },
+    });
   } catch (error) {
     console.error("Lỗi khi lấy danh sách users:", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });

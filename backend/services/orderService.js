@@ -171,12 +171,23 @@ export const getOrderById = async (orderId) => {
   return order;
 };
 
-// Lấy toàn bộ đơn hàng (dành cho admin)
-export const getAllOrders = async (filters = {}) => {
-  // Thực tế có thể thêm phân trang, sort ở đây
-  return Order.find(filters)
-    .populate("userId", "displayName email phone")
-    .sort({ createdAt: -1 });
+// Lấy toàn bộ đơn hàng (dành cho admin) — có phân trang server-side
+export const getAllOrders = async ({ page = 1, limit = 10, status } = {}) => {
+  const filter   = status ? { status } : {};
+  const pageNum  = Math.max(1, Number(page));
+  const limitNum = Math.min(100, Math.max(1, Number(limit)));
+  const skip     = (pageNum - 1) * limitNum;
+
+  const [orders, total] = await Promise.all([
+    Order.find(filter)
+      .populate("userId", "displayName email phone")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum),
+    Order.countDocuments(filter),
+  ]);
+
+  return { orders, total, totalPages: Math.ceil(total / limitNum), page: pageNum, limit: limitNum };
 };
 
 const VALID_TRANSITIONS = {

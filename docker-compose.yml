@@ -1,0 +1,47 @@
+services:
+  # ─── MongoDB ──────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: vibe-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"   # mở để dùng MongoDB Compass hoặc mongosh từ máy host
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s   # mongo:7 lần đầu khởi động có thể mất ~10s
+
+  # ─── Backend (Node.js + Express) ─────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vibe-backend
+    restart: unless-stopped
+    env_file: ./backend/.env.docker
+    volumes:
+      - ./backend/uploads:/app/uploads   # ảnh upload vẫn nằm ở máy host
+    ports:
+      - "5000:5000"     # có thể bỏ nếu không cần truy cập API trực tiếp
+    depends_on:
+      mongo:
+        condition: service_healthy   # chờ Mongo thực sự sẵn sàng, không chỉ "started"
+
+  # ─── Frontend (Nginx phục vụ React build) ────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vibe-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"         # truy cập tại http://localhost
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:           # dữ liệu MongoDB được giữ khi container restart
