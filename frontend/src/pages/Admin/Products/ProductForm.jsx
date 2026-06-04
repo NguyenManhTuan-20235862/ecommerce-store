@@ -1,30 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-
-const COLOR_MAP = {
-  "đen": "#1a1a1a", "đen than": "#1c1917", "đen wash": "#2d2d2d",
-  "trắng": "#ffffff", "trắng sữa": "#faf7f2",
-  "xám": "#6b7280", "xám nhạt": "#d1d5db", "xám đậm": "#374151", "xám khói": "#4b5563",
-  "đỏ": "#ef4444", "đỏ đậm": "#991b1b",
-  "hồng": "#ec4899", "hồng nhạt": "#fbcfe8",
-  "cam": "#f97316",
-  "vàng": "#eab308",
-  "xanh": "#3b82f6", "xanh lam": "#2563eb", "xanh nhạt": "#93c5fd",
-  "xanh navy": "#1e3a5f", "xanh đậm": "#1e40af", "xanh đen": "#1e2d3d",
-  "xanh slate": "#475569", "xanh rêu": "#4d7c0f", "xanh lá": "#22c55e",
-  "xanh wash": "#4a6fa5", "xanh trung": "#3a6496",
-  "navy": "#0f172a",
-  "tím": "#a855f7", "tím nhạt": "#d8b4fe",
-  "nâu": "#92400e", "nâu đất": "#78350f", "nâu cognac": "#8b4513", "nâu mocha": "#6b4423",
-  "be": "#d4b896", "be cát": "#c4a882", "kem": "#fef9ee",
-  "urban core": "#2f2f2e",
-  "đen tech": "#111827",
-  "trắng/đen": "#a0a0a0",
-  "xám wash": "#8a9ba8",
-  "đen/nâu": "#5c3a1e",
-};
-
-const guessHex = (name) => COLOR_MAP[name?.trim().toLowerCase()] ?? null;
 import { ImageOff, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
+import { guessHex } from "../../../utils/colorMap";
 import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router";
@@ -101,7 +77,13 @@ export default function ProductForm() {
           careInstructions: p.careInstructions || "",
           isFeatured: p.isFeatured || false,
           isActive: p.isActive ?? true,
-          variants: p.variants || [],
+          variants: (p.variants || []).map((v) => ({
+            ...v,
+            // Nếu colorHex chưa có hoặc là default đen, tự suy từ tên màu
+            colorHex: (v.colorHex && v.colorHex !== "" && v.colorHex !== "#000000")
+              ? v.colorHex
+              : (guessHex(v.color) ?? "#000000"),
+          })),
         });
         setImages(p.images || []);
         setSizeChart(p.sizeChart || { headers: [], rows: [] });

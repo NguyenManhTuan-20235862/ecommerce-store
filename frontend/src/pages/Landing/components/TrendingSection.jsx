@@ -46,7 +46,7 @@ export default function TrendingSection({ trendCards }) {
                   nhấn để kéo mắt vào sản phẩm và câu chuyện thương hiệu.
                 </p>
                 <Link
-                  to="/shop"
+                  to="/about"
                   className="mt-6 inline-flex items-center gap-2 rounded-full border-2 border-white px-6 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-[#2f2f2e]"
                 >
                   Đọc thêm

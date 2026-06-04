@@ -325,40 +325,6 @@ export default function Shop() {
                 CORE EVERYDAY
               </div>
             </div>
-
-            <p className="mb-4 mt-10 text-xs font-bold uppercase tracking-widest text-[#94a3b8]">
-              // SỐ LƯỢNG SẢN PHẨM
-            </p>
-            <div className="space-y-3 text-sm font-bold text-[#334155]">
-              <div className="flex justify-between cursor-pointer hover:text-[#004be3] transition">
-                <span>Sneakers</span>
-                <span>6</span>
-              </div>
-              <div className="flex justify-between cursor-pointer hover:text-[#004be3] transition">
-                <span>Túi Xách</span>
-                <span>2</span>
-              </div>
-              <div className="flex justify-between cursor-pointer hover:text-[#004be3] transition">
-                <span>Mũ</span>
-                <span>3</span>
-              </div>
-              <div className="flex justify-between cursor-pointer hover:text-[#004be3] transition">
-                <span>Kính mắt</span>
-                <span>1</span>
-              </div>
-              <div className="flex justify-between cursor-pointer hover:text-[#004be3] transition">
-                <span>Đồng hồ</span>
-                <span>4</span>
-              </div>
-              <div className="flex justify-between cursor-pointer hover:text-[#004be3] transition">
-                <span>Phụ kiện</span>
-                <span>2</span>
-              </div>
-              <div className="flex justify-between cursor-pointer hover:text-[#004be3] transition">
-                <span>Ví</span>
-                <span>1</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

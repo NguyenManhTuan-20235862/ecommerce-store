@@ -32,7 +32,30 @@
 
 **Frontend ✅:** Auth · Landing (+ scroll-triggered animations) · Header · Shop · Product Detail · Cart · Checkout · Profile · Wishlist · Reviews · Admin (Dashboard/Products/Categories/Orders/Customers/Coupons/Lookbook/Sale/About — tất cả có full animation)
 
-## Cập Nhật Phiên Này (2026-05-29) — Session 18
+## Cập Nhật Phiên Này (2026-06-04) — Session 19
+
+### Hoàn thành
+
+| Hạng mục | Chi tiết |
+|---|---|
+| **CouponsTab animation** ✅ | Thêm `staggerContainer` + `fadeUpItem` vào 4 element (icon div, h3, p, Link button). Đồng bộ với TiersTab và CombosTab — toàn bộ Sale page giờ có full stagger. |
+| **Verify UI pagination (Playwright)** ✅ | 3/3 PASS: Shop Load More append đúng (8→16), sort/filter reset list. Admin Orders tab switch gọi `?status=pending` đúng params. Admin Customers debounce OK + search reset `page=1`. |
+
+### Files đã thay đổi (session 19)
+
+| File | Thay đổi |
+|---|---|
+| `frontend/src/pages/Admin/Sale/index.jsx` | `CouponsTab`: bọc container bằng `motion.div variants={staggerContainer}`, wrap 4 child bằng `motion.div/h3/p/div variants={fadeUpItem}` |
+
+### Ghi chú từ test Playwright (session 19)
+
+| Quan sát | Ghi chú |
+|---|---|
+| Admin Orders 0 đơn hàng | DB chưa có order nào → không test được phân trang thực, nhưng server-side filter PASS |
+| Admin Customers 1 user | Ít hơn 1 trang → không test next/prev page, nhưng API params `?search=nguyen&page=1` đúng |
+| Admin credentials | `identifier: admin`, `password: 123456` (từ `adminSeeder.js`) |
+
+## Cập Nhật Phiên Trước (2026-05-29) — Session 18
 
 ### Hoàn thành
 
@@ -123,11 +146,9 @@
 
 ## Ưu Tiên Phiên Tiếp Theo
 
-1. **Ảnh team người Việt** — Upload thủ công qua `/admin/about` → tab Thành viên
-2. **Lookbook ảnh thật** — Upload qua Admin → Lookbook thay ảnh picsum
+1. **Tạo đơn hàng test** — Dùng tài khoản customer đặt vài đơn để test Admin Orders phân trang + filter status thực sự
+2. **Tạo thêm user test** — Cần >10 user để test Admin Customers phân trang next/prev page
 3. **costPrice sản phẩm mới** — Khi tạo sản phẩm mới qua Admin form, nhớ điền Giá vốn (cột đầu tiên trong grid 3 cột)
-4. **Sale page — CouponsTab animation** — Tab này chưa có stagger (chỉ TiersTab + CombosTab được thêm trong session 17)
-5. **Test thủ công UI pagination** — Cần verify trên browser: Shop Load More, Admin Orders tab switch + phân trang, Admin Customers search + phân trang
 
 ## Quy tắc session
 

@@ -4,6 +4,7 @@ import { reviewService } from "../../services/review.service";
 import { productService } from "../../services/product.service";
 import { useAuthStore } from "../../store/authStore";
 import { getImageUrl } from "../../utils/getImageUrl";
+import { resolveColorHex } from "../../utils/colorMap";
 import ProductDetails from "./ProductDetails";
 import ProductGallery from "./ProductGallery";
 import ProductInfo from "./ProductInfo";
@@ -91,27 +92,14 @@ export default function Product() {
   const rawColors = product.variants?.map((v) => v.color).filter(Boolean) || [];
   const uniqueColorNames = [...new Set(rawColors)];
 
-  const fallbackHex = (name) => {
-    const n = name.toLowerCase();
-    if (n.includes("đen") || n.includes("black")) return "#0f172a";
-    if (n.includes("trắng") || n.includes("white")) return "#f8fafc";
-    if (n.includes("đỏ") || n.includes("red")) return "#dc2626";
-    if (n.includes("xanh lá") || n.includes("green")) return "#16a34a";
-    if (n.includes("xanh") || n.includes("blue") || n.includes("navy")) return "#1d4ed8";
-    if (n.includes("vàng") || n.includes("yellow")) return "#ca8a04";
-    if (n.includes("cam") || n.includes("orange")) return "#ea580c";
-    if (n.includes("tím") || n.includes("purple")) return "#7c3aed";
-    if (n.includes("hồng") || n.includes("pink")) return "#db2777";
-    if (n.includes("nâu") || n.includes("brown")) return "#92400e";
-    if (n.includes("xám") || n.includes("gray") || n.includes("grey")) return "#6b7280";
-    if (n.includes("kem") || n.includes("beige") || n.includes("cream")) return "#d4b896";
-    return "#64748b";
-  };
-
-  const colors = uniqueColorNames.length > 0 ? uniqueColorNames.map((c) => {
-    const variantWithHex = product.variants.find((v) => v.color === c && v.colorHex);
-    return { name: c, hex: variantWithHex?.colorHex || fallbackHex(c) };
-  }) : [{ name: "Default", hex: "#0f172a" }];
+  const colors = uniqueColorNames.length > 0
+    ? uniqueColorNames.map((c) => {
+        // Ưu tiên: (1) tra COLOR_MAP theo tên, (2) colorHex lưu trong DB nếu không phải default, (3) fallback pattern
+        const stored = product.variants.find((v) => v.color === c)?.colorHex;
+        const storedValid = stored && stored !== "" && stored !== "#000000";
+        return { name: c, hex: resolveColorHex(c) || (storedValid ? stored : null) || "#64748b" };
+      })
+    : [{ name: "Default", hex: "#0f172a" }];
 
   return (
     <section className="w-full bg-[#f9f6f5]">

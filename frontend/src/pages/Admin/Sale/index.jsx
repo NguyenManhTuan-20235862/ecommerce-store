@@ -20,24 +20,36 @@ const inputCls =
 // ────────────────────────────────────────
 function CouponsTab() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
+    <motion.div
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+      className="flex flex-col items-center justify-center py-16 gap-4 text-center"
+    >
+      <motion.div
+        variants={fadeUpItem}
+        className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50"
+      >
         <Ticket size={26} className="text-[#004be3]" />
-      </div>
-      <h3 className="text-lg font-semibold text-neutral-800">Quản lý mã giảm giá</h3>
-      <p className="max-w-sm text-sm text-neutral-500">
+      </motion.div>
+      <motion.h3 variants={fadeUpItem} className="text-lg font-semibold text-neutral-800">
+        Quản lý mã giảm giá
+      </motion.h3>
+      <motion.p variants={fadeUpItem} className="max-w-sm text-sm text-neutral-500">
         Mã giảm giá được quản lý tại trang riêng. Bật toggle{" "}
         <span className="font-medium text-[#004be3]">Hiện trên trang Sale</span> để mã xuất hiện
         công khai tại trang Khuyến Mãi.
-      </p>
-      <Link
-        to="/admin/coupons"
-        className="inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800"
-      >
-        <ExternalLink size={15} />
-        Đi đến Mã giảm giá
-      </Link>
-    </div>
+      </motion.p>
+      <motion.div variants={fadeUpItem}>
+        <Link
+          to="/admin/coupons"
+          className="inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800"
+        >
+          <ExternalLink size={15} />
+          Đi đến Mã giảm giá
+        </Link>
+      </motion.div>
+    </motion.div>
   );
 }
 
