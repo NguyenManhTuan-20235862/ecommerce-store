@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate } from "react-router";
 import { fadeUpItem, staggerContainer } from "../../animations/variants";
 import { productService } from "../../services/product.service";
 import { getImageUrl } from "../../utils/getImageUrl";
@@ -15,15 +15,16 @@ const sortOptions = [
   { value: "price_desc", label: "Price: High to Low" },
 ];
 
+const QUICK_SORTS = [
+  { value: "newest", label: "Mới nhất", sub: "Hàng vừa về", icon: "✦" },
+  { value: "price_asc", label: "Giá thấp → cao", sub: "Tiết kiệm nhất", icon: "↑" },
+  { value: "price_desc", label: "Giá cao → thấp", sub: "Premium trước", icon: "↓" },
+];
+
 export default function Shop() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState(
-    searchParams.get("category") || "",
-  );
-  const [selectedSizes, setSelectedSizes] = useState([]);
   const [priceLimit, setPriceLimit] = useState(maxPrice);
-  const [appliedPriceLimit, setAppliedPriceLimit] = useState(maxPrice);
+  const [debouncedPriceLimit, setDebouncedPriceLimit] = useState(maxPrice);
   const [sortBy, setSortBy] = useState("newest");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -34,13 +35,27 @@ export default function Shop() {
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
 
+  // Khi click category trong sidebar → chuyển sang trang submenu riêng
+  function handleCategoryChange(categoryKey) {
+    if (categoryKey) navigate(`/shop/${categoryKey}`);
+  }
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-      setLoadCursor(null); // reset về đầu khi search thay đổi
+      setLoadCursor(null);
     }, 400);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Debounce price — tự động áp dụng sau 400ms kéo slider
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedPriceLimit(priceLimit);
+      setLoadCursor(null);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [priceLimit]);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,9 +64,7 @@ export default function Shop() {
         const params = {
           cursor: loadCursor || undefined,
           limit: 8,
-          category: activeCategory || undefined,
-          size: selectedSizes.length > 0 ? selectedSizes.join(",") : undefined,
-          maxPrice: appliedPriceLimit < maxPrice ? appliedPriceLimit : undefined,
+          maxPrice: debouncedPriceLimit < maxPrice ? debouncedPriceLimit : undefined,
           sort: sortBy,
           search: debouncedSearch || undefined,
         };
@@ -81,14 +94,7 @@ export default function Shop() {
     return () => {
       cancelled = true;
     };
-  }, [
-    loadCursor,
-    activeCategory,
-    selectedSizes,
-    appliedPriceLimit,
-    sortBy,
-    debouncedSearch,
-  ]);
+  }, [loadCursor, debouncedPriceLimit, sortBy, debouncedSearch]);
 
   const formattedProducts = useMemo(() => {
     return products.map((p) => {
@@ -115,6 +121,8 @@ export default function Shop() {
         badge,
         image: getImageUrl(p.images?.[0] || ""),
         isFeatured: p.isFeatured,
+        compareAtPrice: p.compareAtPrice ?? 0,
+        variants: p.variants ?? [],
         defaultVariant,
         totalStock: p.totalStock ?? 0,
         isOutOfStock: outOfStock,
@@ -135,8 +143,8 @@ export default function Shop() {
   }, [products]);
 
   const filterKey = useMemo(
-    () => `${activeCategory}-${selectedSizes.join(",")}-${appliedPriceLimit}-${sortBy}-${debouncedSearch}`,
-    [activeCategory, selectedSizes, appliedPriceLimit, sortBy, debouncedSearch],
+    () => `${debouncedPriceLimit}-${sortBy}-${debouncedSearch}`,
+    [debouncedPriceLimit, sortBy, debouncedSearch],
   );
 
   const shown = formattedProducts.length;
@@ -146,8 +154,13 @@ export default function Shop() {
   return (
     <section className="w-full bg-[#f9f6f5]">
       <div className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-4">
+        {/* Default hero — /shop luôn hiển thị tất cả sản phẩm */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.25 }}
+          className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-4"
+        >
           <div className="lg:col-span-3">
             <p className="text-xs font-bold uppercase tracking-widest text-[#94a3b8]">
               // SHOP - MENSWEAR
@@ -159,8 +172,8 @@ export default function Shop() {
             </h1>
             <div className="mt-8 flex flex-col justify-between gap-4 border-t border-black/10 pt-6 sm:flex-row sm:items-center">
               <p className="max-w-md text-sm text-[#334155]">
-                Phụ kiện và giày cho nam — bộ sưu tập urban core. Bộ lọc theo
-                danh mục, kích cỡ và bộ sưu tập ở thanh dọc bên trái.
+                Thời trang nam urban core — lọc theo danh mục, kích cỡ và
+                bộ sưu tập ở thanh bên trái.
               </p>
               <button
                 onClick={() => navigate("/lookbook")}
@@ -178,7 +191,7 @@ export default function Shop() {
             <div className="space-y-3">
               <div className="flex justify-between border-b border-black/5 pb-2 text-sm font-bold">
                 <span className="text-[#334155]">ON STOCK</span>
-                <span className="text-[#004be3]">048 / 060</span>
+                <span className="text-[#004be3]">{total} SẢN PHẨM</span>
               </div>
               <div className="flex justify-between border-b border-black/5 pb-2 text-sm font-bold">
                 <span className="text-[#334155]">RESTOCK</span>
@@ -190,7 +203,7 @@ export default function Shop() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Main Layout */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr_240px]">
@@ -200,29 +213,10 @@ export default function Shop() {
               // BỘ LỌC
             </p>
             <FilterSidebar
-              activeCategory={activeCategory}
-              onCategoryChange={(categoryKey) => {
-                setActiveCategory((prev) =>
-                  prev === categoryKey ? "" : categoryKey,
-                );
-                setSelectedSizes([]);
-                setLoadCursor(null);
-              }}
-              selectedSizes={selectedSizes}
-              onSizeToggle={(size) => {
-                setSelectedSizes((prev) =>
-                  prev.includes(size)
-                    ? prev.filter((item) => item !== size)
-                    : [...prev, size],
-                );
-                setLoadCursor(null);
-              }}
+              activeCategory=""
+              onCategoryChange={handleCategoryChange}
               priceLimit={priceLimit}
               onPriceLimitChange={setPriceLimit}
-              onApply={() => {
-                setAppliedPriceLimit(priceLimit);
-                setLoadCursor(null);
-              }}
             />
           </div>
 
@@ -273,17 +267,23 @@ export default function Shop() {
               variants={staggerContainer}
               initial="initial"
               animate="animate"
-              className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+              className="grid grid-cols-1 gap-5 md:grid-cols-3"
             >
-              {formattedProducts.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  variants={fadeUpItem}
-                  className={index % 4 === 0 ? "md:col-span-2" : "col-span-1"}
-                >
-                  <ProductTile product={product} />
-                </motion.div>
-              ))}
+              {formattedProducts.map((product, index) => {
+                const isHero = index % 4 === 0;
+                return (
+                  <motion.div
+                    key={product.id}
+                    variants={fadeUpItem}
+                    className={isHero ? "col-span-1 md:col-span-3" : "col-span-1"}
+                  >
+                    <ProductTile
+                      product={product}
+                      className={isHero ? "col-span-2" : ""}
+                    />
+                  </motion.div>
+                );
+              })}
             </motion.div>
 
             <div className="mt-14 flex flex-col items-center gap-6">
@@ -309,20 +309,51 @@ export default function Shop() {
             </div>
           </div>
 
-          {/* Right Sidebar */}
+          {/* Right Sidebar — Quick Sort */}
           <div>
             <p className="mb-4 text-xs font-bold uppercase tracking-widest text-[#94a3b8]">
-              // BỘ SƯU TẬP
+              // SẮP XẾP
             </p>
-            <div className="flex flex-col gap-3">
-              <div className="flex h-16 items-center justify-center rounded-xl bg-[#ff1493] text-sm font-bold tracking-widest text-white hover:opacity-90 cursor-pointer transition">
-                KINETIC PACK
-              </div>
-              <div className="flex h-16 items-center justify-center rounded-xl bg-[#1e293b] text-sm font-bold tracking-widest text-white hover:opacity-90 cursor-pointer transition">
-                NIGHT FORMS
-              </div>
-              <div className="flex h-16 items-center justify-center rounded-xl bg-[#1e293b] text-sm font-bold tracking-widest text-white hover:opacity-90 cursor-pointer transition">
-                CORE EVERYDAY
+            <div className="flex flex-col gap-3 lg:sticky lg:top-20">
+              {QUICK_SORTS.map(({ value, label, sub, icon }) => {
+                const isActive = sortBy === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setSortBy(value);
+                      setLoadCursor(null);
+                    }}
+                    className={`flex h-16 w-full cursor-pointer items-center gap-3 rounded-2xl px-5 text-left transition-all duration-200 ${
+                      isActive
+                        ? "bg-[#004be3] shadow-lg shadow-[#004be3]/20"
+                        : "bg-[#0f172a] hover:bg-[#1e293b]"
+                    }`}
+                  >
+                    <span className={`text-lg ${isActive ? "opacity-100" : "opacity-40"}`}>
+                      {icon}
+                    </span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-white">
+                        {label}
+                      </p>
+                      <p className={`text-[9px] tracking-wide ${isActive ? "text-white/70" : "text-white/30"}`}>
+                        {sub}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+
+              <div className="mt-2 rounded-2xl border border-black/5 bg-[#f3f0ef] p-4">
+                <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">
+                  // FREE SHIP
+                </p>
+                <p className="text-[11px] leading-relaxed text-[#5c5b5b]">
+                  Miễn phí giao hàng cho đơn từ{" "}
+                  <span className="font-bold text-[#004be3]">500.000đ</span>
+                </p>
               </div>
             </div>
           </div>

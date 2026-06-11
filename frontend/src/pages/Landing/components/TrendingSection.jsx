@@ -17,9 +17,9 @@ export default function TrendingSection({ trendCards }) {
           <h2 className="mt-3 text-[1.9rem] font-extrabold uppercase tracking-[-0.05em] sm:text-[3.1rem] lg:text-6xl">
             Những khối hình đang lên phố
           </h2>
-          <p className="mt-4 text-base leading-8 text-[#71717a] sm:text-lg">
-            Ưu tiên hàng đầu của chúng tôi là sự hài lòng tuyệt đối của khách
-            hàng.
+          <p className="mt-4 text-base leading-8 text-[#5c5b5b] sm:text-lg">
+            Phong cách đường phố nam từ những khối màu tối, ánh sáng nhấn đến
+            chất liệu chuẩn kỹ thuật — mặc là ra phố được ngay.
           </p>
         </motion.div>
 
@@ -31,11 +31,11 @@ export default function TrendingSection({ trendCards }) {
               className="absolute inset-0 h-full w-full object-cover opacity-50"
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.75))]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,254,102,0.18),transparent_22%),radial-gradient(circle_at_80%_10%,rgba(0,75,227,0.3),transparent_30%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(129,155,255,0.18),transparent_22%),radial-gradient(circle_at_80%_10%,rgba(0,75,227,0.3),transparent_30%)]" />
             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),transparent_42%,rgba(255,255,255,0.04))]" />
             <div className="absolute inset-0 flex items-end p-8 sm:p-10">
               <div className="max-w-xl text-white">
-                <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#00fe66]">
+                <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#819bff]">
                   Featured story
                 </p>
                 <h3 className="mt-3 text-[2.1rem] font-extrabold uppercase leading-[0.95] tracking-[-0.05em] sm:text-5xl lg:text-6xl">

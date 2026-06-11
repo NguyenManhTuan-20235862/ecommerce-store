@@ -34,7 +34,7 @@ export const getAllStories = async (_req, res) => {
 
 export const createStory = async (req, res) => {
   try {
-    const { title, subtitle, imageUrl, imageId, aspectRatio, order } = req.body;
+    const { title, subtitle, imageUrl, imageId, aspectRatio, order, products } = req.body;
 
     // BUG-4 fix: trim trước khi check
     if (!title?.trim()) {
@@ -52,6 +52,7 @@ export const createStory = async (req, res) => {
       imageId: imageId || "",
       aspectRatio: aspectRatio || "4:5",
       order: order ?? 0,
+      products: Array.isArray(products) ? products : [],
     });
     res.status(201).json({ message: "Tạo story thành công", data: story });
   } catch (err) {

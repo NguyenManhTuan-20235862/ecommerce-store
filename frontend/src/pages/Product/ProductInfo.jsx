@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 function AccordionItem({ title, children, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -11,14 +12,29 @@ function AccordionItem({ title, children, defaultOpen = false }) {
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center justify-between py-5 text-left"
       >
-        <span className="font-heading text-sm font-extrabold uppercase tracking-widest text-[#0f172a]">
+        <span className="font-heading text-sm font-extrabold uppercase tracking-widest text-[#2f2f2e]">
           {title}
         </span>
-        <ChevronDown
-          className={`h-4 w-4 text-[#5c5b5b] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        />
+        <motion.div
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+        >
+          <ChevronDown className="h-4 w-4 text-[#5c5b5b]" />
+        </motion.div>
       </button>
-      {open && <div className="pb-6">{children}</div>}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="pb-6">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -78,7 +94,7 @@ export default function ProductInfo({ material, careInstructions, sizeChart }) {
                       {row.map((cell, ci) => (
                         <td
                           key={ci}
-                          className={`py-3 pr-8 last:pr-0 ${ci === 0 ? "font-bold text-[#0f172a]" : "text-[#5c5b5b]"}`}
+                          className={`py-3 pr-8 last:pr-0 ${ci === 0 ? "font-bold text-[#2f2f2e]" : "text-[#5c5b5b]"}`}
                         >
                           {cell || "—"}
                         </td>
@@ -88,7 +104,7 @@ export default function ProductInfo({ material, careInstructions, sizeChart }) {
                 </tbody>
               </table>
             </div>
-            <p className="text-xs text-[#94a3b8]">
+            <p className="text-xs text-[#5c5b5b]">
               * Số đo trên là số đo cơ thể. Nếu số đo nằm giữa 2 size, hãy chọn size lớn hơn.
             </p>
           </div>

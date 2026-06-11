@@ -16,7 +16,7 @@ export default function DropsSection({ drops }) {
             <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#004be3]">
               Available now
             </p>
-            <h2 className="mt-3 text-4xl font-extrabold uppercase tracking-[-0.05em] sm:text-5xl">
+            <h2 className="mt-3 font-heading text-4xl font-extrabold uppercase tracking-[-0.05em] sm:text-5xl">
               New drops
             </h2>
           </div>
@@ -32,7 +32,8 @@ export default function DropsSection({ drops }) {
         <motion.div
           variants={staggerContainer}
           initial="initial"
-          animate="animate"
+          whileInView="animate"
+          viewport={{ once: true, margin: "-80px" }}
           className="grid gap-5 md:grid-cols-2 xl:grid-cols-4"
         >
           {drops.map((drop) => (

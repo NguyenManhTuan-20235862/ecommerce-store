@@ -11,7 +11,7 @@ function StarRow({ rating }) {
         <Star
           key={i}
           className={`h-3 w-3 ${
-            i <= rating ? "fill-[#fbbf24] text-[#fbbf24]" : "fill-neutral-200 text-neutral-200"
+            i <= rating ? "fill-[#fbbf24] text-[#fbbf24]" : "fill-[#e4e2e1] text-[#e4e2e1]"
           }`}
         />
       ))}
@@ -58,7 +58,7 @@ export default function VibeCheckReviews({
       </div>
 
       {safeReviews.length === 0 ? (
-        <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
+        <div className="rounded-2xl bg-[#f3f0ef] p-8 text-center">
           <p className="text-sm font-bold uppercase tracking-wider text-[#5c5b5b]">
             Chưa có đánh giá nào cho sản phẩm này.
           </p>
@@ -71,7 +71,7 @@ export default function VibeCheckReviews({
           {safeReviews.map((review) => (
             <div
               key={review.id}
-              className="space-y-3 rounded-2xl bg-white p-6 shadow-sm"
+              className="space-y-3 rounded-2xl bg-[#f3f0ef] p-6"
             >
               <StarRow rating={review.rating} />
               {review.text && (

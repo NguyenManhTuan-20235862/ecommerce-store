@@ -1,5 +1,5 @@
-import { Gem, Shirt, ShoppingBag, Spline } from "lucide-react";
-import { categoryFilters, maxPrice, pantsSizeFilters, shoeSizeFilters, sizeFilters } from "./shopData";
+import { LayoutGrid, Gem, Shirt, ShoppingBag, Spline } from "lucide-react";
+import { categoryFilters, maxPrice } from "./shopData";
 
 const categoryIconMap = {
   shirt: Shirt,
@@ -12,30 +12,33 @@ function formatPriceCompact(value) {
   return `${new Intl.NumberFormat("vi-VN").format(value)}đ`;
 }
 
-function getSizeList(activeCategory) {
-  if (activeCategory === "giay") return shoeSizeFilters;
-  if (activeCategory === "quan") return pantsSizeFilters;
-  return sizeFilters;
-}
-
 export default function FilterSidebar({
   activeCategory,
   onCategoryChange,
-  selectedSizes,
-  onSizeToggle,
   priceLimit,
   onPriceLimitChange,
-  onApply,
 }) {
-  const currentSizes = getSizeList(activeCategory);
   return (
-    <aside className="h-fit rounded-3xl bg-[#f8fafc] p-6 lg:sticky lg:top-20">
+    <aside className="h-fit rounded-3xl bg-[#f3f0ef] p-6 lg:sticky lg:top-20">
       <section>
-        <h2 className="m-0 font-heading text-xs font-extrabold uppercase tracking-[0.2em] text-[#0f172a]">
-          Categories
+        <h2 className="m-0 font-heading text-xs font-extrabold uppercase tracking-[0.2em] text-[#2f2f2e]">
+          Danh mục
         </h2>
 
         <div className="mt-5 space-y-2">
+          <button
+            type="button"
+            onClick={() => onCategoryChange("")}
+            className={`flex w-full items-center gap-3 rounded-full px-5 py-3 text-left text-xs font-bold uppercase tracking-widest transition ${
+              activeCategory === ""
+                ? "bg-[#004be3] text-white"
+                : "text-[#5c5b5b] hover:bg-[#f9f6f5]"
+            }`}
+          >
+            <LayoutGrid className="h-4 w-4" />
+            <span>Tất cả</span>
+          </button>
+
           {categoryFilters.map((item) => {
             const isActive = activeCategory === item.key;
             const Icon = categoryIconMap[item.icon] || Gem;
@@ -48,7 +51,7 @@ export default function FilterSidebar({
                 className={`flex w-full items-center gap-3 rounded-full px-5 py-3 text-left text-xs font-bold uppercase tracking-widest transition ${
                   isActive
                     ? "bg-[#004be3] text-white"
-                    : "text-[#475569] hover:bg-white"
+                    : "text-[#5c5b5b] hover:bg-[#f9f6f5]"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -60,38 +63,18 @@ export default function FilterSidebar({
       </section>
 
       <section className="mt-8">
-        <h3 className="m-0 font-heading text-xs font-extrabold uppercase tracking-[0.2em] text-[#0f172a]">
-          Size / Fit
-        </h3>
-
-        <div className="mt-5 grid grid-cols-4 gap-2">
-          {currentSizes.map((size) => {
-            const isSelected = selectedSizes.includes(size);
-
-            return (
-              <button
-                key={size}
-                type="button"
-                onClick={() => onSizeToggle(size)}
-                className={`rounded-lg border px-2 py-2 text-xs font-bold transition ${
-                  isSelected
-                    ? "border-[#004be3] bg-[#004be3] text-white"
-                    : "border-black/10 bg-white text-[#2f2f2e] hover:border-[#004be3]"
-                }`}
-              >
-                {size}
-              </button>
-            );
-          })}
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="m-0 font-heading text-xs font-extrabold uppercase tracking-[0.2em] text-[#2f2f2e]">
+            Khoảng giá
+          </h3>
+          {priceLimit < maxPrice && (
+            <span className="text-[9px] font-bold text-[#004be3] uppercase tracking-widest">
+              Đang lọc
+            </span>
+          )}
         </div>
-      </section>
 
-      <section className="mt-8">
-        <h3 className="m-0 font-heading text-xs font-extrabold uppercase tracking-[0.2em] text-[#0f172a]">
-          Price Range
-        </h3>
-
-        <div className="mt-5">
+        <div>
           <input
             type="range"
             min={0}
@@ -99,24 +82,16 @@ export default function FilterSidebar({
             step={50000}
             value={priceLimit}
             onChange={(event) => onPriceLimitChange(Number(event.target.value))}
-            className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#eae7e7] accent-[#004be3]"
+            className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#dfdcdc] accent-[#004be3]"
           />
-          <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-[#64748b]">
+          <div className="mt-3 flex items-center justify-between text-[10px] font-bold text-[#5c5b5b]">
             <span>0đ</span>
-            <span className="text-[#004be3]">
-              {formatPriceCompact(priceLimit)}
+            <span className={priceLimit < maxPrice ? "text-[#004be3]" : "text-[#5c5b5b]"}>
+              {priceLimit < maxPrice ? `≤ ${formatPriceCompact(priceLimit)}` : "Tất cả mức giá"}
             </span>
           </div>
         </div>
       </section>
-
-      <button
-        type="button"
-        onClick={onApply}
-        className="mt-8 w-full rounded-full bg-[#0f172a] py-4 font-heading text-xs font-extrabold uppercase tracking-widest text-white transition hover:brightness-110"
-      >
-        Apply Filters
-      </button>
     </aside>
   );
 }

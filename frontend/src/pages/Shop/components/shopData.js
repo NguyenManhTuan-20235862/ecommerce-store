@@ -2,7 +2,7 @@ export const categoryFilters = [
   { key: "ao", label: "ÁO", icon: "shirt" },
   { key: "quan", label: "QUẦN", icon: "pants" },
   { key: "hoodie-sweater", label: "HOODIE & SWEATER", icon: "shirt" },
-  { key: "giay", label: "FOOTWEAR", icon: "shoe" },
+  { key: "giay", label: "GIÀY & DÉP", icon: "shoe" },
   { key: "phu-kien", label: "ACCESSORIES", icon: "gem" },
 ];
 

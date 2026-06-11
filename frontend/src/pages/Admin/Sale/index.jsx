@@ -318,9 +318,9 @@ function CombosTab() {
       name: combo.name,
       subtitle: combo.subtitle || "",
       products: combo.products.map((p) => ({
-        product: p.product._id || p.product,
+        product: p.product?._id ?? p.product,
         label: p.label || "",
-        _productData: p.product,
+        _productData: p.product ?? null,
       })),
       comboPrice: combo.comboPrice,
       isActive: combo.isActive,

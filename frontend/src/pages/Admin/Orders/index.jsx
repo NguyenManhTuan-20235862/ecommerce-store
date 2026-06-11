@@ -49,7 +49,7 @@ const formatDate = (dateStr) =>
     year: "numeric",
   });
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);

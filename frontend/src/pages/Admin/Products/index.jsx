@@ -26,7 +26,7 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 10,
+    limit: 20,
     total: 0,
     totalPages: 0,
   });
@@ -38,7 +38,7 @@ export default function AdminProductsPage() {
     try {
       const res = await productService.adminList({
         page,
-        limit: 10,
+        limit: 20,
         search: searchQuery || undefined,
       });
       setProducts(res.data.products || []);

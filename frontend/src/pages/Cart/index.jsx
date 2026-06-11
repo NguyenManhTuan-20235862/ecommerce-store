@@ -9,12 +9,13 @@ import CartItem from "./CartItem";
 import ComboCartGroup from "./ComboCartGroup";
 import CartSummary from "./CartSummary";
 import VibeLoyaltyCard from "./VibeLoyaltyCard";
-import { figmaItems, promoBadge } from "./cartConstants";
+import { promoBadge } from "./cartConstants";
 import { mapStoreItem } from "./cartUtils";
 
 export default function Cart() {
   const {
     items,
+    fetchCart,
     updateItemQuantity,
     removeItem,
     couponCode,
@@ -24,20 +25,19 @@ export default function Cart() {
   } = useCartStore();
 
   const hasStoreItems = items.length > 0;
-  const [demoItems, setDemoItems] = useState(figmaItems);
   const [couponLoading, setCouponLoading] = useState(false);
   const [tiers, setTiers] = useState([]);
 
   useEffect(() => {
+    fetchCart();
     saleConfigService.getTiers()
       .then((res) => setTiers(res.data.data ?? []))
       .catch(() => {});
   }, []);
 
-  // Determine which items to display (store items or demo items)
   const displayItems = useMemo(
-    () => (hasStoreItems ? items.map(mapStoreItem) : demoItems),
-    [hasStoreItems, items, demoItems],
+    () => items.map(mapStoreItem),
+    [items],
   );
 
   // Tách items thường và nhóm combo
@@ -81,17 +81,7 @@ export default function Cart() {
   // Handle quantity change
   const handleQtyChange = (productId, nextQty) => {
     const safeQty = Math.max(1, nextQty);
-
-    if (hasStoreItems) {
-      updateItemQuantity(productId, safeQty);
-      return;
-    }
-
-    setDemoItems((prev) =>
-      prev.map((item) =>
-        item.productId === productId ? { ...item, quantity: safeQty } : item,
-      ),
-    );
+    updateItemQuantity(productId, safeQty);
   };
 
   const handleApplyCoupon = async () => {
@@ -112,12 +102,7 @@ export default function Cart() {
 
   // Handle item removal
   const handleRemove = (productId) => {
-    if (hasStoreItems) {
-      removeItem(productId);
-      return;
-    }
-
-    setDemoItems((prev) => prev.filter((item) => item.productId !== productId));
+    removeItem(productId);
   };
 
   // Xóa toàn bộ một combo group

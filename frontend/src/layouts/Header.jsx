@@ -15,10 +15,11 @@ import { useWishlistStore } from "../store/wishlistStore";
 
 const productMenu = [
   { label: "Tất cả sản phẩm", to: "/shop" },
-  { label: "Áo", to: "/shop?category=tops" },
-  { label: "Quần", to: "/shop?category=bottoms" },
-  { label: "Giày", to: "/shop?category=sneakers" },
-  { label: "Phụ kiện", to: "/shop?category=accessories" },
+  { label: "Áo", to: "/shop/ao" },
+  { label: "Quần", to: "/shop/quan" },
+  { label: "Hoodie & Sweater", to: "/shop/hoodie-sweater" },
+  { label: "Giày & Dép", to: "/shop/giay" },
+  { label: "Phụ kiện", to: "/shop/phu-kien" },
 ];
 
 const supportMenu = [

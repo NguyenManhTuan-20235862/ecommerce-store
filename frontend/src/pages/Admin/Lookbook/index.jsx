@@ -1,9 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { Image, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Image, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { fadeUpItem, modalContent, modalOverlay, staggerContainer } from "../../../animations/variants";
 import { lookbookService } from "../../../services/lookbook.service";
+import { productService } from "../../../services/product.service";
+import { getImageUrl } from "../../../utils/getImageUrl";
+import { formatCurrency } from "../../../utils/formatCurrency";
 import api from "../../../services/api";
 
 const ASPECT_OPTIONS = [
@@ -28,18 +31,25 @@ const EMPTY_FORM = {
   aspectRatio: "4:5",
   order: 0,
   isActive: true,
+  products: [],
 };
 
 export default function AdminLookbook() {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState(null); // null = tạo mới
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const fileRef = useRef(null);
+
+  // Product picker state
+  const [productSearch, setProductSearch] = useState("");
+  const [productResults, setProductResults] = useState([]);
+  const [searchingProducts, setSearchingProducts] = useState(false);
+  const pickerRef = useRef(null);
 
   const fetchStories = async () => {
     try {
@@ -54,9 +64,40 @@ export default function AdminLookbook() {
 
   useEffect(() => { fetchStories(); }, []);
 
+  // Debounce product search
+  useEffect(() => {
+    if (!productSearch.trim()) { setProductResults([]); return; }
+    const timer = setTimeout(async () => {
+      setSearchingProducts(true);
+      try {
+        const res = await productService.list({ search: productSearch, limit: 8 });
+        setProductResults(res.data?.products ?? []);
+      } catch {
+        setProductResults([]);
+      } finally {
+        setSearchingProducts(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [productSearch]);
+
+  // Đóng dropdown khi click ngoài
+  useEffect(() => {
+    const handler = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setProductResults([]);
+        setProductSearch("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   const openCreate = () => {
     setEditing(null);
     setForm({ ...EMPTY_FORM, order: stories.length + 1 });
+    setProductSearch("");
+    setProductResults([]);
     setModalOpen(true);
   };
 
@@ -70,13 +111,18 @@ export default function AdminLookbook() {
       aspectRatio: story.aspectRatio || "4:5",
       order: story.order ?? 0,
       isActive: story.isActive !== false,
+      products: story.products ?? [],
     });
+    setProductSearch("");
+    setProductResults([]);
     setModalOpen(true);
   };
 
   const closeModal = () => {
     setModalOpen(false);
     setEditing(null);
+    setProductSearch("");
+    setProductResults([]);
   };
 
   const handleUpload = async (e) => {
@@ -102,18 +148,36 @@ export default function AdminLookbook() {
     }
   };
 
+  const addProduct = (product) => {
+    if (form.products.some((p) => (p._id ?? p) === product._id)) return;
+    setForm((prev) => ({ ...prev, products: [...prev.products, product] }));
+    setProductSearch("");
+    setProductResults([]);
+  };
+
+  const removeProduct = (productId) => {
+    setForm((prev) => ({
+      ...prev,
+      products: prev.products.filter((p) => (p._id ?? p) !== productId),
+    }));
+  };
+
   const handleSave = async () => {
     if (!form.title.trim()) { toast.error("Nhập tiêu đề"); return; }
     setSaving(true);
     try {
+      const payload = {
+        ...form,
+        products: form.products.map((p) => p._id ?? p),
+      };
       if (editing) {
-        const res = await lookbookService.update(editing._id, form);
+        const res = await lookbookService.update(editing._id, payload);
         setStories((prev) =>
           prev.map((s) => (s._id === editing._id ? res.data.data : s))
         );
         toast.success("Cập nhật thành công");
       } else {
-        const res = await lookbookService.create(form);
+        const res = await lookbookService.create(payload);
         setStories((prev) => [...prev, res.data.data].sort((a, b) => a.order - b.order));
         toast.success("Tạo story thành công");
       }
@@ -145,7 +209,7 @@ export default function AdminLookbook() {
         <div>
           <h1 className="text-xl font-bold text-neutral-900">Lookbook Stories</h1>
           <p className="mt-0.5 text-sm text-neutral-500">
-            Quản lý các story card trên trang Lookbook — thứ tự hiển thị theo số Order.
+            Quản lý các story card trên trang Lookbook. Gắn sản phẩm vào story để tạo "Shop This Look".
           </p>
         </div>
         <button
@@ -231,6 +295,11 @@ export default function AdminLookbook() {
                   </span>
                 </div>
                 <p className="mt-1 text-[11px] text-neutral-400">{story.aspectRatio}</p>
+                {story.products?.length > 0 && (
+                  <p className="mt-1 text-[11px] font-semibold text-blue-600">
+                    {story.products.length} sản phẩm
+                  </p>
+                )}
                 {!story.isActive && (
                   <span className="mt-1 inline-block rounded bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-600">
                     Ẩn
@@ -246,7 +315,7 @@ export default function AdminLookbook() {
       <AnimatePresence>
       {modalOpen && (
         <motion.div {...modalOverlay} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <motion.div {...modalContent} className="flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl max-h-[calc(100vh-2rem)]">
+          <motion.div {...modalContent} className="flex w-full max-w-xl flex-col rounded-2xl bg-white shadow-2xl max-h-[calc(100vh-2rem)]">
             {/* Modal header */}
             <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
               <h2 className="text-base font-bold text-neutral-900">
@@ -267,11 +336,7 @@ export default function AdminLookbook() {
                   onClick={() => fileRef.current?.click()}
                 >
                   {form.imageUrl ? (
-                    <img
-                      src={form.imageUrl}
-                      alt="preview"
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
+                    <img src={form.imageUrl} alt="preview" className="absolute inset-0 h-full w-full object-cover" />
                   ) : (
                     <div className="flex flex-col items-center gap-2 text-neutral-400">
                       <Image size={32} />
@@ -289,13 +354,7 @@ export default function AdminLookbook() {
                     </div>
                   )}
                 </div>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={handleUpload}
-                />
+                <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleUpload} />
               </div>
 
               {/* Tiêu đề */}
@@ -319,7 +378,7 @@ export default function AdminLookbook() {
                   type="text"
                   value={form.subtitle}
                   onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))}
-                  placeholder="Vd: #STORY 01 - NIGHT RIDE - 16:9"
+                  placeholder="Vd: #STORY 01 - NIGHT RIDE"
                   className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10"
                 />
               </div>
@@ -347,6 +406,104 @@ export default function AdminLookbook() {
                     onChange={(e) => setForm((p) => ({ ...p, order: Number(e.target.value) }))}
                     className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-neutral-900"
                   />
+                </div>
+              </div>
+
+              {/* ─── Product Picker ─── */}
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-neutral-700">
+                  Sản phẩm trong look
+                  <span className="ml-2 text-[11px] font-normal text-neutral-400">
+                    (hiển thị "Shop This Look" trên trang Lookbook)
+                  </span>
+                </label>
+
+                {/* Selected products */}
+                {form.products.length > 0 && (
+                  <div className="mb-3 flex flex-col gap-2">
+                    {form.products.map((p) => {
+                      const id = p._id ?? p;
+                      const img = getImageUrl(p.images?.[0] || "");
+                      return (
+                        <div key={id} className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2">
+                          <img
+                            src={img || "https://placehold.co/40x40/e4e2e1/5c5b5b?text=?"}
+                            alt={p.name}
+                            onError={(e) => { e.currentTarget.src = "https://placehold.co/40x40/e4e2e1/5c5b5b?text=?"; }}
+                            className="h-10 w-10 rounded-md object-cover bg-neutral-200 shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="truncate text-sm font-semibold text-neutral-800">{p.name}</p>
+                            {p.price && (
+                              <p className="text-[11px] text-blue-600 font-medium">{formatCurrency(p.price)}</p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeProduct(id)}
+                            className="shrink-0 rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-500 transition"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Search input */}
+                <div ref={pickerRef} className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    placeholder="Tìm sản phẩm để thêm vào look..."
+                    className="w-full rounded-lg border border-neutral-200 py-2.5 pl-9 pr-4 text-sm outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10"
+                  />
+
+                  {/* Dropdown results */}
+                  {(productResults.length > 0 || searchingProducts) && (
+                    <div className="absolute left-0 top-full z-10 mt-1 w-full rounded-xl border border-neutral-200 bg-white shadow-lg overflow-hidden">
+                      {searchingProducts ? (
+                        <div className="flex items-center justify-center py-6 text-sm text-neutral-400">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-700 mr-2" />
+                          Đang tìm...
+                        </div>
+                      ) : (
+                        productResults.map((p) => {
+                          const alreadyAdded = form.products.some((fp) => (fp._id ?? fp) === p._id);
+                          return (
+                            <button
+                              key={p._id}
+                              type="button"
+                              onClick={() => !alreadyAdded && addProduct(p)}
+                              disabled={alreadyAdded}
+                              className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-neutral-50 ${
+                                alreadyAdded ? "opacity-40 cursor-default" : ""
+                              }`}
+                            >
+                              <img
+                                src={getImageUrl(p.images?.[0] || "")}
+                                alt={p.name}
+                                onError={(e) => { e.currentTarget.src = "https://placehold.co/40x40/e4e2e1/5c5b5b?text=?"; }}
+                                className="h-9 w-9 rounded-md object-cover bg-neutral-100 shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="truncate text-sm font-medium text-neutral-800">{p.name}</p>
+                                <p className="text-[11px] text-blue-600">{formatCurrency(p.price)}</p>
+                              </div>
+                              {alreadyAdded ? (
+                                <span className="shrink-0 text-[10px] font-semibold text-neutral-400">Đã thêm</span>
+                              ) : (
+                                <Plus size={14} className="shrink-0 text-neutral-400" />
+                              )}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

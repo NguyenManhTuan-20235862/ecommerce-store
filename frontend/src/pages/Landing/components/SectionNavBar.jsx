@@ -13,7 +13,7 @@ export default function SectionNavBar({ isAuthenticated, sectionNavItems }) {
   return (
     <section className="px-4 pb-0 pt-4 sm:px-6 lg:px-10 lg:pt-6">
       <div className="mx-auto w-full max-w-400">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-4xl border border-black/10 bg-[#f4f4f5] px-5 py-3 shadow-[0_10px_30px_rgba(47,47,46,0.08)] sm:flex-nowrap sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-4xl border border-black/10 bg-[#f3f0ef] px-5 py-3 shadow-[0_10px_30px_rgba(47,47,46,0.08)] sm:flex-nowrap sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#004be3] text-sm font-extrabold uppercase text-white">
               VU

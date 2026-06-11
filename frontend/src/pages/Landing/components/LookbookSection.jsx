@@ -28,7 +28,7 @@ export default function LookbookSection({ categories, isAuthenticated }) {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               to="/lookbook"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#004be3] px-6 py-3.5 text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:bg-[#003cc0]"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#004be3] px-6 py-3.5 text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:brightness-110"
             >
               Khám phá lookbook
               <ArrowRight className="h-4 w-4" />
@@ -36,14 +36,14 @@ export default function LookbookSection({ categories, isAuthenticated }) {
             {isAuthenticated ? (
               <Link
                 to="/profile"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-6 py-3.5 text-sm font-bold uppercase tracking-[0.2em] text-[#2f2f2e] transition hover:border-[#004be3]/30 hover:text-[#004be3]"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f9f6f5] px-6 py-3.5 text-sm font-bold uppercase tracking-[0.2em] text-[#2f2f2e] transition hover:border-[#004be3]/30 hover:text-[#004be3]"
               >
                 Tài khoản
               </Link>
             ) : (
               <Link
                 to="/register"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-6 py-3.5 text-sm font-bold uppercase tracking-[0.2em] text-[#2f2f2e] transition hover:border-[#004be3]/30 hover:text-[#004be3]"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f9f6f5] px-6 py-3.5 text-sm font-bold uppercase tracking-[0.2em] text-[#2f2f2e] transition hover:border-[#004be3]/30 hover:text-[#004be3]"
               >
                 Tham gia ngay
               </Link>
@@ -52,16 +52,10 @@ export default function LookbookSection({ categories, isAuthenticated }) {
         </motion.div>
 
         <motion.div {...scrollSlideRight} className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {categories.map((item, index) => (
+          {categories.map((item) => (
             <article
               key={item.label}
-              className={`relative min-h-72 overflow-hidden rounded-[1.65rem] p-4 shadow-[0_20px_50px_rgba(47,47,46,0.12)] lg:min-h-84 lg:p-4.5 ${
-                index === 0
-                  ? "bg-[#16161a]"
-                  : index === 1
-                    ? "bg-[#004be3]"
-                    : "bg-[#d97706]"
-              }`}
+              className={`relative min-h-72 overflow-hidden rounded-[1.65rem] p-4 shadow-[0_20px_50px_rgba(47,47,46,0.12)] lg:min-h-84 lg:p-4.5 ${item.color}`}
             >
               {item.image && (
                 <img
@@ -73,11 +67,11 @@ export default function LookbookSection({ categories, isAuthenticated }) {
               <div className="relative flex h-full flex-col justify-between text-white">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/65 lg:text-[11px] lg:tracking-[0.26em]">
-                    {index === 0 ? "Feature story" : "Category focus"}
+                    {item.type}
                   </p>
                   <h3
                     className={`mt-3 font-extrabold uppercase tracking-[-0.05em] ${
-                      index === 3
+                      item.smallText
                         ? "text-[1.82rem] leading-[0.9] lg:text-[1.95rem]"
                         : "text-[2.05rem] leading-[0.92] lg:text-[2.15rem]"
                     }`}
@@ -88,11 +82,7 @@ export default function LookbookSection({ categories, isAuthenticated }) {
 
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/75 lg:text-xs lg:tracking-[0.22em]">
-                    {index === 0
-                      ? "34 items available"
-                      : index === 1
-                        ? "Limited release"
-                        : "New season"}
+                    {item.sublabel}
                   </p>
                   <div className="mt-3 h-px w-full bg-white/20" />
                 </div>

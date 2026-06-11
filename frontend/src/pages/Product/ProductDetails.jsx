@@ -5,10 +5,7 @@ import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore.js";
 import { useCartStore } from "../../store/cartStore.js";
 import { useWishlistStore } from "../../store/wishlistStore.js";
-
-function formatVnd(price) {
-  return new Intl.NumberFormat("vi-VN").format(price);
-}
+import { formatCurrency } from "../../utils/formatCurrency.js";
 
 export default function ProductDetails({
   title,
@@ -95,7 +92,7 @@ export default function ProductDetails({
       );
 
       if (result.success) {
-        setSuccessMessage("Đã thêm vào giỏ hàng thành công!");
+        setSuccessMessage("Đã thêm vào giỏ hàng");
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
         setError(result.message || "Có lỗi xảy ra khi thêm vào giỏ hàng");
@@ -114,15 +111,15 @@ export default function ProductDetails({
           {title}
         </h1>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-col leading-tight">
             {compareAtPrice > price && (
-              <span className="price line-through text-[#94a3b8]">
-                {formatVnd(compareAtPrice)} VND
+              <span className="price line-through text-[#5c5b5b]/60">
+                {formatCurrency(compareAtPrice)}
               </span>
             )}
             <span className="price text-xl text-[#004be3]">
-              {formatVnd(price)} VND
+              {formatCurrency(price)}
             </span>
           </div>
           {selectedStock !== null && (
@@ -143,7 +140,7 @@ export default function ProductDetails({
 
       <div className="space-y-3">
         <label className="block text-xs font-bold uppercase tracking-widest text-[#5c5b5b]">
-          Color: {selectedColor.name}
+          Màu sắc: {selectedColor.name}
         </label>
         <div className="flex gap-4">
           {colors.map((color) => {
@@ -155,13 +152,13 @@ export default function ProductDetails({
                 className={`relative h-10 w-10 rounded-full transition ${
                   selectedColor.name === color.name
                     ? "ring-2 ring-offset-2 ring-[#004be3]"
-                    : ""
-                } ${!available ? "opacity-40 cursor-not-allowed" : "hover:opacity-90"}`}
+                    : "hover:ring-1 hover:ring-offset-1 hover:ring-[#004be3]/40"
+                } ${!available ? "cursor-not-allowed opacity-40" : "hover:opacity-90"}`}
                 style={{ backgroundColor: color.hex }}
                 title={available ? color.name : `${color.name} — Hết hàng`}
               >
                 {!available && (
-                  <span className="absolute inset-0 flex items-center justify-center rounded-full overflow-hidden">
+                  <span className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-full">
                     <span className="block h-px w-10 rotate-45 bg-white/80" />
                   </span>
                 )}
@@ -174,10 +171,10 @@ export default function ProductDetails({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <label className="block text-xs font-bold uppercase tracking-widest text-[#5c5b5b]">
-            Select Size
+            Chọn size
           </label>
           <button className="text-xs font-bold uppercase tracking-widest text-[#004be3] underline">
-            Size Guide
+            Hướng dẫn chọn size
           </button>
         </div>
 
@@ -195,7 +192,7 @@ export default function ProductDetails({
                     ? "bg-[#004be3] text-white"
                     : available
                       ? "bg-[#e4e2e1] text-[#2f2f2e] hover:bg-[#dfdcdc]"
-                      : "bg-[#e4e2e1] text-[#94a3b8] line-through cursor-not-allowed"
+                      : "cursor-not-allowed bg-[#e4e2e1] text-[#5c5b5b]/50 line-through"
                 }`}
               >
                 {size}
@@ -209,14 +206,14 @@ export default function ProductDetails({
         <button
           onClick={handleAddToCart}
           disabled={isLoading || isOutOfStock}
-          className="w-full rounded-full bg-linear-to-r from-[#004be3] to-[#819bff] py-4 font-heading text-lg font-bold uppercase tracking-wide text-white transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full rounded-full bg-linear-to-r from-[#004be3] to-[#819bff] py-4 font-heading text-lg font-bold uppercase tracking-wide text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? "Đang thêm..." : isOutOfStock ? "Hết hàng" : "Add to Pulse"}
         </button>
 
         <button
           onClick={handleWishlist}
-          className={`w-full flex items-center justify-center gap-3 rounded-full py-4 font-heading text-base font-bold uppercase tracking-wide transition ${
+          className={`flex w-full items-center justify-center gap-3 rounded-full py-4 font-heading text-base font-bold uppercase tracking-wide transition ${
             wishlisted
               ? "bg-red-50 text-red-500 hover:bg-red-100"
               : "bg-[#dfdcdc] text-[#2f2f2e] hover:bg-[#d4d1d1]"
@@ -233,7 +230,7 @@ export default function ProductDetails({
         )}
 
         {successMessage && (
-          <div className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
+          <div className="rounded-lg bg-[#004be3]/10 p-3 text-sm text-[#004be3]">
             {successMessage}
           </div>
         )}
@@ -244,13 +241,13 @@ export default function ProductDetails({
           <div className="flex items-center gap-3">
             <Truck className="h-6 w-6 text-[#2f2f2e]" />
             <span className="text-xs font-bold uppercase tracking-wider text-[#2f2f2e]">
-              Express Delivery
+              Giao nhanh toàn quốc
             </span>
           </div>
           <div className="flex items-center gap-3">
             <ShieldCheck className="h-6 w-6 text-[#2f2f2e]" />
             <span className="text-xs font-bold uppercase tracking-wider text-[#2f2f2e]">
-              Auth Guaranteed
+              Cam kết chính hãng
             </span>
           </div>
         </div>

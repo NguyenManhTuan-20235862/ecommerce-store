@@ -29,8 +29,14 @@ export const buildProductFilter = async (query) => {
   const filter = { isActive: true };
 
   if (category) {
-    const cat = await Category.findOne({ slug: category });
-    if (cat) filter.category = cat._id;
+    const slugs = category.split(",").map((s) => s.trim()).filter(Boolean);
+    if (slugs.length === 1) {
+      const cat = await Category.findOne({ slug: slugs[0] });
+      if (cat) filter.category = cat._id;
+    } else {
+      const cats = await Category.find({ slug: { $in: slugs } });
+      if (cats.length > 0) filter.category = { $in: cats.map((c) => c._id) };
+    }
   }
 
   if (minPrice || maxPrice) {

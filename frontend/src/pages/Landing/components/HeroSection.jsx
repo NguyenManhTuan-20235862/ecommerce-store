@@ -85,7 +85,7 @@ export default function HeroSection({
           />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_15%,rgba(0,75,227,0.35),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.16))]" />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))]" />
-          <div className="absolute left-6 top-6 rounded-full bg-[#00fe66] px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-[#004616] shadow-[0_12px_24px_rgba(0,0,0,0.1)]">
+          <div className="absolute left-6 top-6 rounded-full bg-[#004be3] px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-white shadow-[0_12px_24px_rgba(0,75,227,0.3)]">
             Drop 04
           </div>
           <div className="absolute right-6 top-6 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/80 backdrop-blur">
@@ -95,7 +95,7 @@ export default function HeroSection({
           <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 lg:p-8">
             <div className="overflow-hidden rounded-[1.75rem] border border-white/15 bg-black/20 p-5 backdrop-blur-md sm:p-6">
               <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr]">
-                <div className="rounded-3xl bg-[linear-gradient(135deg,rgba(17,24,39,0.96)_0%,rgba(31,41,55,0.94)_55%,rgba(87,39,174,0.92)_100%)] p-4 sm:p-5 shadow-[0_25px_50px_rgba(0,0,0,0.24)]">
+                <div className="rounded-3xl bg-[linear-gradient(135deg,rgba(17,24,39,0.96)_0%,rgba(31,41,55,0.94)_55%,rgba(0,40,140,0.90)_100%)] p-4 sm:p-5 shadow-[0_25px_50px_rgba(0,0,0,0.24)]">
                   <p className="text-[11px] font-black uppercase tracking-[0.24em] text-white/70">
                     Featured story
                   </p>

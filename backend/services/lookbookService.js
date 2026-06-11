@@ -12,11 +12,17 @@ const deleteImageFile = (imageId) => {
   fs.unlink(filePath, () => {});
 };
 
+const PRODUCT_FIELDS = "name slug price compareAtPrice images totalStock";
+
 export const getStories = () =>
-  Lookbook.find({ isActive: true }).sort({ order: 1 });
+  Lookbook.find({ isActive: true })
+    .sort({ order: 1 })
+    .populate("products", PRODUCT_FIELDS);
 
 export const getAllStories = () =>
-  Lookbook.find().sort({ order: 1 });
+  Lookbook.find()
+    .sort({ order: 1 })
+    .populate("products", PRODUCT_FIELDS);
 
 export const createStory = (data) => Lookbook.create(data);
 

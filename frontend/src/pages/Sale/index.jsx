@@ -8,7 +8,7 @@ import FaqNewsletterSection from "./components/FaqNewsletterSection";
 
 export default function Sale() {
   return (
-    <div className="bg-[#f9f6f5] min-h-screen text-[#0f172a] font-sans pb-20 pt-4 flex flex-col">
+    <div className="bg-[#f9f6f5] min-h-screen text-[#2f2f2e] font-sans pb-20 pt-4 flex flex-col">
       <HeroSection />
       <PerksSection />
       <CouponsSection />

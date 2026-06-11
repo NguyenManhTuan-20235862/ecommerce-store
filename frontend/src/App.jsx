@@ -27,6 +27,7 @@ import NewDrops from "./pages/NewDrops";
 import Product from "./pages/Product";
 import Sale from "./pages/Sale";
 import Shop from "./pages/Shop";
+import SubmenuLayoutShell from "./pages/SubmenuShared/SubmenuLayoutShell";
 
 // Wishlist Page
 import Wishlist from "./pages/Wishlist";
@@ -59,7 +60,7 @@ function App() {
   return (
     <BrowserRouter>
       {/* Cấu hình Toast Component (Sonner) */}
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-right" richColors duration={2000} />
 
       <Routes>
         {/* Auth Pages đi một mình (Không Header Footer) */}
@@ -94,6 +95,7 @@ function App() {
           <Route path="/landing" element={<Landing />} />
           <Route path="/home" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
+          <Route path="/shop/:categorySlug" element={<SubmenuLayoutShell />} />
           <Route path="/new-drops" element={<NewDrops />} />
           <Route path="/lookbook" element={<Lookbook />} />
           <Route path="/sale" element={<Sale />} />

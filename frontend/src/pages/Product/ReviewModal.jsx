@@ -61,13 +61,13 @@ export default function ReviewModal({ productId, onClose, onSuccess }) {
         {...modalContent}
         className="w-full max-w-md rounded-2xl bg-white shadow-xl"
       >
-        <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-black/10 px-6 py-4">
           <h2 className="font-heading text-base font-bold uppercase tracking-widest text-[#2f2f2e]">
             POST YOUR FIT
           </h2>
           <button
             onClick={onClose}
-            className="rounded-md p-1.5 text-neutral-400 transition hover:bg-neutral-100"
+            className="rounded-md p-1.5 text-[#5c5b5b] transition hover:bg-[#f3f0ef]"
           >
             <X size={18} />
           </button>
@@ -113,7 +113,7 @@ export default function ReviewModal({ productId, onClose, onSuccess }) {
               {...register("comment")}
               rows={4}
               placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-[#004be3] focus:ring-2 focus:ring-blue-50 resize-none"
+              className="w-full resize-none rounded-lg border border-black/15 px-3 py-2.5 text-sm text-[#2f2f2e] outline-none transition focus:border-[#004be3] focus:ring-2 focus:ring-[#004be3]/8"
             />
             {errors.comment && (
               <p className="mt-1 text-xs text-red-500">{errors.comment.message}</p>
@@ -124,7 +124,7 @@ export default function ReviewModal({ productId, onClose, onSuccess }) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
+              className="rounded-lg border border-black/10 px-4 py-2 text-sm font-medium text-[#2f2f2e] transition hover:bg-[#f3f0ef]"
             >
               Hủy
             </button>

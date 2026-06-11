@@ -1,4 +1,6 @@
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { fadeUpItem, scrollSlideLeft, staggerContainer } from "../../../animations/variants";
 import { saleConfigService } from "../../../services/saleConfig.service";
 import { formatCurrency } from "../../../utils/formatCurrency";
 
@@ -14,7 +16,8 @@ export default function TierSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    saleConfigService.getTiers()
+    saleConfigService
+      .getTiers()
       .then((res) => {
         const data = res.data.data ?? [];
         const sorted = [...data].sort((a, b) => a.order - b.order);
@@ -28,7 +31,10 @@ export default function TierSection() {
     <section className="mx-auto w-full max-w-[1440px] px-4 pb-16 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Dark Card */}
-        <div className="bg-[#0f172a] rounded-3xl p-8 sm:p-12 text-white flex flex-col relative overflow-hidden h-full min-h-[300px]">
+        <motion.div
+          {...scrollSlideLeft}
+          className="bg-[#2f2f2e] rounded-3xl p-8 sm:p-12 text-white flex flex-col relative overflow-hidden h-full min-h-[300px]"
+        >
           <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-[#004be3] rounded-full opacity-50 blur-3xl" />
           <div className="relative z-10 flex flex-col h-full">
             <div className="inline-block border border-white/20 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-white mb-8 rounded-full self-start">
@@ -41,37 +47,44 @@ export default function TierSection() {
               Đơn càng lớn — % giảm càng cao. Tier tính theo tổng giỏ hàng.
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Tiers List */}
-        <div className="lg:col-span-2 flex flex-col gap-3">
+        <motion.div
+          variants={staggerContainer}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: "-60px" }}
+          className="lg:col-span-2 flex flex-col gap-3"
+        >
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-24 rounded-3xl bg-neutral-100 animate-pulse" />
+                <div key={i} className="h-24 rounded-3xl bg-[#e4e2e1] animate-pulse" />
               ))
             : tiers.map((t, i) => (
-                <div
+                <motion.div
                   key={t._id ?? i}
-                  className="flex items-center justify-between p-6 sm:p-8 rounded-3xl border border-black/10 bg-white"
+                  variants={fadeUpItem}
+                  className="flex items-center justify-between p-6 sm:p-8 rounded-3xl bg-[#f9f6f5]"
                 >
                   <div className="flex items-center gap-6 sm:gap-12 w-full">
                     <div className="flex flex-col shrink-0">
-                      <span className="text-[9px] uppercase tracking-widest text-[#94a3b8] font-bold mb-1">
+                      <span className="text-[9px] uppercase tracking-widest text-[#5c5b5b] font-bold mb-1">
                         {t.label || `Tier ${i + 1}`} — từ
                       </span>
-                      <span className="text-xl sm:text-2xl font-extrabold text-[#0f172a]">
+                      <span className="text-xl sm:text-2xl font-extrabold text-[#2f2f2e]">
                         {formatCurrency(t.threshold)}
                       </span>
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-sm sm:text-base text-[#0f172a]">
+                      <span className="font-bold text-sm sm:text-base text-[#2f2f2e]">
                         {t.discountPercent > 0 ? `Giảm ${t.discountPercent}%` : "Không giảm"}
                       </span>
                       {t.perks?.length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
                           {t.perks.map((perk, pi) => (
-                            <span key={pi} className="flex items-center gap-1 text-xs text-[#94a3b8]">
-                              <span className="h-1 w-1 shrink-0 rounded-full bg-[#94a3b8]" />
+                            <span key={pi} className="flex items-center gap-1 text-xs text-[#5c5b5b]">
+                              <span className="h-1 w-1 shrink-0 rounded-full bg-[#5c5b5b]" />
                               {perk}
                             </span>
                           ))}
@@ -81,13 +94,13 @@ export default function TierSection() {
                   </div>
 
                   {t.discountPercent > 0 && (
-                    <div className="px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest border hidden sm:flex whitespace-nowrap border-black/20 text-[#94a3b8] shrink-0">
+                    <div className="px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest border hidden sm:flex whitespace-nowrap border-black/20 text-[#5c5b5b] shrink-0">
                       -{t.discountPercent}%
                     </div>
                   )}
-                </div>
+                </motion.div>
               ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

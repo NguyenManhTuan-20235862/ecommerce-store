@@ -35,6 +35,12 @@ const lookbookSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    products: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   { timestamps: true },
 );

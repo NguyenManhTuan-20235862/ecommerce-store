@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { reviewService } from "../../services/review.service";
@@ -5,6 +6,11 @@ import { productService } from "../../services/product.service";
 import { useAuthStore } from "../../store/authStore";
 import { getImageUrl } from "../../utils/getImageUrl";
 import { resolveColorHex } from "../../utils/colorMap";
+import {
+  scrollFadeUp,
+  scrollSlideLeft,
+  scrollSlideRight,
+} from "../../animations/variants";
 import ProductDetails from "./ProductDetails";
 import ProductGallery from "./ProductGallery";
 import ProductInfo from "./ProductInfo";
@@ -23,6 +29,54 @@ function mapReviewToDisplay(review) {
     rating: review.rating,
     text: review.comment || null,
   };
+}
+
+function ProductSkeleton() {
+  return (
+    <section className="w-full bg-[#f9f6f5]">
+      <div className="mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-10">
+        <div className="grid gap-12 lg:grid-cols-2">
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-3">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-24 w-20 animate-pulse rounded-2xl bg-[#e4e2e1]"
+                />
+              ))}
+            </div>
+            <div className="min-h-[500px] flex-1 animate-pulse rounded-2xl bg-[#e4e2e1]" />
+          </div>
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="h-10 w-3/4 animate-pulse rounded-lg bg-[#e4e2e1]" />
+              <div className="h-6 w-1/3 animate-pulse rounded-lg bg-[#e4e2e1]" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-full animate-pulse rounded bg-[#e4e2e1]" />
+              <div className="h-4 w-5/6 animate-pulse rounded bg-[#e4e2e1]" />
+              <div className="h-4 w-4/6 animate-pulse rounded bg-[#e4e2e1]" />
+            </div>
+            <div className="flex gap-3">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-10 w-10 animate-pulse rounded-full bg-[#e4e2e1]"
+                />
+              ))}
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-12 animate-pulse rounded-lg bg-[#e4e2e1]" />
+              ))}
+            </div>
+            <div className="h-14 animate-pulse rounded-full bg-[#e4e2e1]" />
+            <div className="h-14 animate-pulse rounded-full bg-[#e4e2e1]" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export default function Product() {
@@ -63,79 +117,90 @@ export default function Product() {
   }, [product?._id]);
 
   if (isLoading) {
-    return (
-      <section className="mx-auto w-full max-w-7xl px-4 py-20 text-center">
-        <p className="text-xl font-bold uppercase tracking-widest text-[#94a3b8]">
-          Đang tải dữ liệu...
-        </p>
-      </section>
-    );
+    return <ProductSkeleton />;
   }
 
   if (!product) {
     return (
       <section className="mx-auto w-full max-w-7xl px-4 py-32 text-center">
-        <h1 className="text-4xl font-extrabold uppercase tracking-[-0.05em] text-[#0f172a]">
+        <h1 className="text-4xl font-extrabold uppercase tracking-[-0.05em] text-[#2f2f2e]">
           Sản phẩm không tìm thấy
         </h1>
-        <p className="mt-4 text-sm font-bold uppercase tracking-widest text-[#94a3b8]">
+        <p className="mt-4 text-sm font-bold uppercase tracking-widest text-[#5c5b5b]">
           URL không hợp lệ hoặc sản phẩm đã bị xóa khỏi kho ({productId})
         </p>
       </section>
     );
   }
 
-  // Parse variants từ Backend
   const rawSizes = product.variants?.map((v) => v.size).filter(Boolean) || [];
   const sizes = rawSizes.length > 0 ? [...new Set(rawSizes)] : ["M"];
 
   const rawColors = product.variants?.map((v) => v.color).filter(Boolean) || [];
   const uniqueColorNames = [...new Set(rawColors)];
 
-  const colors = uniqueColorNames.length > 0
-    ? uniqueColorNames.map((c) => {
-        // Ưu tiên: (1) tra COLOR_MAP theo tên, (2) colorHex lưu trong DB nếu không phải default, (3) fallback pattern
-        const stored = product.variants.find((v) => v.color === c)?.colorHex;
-        const storedValid = stored && stored !== "" && stored !== "#000000";
-        return { name: c, hex: resolveColorHex(c) || (storedValid ? stored : null) || "#64748b" };
-      })
-    : [{ name: "Default", hex: "#0f172a" }];
+  const colors =
+    uniqueColorNames.length > 0
+      ? uniqueColorNames.map((c) => {
+          const stored = product.variants.find((v) => v.color === c)?.colorHex;
+          const storedValid = stored && stored !== "" && stored !== "#000000";
+          return {
+            name: c,
+            hex: resolveColorHex(c) || (storedValid ? stored : null) || "#64748b",
+          };
+        })
+      : [{ name: "Default", hex: "#0f172a" }];
 
   return (
     <section className="w-full bg-[#f9f6f5]">
       <div className="mx-auto w-full max-w-7xl space-y-24 px-4 py-20 sm:px-6 lg:px-10">
         <div className="grid gap-12 lg:grid-cols-2">
-          <ProductGallery
-            images={product.images?.length > 0 ? product.images.map(getImageUrl) : ["https://placehold.co/600x600/e4e2e1/2f2f2e?text=No+Image"]}
-            badge={product.isFeatured ? "HOT" : null}
-          />
-          <ProductDetails
-            productId={product._id}
-            productSlug={product.slug}
-            productImages={product.images}
-            title={product.name}
-            price={product.price}
-            compareAtPrice={product.compareAtPrice || 0}
-            description={product.description}
-            colors={colors}
-            sizes={sizes}
-            defaultSize={sizes[0]}
-            variants={product.variants || []}
-          />
+          <motion.div {...scrollSlideLeft}>
+            <ProductGallery
+              images={
+                product.images?.length > 0
+                  ? product.images.map(getImageUrl)
+                  : [
+                      "https://placehold.co/600x600/e4e2e1/2f2f2e?text=No+Image",
+                    ]
+              }
+              badge={product.isFeatured ? "HOT" : null}
+              productName={product.name}
+            />
+          </motion.div>
+          <motion.div {...scrollSlideRight}>
+            <ProductDetails
+              productId={product._id}
+              productSlug={product.slug}
+              productImages={product.images}
+              title={product.name}
+              price={product.price}
+              compareAtPrice={product.compareAtPrice || 0}
+              description={product.description}
+              colors={colors}
+              sizes={sizes}
+              defaultSize={sizes[0]}
+              variants={product.variants || []}
+            />
+          </motion.div>
         </div>
 
-        <ProductInfo
-          material={product.material}
-          careInstructions={product.careInstructions}
-          sizeChart={product.sizeChart}
-        />
+        <motion.div {...scrollFadeUp}>
+          <ProductInfo
+            material={product.material}
+            careInstructions={product.careInstructions}
+            sizeChart={product.sizeChart}
+          />
+        </motion.div>
 
-        <VibeCheckReviews
-          reviews={reviews}
-          productId={product._id}
-          isAuthenticated={isAuthenticated}
-          onReviewSubmitted={() => fetchReviews(product._id)}
-        />
+        <motion.div {...scrollFadeUp}>
+          <VibeCheckReviews
+            reviews={reviews}
+            productId={product._id}
+            isAuthenticated={isAuthenticated}
+            onReviewSubmitted={() => fetchReviews(product._id)}
+          />
+        </motion.div>
       </div>
     </section>
   );
