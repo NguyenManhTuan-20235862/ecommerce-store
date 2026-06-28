@@ -52,6 +52,6 @@ ecommerce-store/
 ## Lưu ý kỹ thuật
 
 - `frontend/src/routes/index.jsx` dùng `createBrowserRouter` nhưng `App.jsx` đang dùng `<BrowserRouter>` — file `routes/index.jsx` không có hiệu lực, có thể xóa hoặc migrate sang.
-- `outOfStock` trong Admin Dashboard hiện hardcoded = 0, cần tính từ `variants` thực tế.
+- `outOfStock` trong Admin Dashboard tính từ `variants` thực tế — đã implement ở `orderService.getDashboardStats()`.
 - Refresh token lưu trong MongoDB Session nhưng chưa có endpoint `/auth/refresh` để rotate.
 - `cartStore` tự fetch cart sau login/hydration — cart badge trên Header đọc từ `cartStore.items`.

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Search, User, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, Search, Unlock, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { drawerSlideIn, fadeInItem, fadeUpItem, modalOverlay, staggerContainer } from "../../../animations/variants";
@@ -23,6 +23,7 @@ export default function AdminCustomersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [toggling, setToggling] = useState(false);
 
   // Debounce search + reset page khi query đổi
   useEffect(() => {
@@ -57,6 +58,22 @@ export default function AdminCustomersPage() {
     fetchUsers();
     return () => { cancelled = true; };
   }, [page, debouncedSearch]);
+
+  const handleToggleStatus = async (user) => {
+    if (toggling) return;
+    setToggling(true);
+    try {
+      const res = await userService.toggleUserStatus(user._id);
+      const updated = res.data.data.user;
+      setUsers((prev) => prev.map((u) => u._id === updated._id ? { ...u, isActive: updated.isActive } : u));
+      setSelectedUser((prev) => prev ? { ...prev, isActive: updated.isActive } : prev);
+      toast.success(res.data.message);
+    } catch {
+      toast.error("Không thể thay đổi trạng thái tài khoản");
+    } finally {
+      setToggling(false);
+    }
+  };
 
   return (
     <div>
@@ -110,6 +127,9 @@ export default function AdminCustomersPage() {
                 <th className="px-4 py-3 text-center font-medium text-neutral-500">
                   Vai trò
                 </th>
+                <th className="px-4 py-3 text-center font-medium text-neutral-500">
+                  Trạng thái
+                </th>
                 <th className="px-4 py-3 font-medium text-neutral-500">
                   Ngày tham gia
                 </th>
@@ -127,7 +147,7 @@ export default function AdminCustomersPage() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-12 text-center text-neutral-400"
                   >
                     Đang tải...
@@ -136,7 +156,7 @@ export default function AdminCustomersPage() {
               ) : users.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-12 text-center text-neutral-400"
                   >
                     {debouncedSearch
@@ -197,6 +217,17 @@ export default function AdminCustomersPage() {
                         }`}
                       >
                         {user.role === "admin" ? "Admin" : "Khách hàng"}
+                      </span>
+                    </td>
+
+                    {/* Trạng thái */}
+                    <td className="px-4 py-3 text-center">
+                      <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        user.isActive !== false
+                          ? "bg-green-50 text-green-600"
+                          : "bg-red-50 text-red-500"
+                      }`}>
+                        {user.isActive !== false ? "Hoạt động" : "Đã khóa"}
                       </span>
                     </td>
 
@@ -343,7 +374,37 @@ export default function AdminCustomersPage() {
                     {formatDate(selectedUser.createdAt)}
                   </span>
                 </div>
+                <div className="flex items-center justify-between pb-3">
+                  <span className="text-neutral-400">Trạng thái</span>
+                  <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    selectedUser.isActive !== false
+                      ? "bg-green-50 text-green-600"
+                      : "bg-red-50 text-red-500"
+                  }`}>
+                    {selectedUser.isActive !== false ? "Hoạt động" : "Đã khóa"}
+                  </span>
+                </div>
               </div>
+
+              {/* Nút khóa/mở tài khoản — ẩn với admin */}
+              {selectedUser.role !== "admin" && (
+                <button
+                  type="button"
+                  onClick={() => handleToggleStatus(selectedUser)}
+                  disabled={toggling}
+                  className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition disabled:opacity-50 ${
+                    selectedUser.isActive !== false
+                      ? "bg-red-50 text-red-600 hover:bg-red-100"
+                      : "bg-green-50 text-green-600 hover:bg-green-100"
+                  }`}
+                >
+                  {selectedUser.isActive !== false ? (
+                    <><Lock size={15} /> Khóa tài khoản</>
+                  ) : (
+                    <><Unlock size={15} /> Mở tài khoản</>
+                  )}
+                </button>
+              )}
             </div>
           </motion.div>
         </motion.div>

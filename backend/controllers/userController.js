@@ -209,6 +209,27 @@ export const uploadAvatar = async (req, res) => {
   }
 };
 
+// PATCH /api/users/:id/status — Khóa/mở tài khoản (Admin)
+export const toggleUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select("-hashedPassword");
+    if (!user) return res.status(404).json({ message: "Không tìm thấy tài khoản" });
+    if (user.role === "admin") return res.status(400).json({ message: "Không thể khóa tài khoản Admin" });
+
+    user.isActive = !user.isActive;
+    await user.save();
+
+    return res.status(200).json({
+      message: user.isActive ? "Đã mở khóa tài khoản" : "Đã khóa tài khoản",
+      data: { user },
+    });
+  } catch (error) {
+    console.error("Lỗi khi toggle trạng thái user:", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
 // PUT /api/users/me/password — Đổi mật khẩu
 export const updatePassword = async (req, res) => {
   try {

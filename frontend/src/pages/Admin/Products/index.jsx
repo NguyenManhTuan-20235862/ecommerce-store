@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
+  Download,
   ImageOff,
   Pencil,
   Plus,
@@ -9,8 +10,8 @@ import {
   Star,
   Trash2,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { fadeInItem, fadeUpItem, staggerContainer } from "../../../animations/variants";
 import { productService } from "../../../services/product.service";
@@ -23,6 +24,9 @@ const formatVND = (value) =>
 
 export default function AdminProductsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const pageFromUrl = Number(searchParams.get("page")) || 1;
+  const prevSearch = useRef("");
   const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -32,6 +36,7 @@ export default function AdminProductsPage() {
   });
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   const fetchProducts = useCallback(async (page = 1, searchQuery = "") => {
     setLoading(true);
@@ -52,16 +57,37 @@ export default function AdminProductsPage() {
   }, []);
 
   useEffect(() => {
-    fetchProducts(1, search);
+    fetchProducts(pageFromUrl, "");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Tìm kiếm với debounce thủ công
+  // Tìm kiếm với debounce — chỉ fetch khi search thực sự thay đổi
   useEffect(() => {
+    if (search === prevSearch.current) return;
+    prevSearch.current = search;
     const timer = setTimeout(() => {
       fetchProducts(1, search);
     }, 400);
     return () => clearTimeout(timer);
   }, [search, fetchProducts]);
+
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const res = await productService.exportToExcel();
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `san-pham-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Đã xuất file Excel");
+    } catch {
+      toast.error("Không thể xuất Excel");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Bạn chắc chắn muốn xóa sản phẩm "${name}"?`)) return;
@@ -97,13 +123,24 @@ export default function AdminProductsPage() {
             {pagination.total} sản phẩm trong hệ thống
           </p>
         </div>
-        <Link
-          to="/admin/products/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800"
-        >
-          <Plus size={16} />
-          Thêm sản phẩm
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting}
+            className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50"
+          >
+            <Download size={16} />
+            {exporting ? "Đang xuất..." : "Xuất Excel"}
+          </button>
+          <Link
+            to="/admin/products/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800"
+          >
+            <Plus size={16} />
+            Thêm sản phẩm
+          </Link>
+        </div>
       </motion.div>
 
       {/* Search Bar */}
@@ -270,7 +307,7 @@ export default function AdminProductsPage() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() =>
-                              navigate(`/admin/products/${product._id}/edit`)
+                              navigate(`/admin/products/${product._id}/edit`, { state: { fromPage: pagination.page } })
                             }
                             className="rounded-md p-2 text-neutral-400 transition hover:bg-neutral-100 hover:text-blue-600"
                             title="Chỉnh sửa"

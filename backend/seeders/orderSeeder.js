@@ -3,76 +3,275 @@ import dotenv from "dotenv";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
-import Coupon from "../models/Coupon.js";
-import Combo from "../models/Combo.js";
 
 dotenv.config();
 
+// ── Coupon map (đồng bộ với DB) ───────────────────────────────────────────────
+const COUPON_MAP = {
+  WELCOME10:    { type: "percent", value: 10,     minOrder: 0        },
+  FREESHIP:     { type: "fixed",   value: 30000,  minOrder: 200000   },
+  URBAN20:      { type: "percent", value: 20,     minOrder: 500000   },
+  SUMMER15:     { type: "percent", value: 15,     minOrder: 400000   },
+  VIPONLY100:   { type: "fixed",   value: 100000, minOrder: 800000   },
+  FLASH30:      { type: "percent", value: 30,     minOrder: 1000000  },
+  NEWDROP:      { type: "fixed",   value: 75000,  minOrder: 0        },
+  BACK2SCHOOL:  { type: "percent", value: 12,     minOrder: 350000   },
+  BIGBUY25:     { type: "percent", value: 25,     minOrder: 1500000  },
+  ENDSEASON:    { type: "fixed",   value: 200000, minOrder: 1200000  },
+};
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-let _counter = 1000;
+let _seq = 1000;
 const nextOrderNumber = () =>
-  `VU${Date.now().toString().slice(-6)}${String(_counter++).padStart(3, "0")}`;
+  `VU${Date.now().toString().slice(-6)}${String(_seq++).padStart(3, "0")}`;
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const PAYMENT_METHODS = ["COD", "VNPAY", "MOMO"];
 
-const makeItem = (product, qty = 1, overridePrice = null) => {
-  const variant = product.variants?.[Math.floor(Math.random() * (product.variants.length || 1))];
+const randDate = (month, dayMin = 1, dayMax = 25) => {
+  const day  = dayMin + Math.floor(Math.random() * (dayMax - dayMin + 1));
+  const hour = Math.floor(Math.random() * 22) + 1;
+  const min  = Math.floor(Math.random() * 60);
+  return new Date(2026, month - 1, day, hour, min, 0);
+};
+
+const pickProducts = (products, count = 1) => {
+  const shuffled = [...products].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+};
+
+const makeItem = (product, qty = 1) => {
+  const variant = product.variants?.[Math.floor(Math.random() * Math.max(product.variants.length, 1))];
   return {
-    productId: product._id,
-    productName: product.name,
-    productImage: product.images?.[0] ?? "",
-    quantity: qty,
-    price: overridePrice ?? product.price,
-    selectedSize: variant?.size ?? "M",
+    productId:     product._id,
+    productName:   product.name,
+    productImage:  product.images?.[0] ?? "",
+    quantity:      qty,
+    price:         product.price,
+    selectedSize:  variant?.size  ?? "M",
     selectedColor: variant?.color ?? "Đen",
   };
 };
 
-const applyDiscount = (total, coupon) => {
-  if (!coupon) return 0;
-  if (coupon.discountType === "percent")
-    return Math.round((total * coupon.discountValue) / 100);
-  return Math.min(coupon.discountValue, total);
-};
-
-const buildOrder = ({ customer, items, coupon = null, status, paymentMethod, tierDiscount = 0, tierLabel = "" }) => {
+const buildOrder = ({ customer, items, status, paymentMethod, couponCode = null, createdAt }) => {
   const totalAmount = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shippingFee = totalAmount >= 1000000 ? 0 : 30000;
-  const discountAmount = applyDiscount(totalAmount, coupon);
-  const tierDiscountAmount = tierDiscount > 0 ? Math.round(totalAmount * tierDiscount / 100) : 0;
-  const finalAmount = Math.max(0, totalAmount + shippingFee - discountAmount - tierDiscountAmount);
-  const addr = customer.addresses?.[0];
+  const shippingFee = totalAmount >= 500000 ? 0 : 30000;
+
+  // Tính discount từ coupon — chỉ áp dụng nếu đủ điều kiện minOrder
+  let discountAmount = 0;
+  let appliedCoupon  = null;
+  if (couponCode && COUPON_MAP[couponCode]) {
+    const c = COUPON_MAP[couponCode];
+    if (totalAmount >= c.minOrder) {
+      appliedCoupon  = couponCode;
+      discountAmount = c.type === "percent"
+        ? Math.floor(totalAmount * c.value / 100)
+        : Math.min(c.value, totalAmount);
+    }
+  }
+
+  const finalAmount = Math.max(0, totalAmount + shippingFee - discountAmount);
+  const addr        = customer.addresses?.[0];
 
   return {
     orderNumber: nextOrderNumber(),
-    userId: customer._id,
+    userId:      customer._id,
     status,
     items,
     totalAmount,
     shippingFee,
-    discountAmount: discountAmount + tierDiscountAmount,
+    discountAmount,
     finalAmount,
     paymentMethod: paymentMethod ?? pick(PAYMENT_METHODS),
     shippingAddress: {
-      receiverName: customer.displayName,
+      receiverName:  customer.displayName,
       receiverPhone: customer.phone ?? "0900000000",
       receiverEmail: customer.email,
-      province: addr?.province ?? "Hà Nội",
-      district: addr?.district ?? "Hoàn Kiếm",
-      ward: addr?.ward ?? "Hàng Bài",
-      detail: addr?.detail ?? "1 Đinh Tiên Hoàng",
+      province:      addr?.province ?? "Hà Nội",
+      district:      addr?.district ?? "Hoàn Kiếm",
+      ward:          addr?.ward     ?? "Hàng Bài",
+      detail:        addr?.detail   ?? "1 Đinh Tiên Hoàng",
     },
-    couponCode: coupon?.code ?? null,
-    tierDiscount,
-    tierLabel,
+    couponCode:   appliedCoupon,
+    tierDiscount: 0,
+    tierLabel:    "",
+    createdAt,
+    updatedAt: createdAt,
   };
 };
 
-// Lấy product theo slug (fallback sang sản phẩm ngẫu nhiên nếu không tìm thấy)
-const bySlug = (products, slug) =>
-  products.find((p) => p.slug === slug) ?? products[Math.floor(Math.random() * products.length)];
+// ── Kế hoạch 5 đơn × 10 khách = 50 đơn ──────────────────────────────────────
+//
+// Mỗi phần tử: [status, tháng, dayMin, dayMax, couponCode?]
+// Delivered: 2/khách — trải đều T1–T5 (4 đơn/tháng)
+// Một số đơn có coupon — chỉ áp dụng khi totalAmount đủ điều kiện
+//
+const ORDER_PLAN = [
+  // c0 - Nguyễn Đức Long
+  [
+    ["delivered", 1, 5, 25,  "WELCOME10"],
+    ["delivered", 3, 8, 28,  "SUMMER15"],
+    ["shipping",  6, 3, 8],
+    ["confirmed", 6, 7, 11,  "FREESHIP"],
+    ["pending",   6, 12, 12],
+  ],
+  // c1 - Trần Văn Phúc
+  [
+    ["delivered", 2, 5, 25,  "NEWDROP"],
+    ["delivered", 4, 8, 28,  "URBAN20"],
+    ["cancelled", 3, 10, 20],
+    ["shipping",  6, 4, 9],
+    ["pending",   6, 12, 12],
+  ],
+  // c2 - Lê Trung Kiên
+  [
+    ["delivered", 1, 8, 28,  "FREESHIP"],
+    ["delivered", 5, 5, 25,  "BACK2SCHOOL"],
+    ["shipping",  5, 20, 30, "WELCOME10"],
+    ["confirmed", 6, 5, 10],
+    ["pending",   6, 11, 12],
+  ],
+  // c3 - Phạm Hoàng Anh
+  [
+    ["delivered", 2, 8, 28,  "WELCOME10"],
+    ["delivered", 3, 5, 25,  "NEWDROP"],
+    ["cancelled", 4, 10, 20],
+    ["shipping",  6, 3, 8],
+    ["pending",   6, 12, 12],
+  ],
+  // c4 - Võ Minh Châu
+  [
+    ["delivered", 1, 10, 28, "SUMMER15"],
+    ["delivered", 4, 5, 25,  "URBAN20"],
+    ["shipping",  6, 2, 8],
+    ["confirmed", 6, 6, 11,  "NEWDROP"],
+    ["pending",   6, 12, 12],
+  ],
+  // c5 - Bùi Văn Toàn
+  [
+    ["delivered", 2, 5, 25,  "BACK2SCHOOL"],
+    ["delivered", 5, 8, 28,  "WELCOME10"],
+    ["cancelled", 4, 15, 25],
+    ["confirmed", 6, 4, 9,   "FREESHIP"],
+    ["pending",   6, 11, 12],
+  ],
+  // c6 - Hoàng Văn Sơn
+  [
+    ["delivered", 3, 5, 25,  "NEWDROP"],
+    ["delivered", 4, 8, 28,  "FREESHIP"],
+    ["shipping",  5, 20, 30, "BACK2SCHOOL"],
+    ["shipping",  6, 3, 8],
+    ["pending",   6, 12, 12],
+  ],
+  // c7 - Đinh Thành Đạt
+  [
+    ["delivered", 2, 10, 25, "URBAN20"],
+    ["delivered", 5, 10, 28, "SUMMER15"],
+    ["cancelled", 5, 10, 25],
+    ["confirmed", 6, 5, 10,  "WELCOME10"],
+    ["pending",   6, 11, 12],
+  ],
+  // c8 - Ngô Đức Bảo
+  [
+    ["delivered", 3, 8, 28,  "WELCOME10"],
+    ["delivered", 4, 5, 25,  "BACK2SCHOOL"],
+    ["shipping",  6, 4, 9],
+    ["confirmed", 6, 7, 11,  "NEWDROP"],
+    ["pending",   6, 12, 12],
+  ],
+  // c9 - Lý Thành Quân
+  [
+    ["delivered", 1, 8, 28,  "NEWDROP"],
+    ["delivered", 5, 5, 25,  "SUMMER15"],
+    ["shipping",  5, 18, 30, "WELCOME10"],
+    ["shipping",  6, 3, 8],
+    ["pending",   6, 11, 12],
+  ],
+
+  // ── Batch 1 (khôi phục) — không coupon ───────────────────────────────────
+
+  // c10 - Nguyễn Văn Minh
+  [
+    ["delivered", 1, 5, 25],
+    ["delivered", 3, 8, 28],
+    ["shipping",  6, 3, 8],
+    ["confirmed", 6, 7, 11],
+    ["pending",   6, 12, 12],
+  ],
+  // c11 - Trần Thanh Long
+  [
+    ["delivered", 2, 5, 25],
+    ["delivered", 4, 8, 28],
+    ["cancelled", 3, 10, 20],
+    ["shipping",  6, 4, 9],
+    ["pending",   6, 12, 12],
+  ],
+  // c12 - Lê Hoàng Nam
+  [
+    ["delivered", 1, 8, 28],
+    ["delivered", 5, 5, 25],
+    ["shipping",  5, 20, 30],
+    ["confirmed", 6, 5, 10],
+    ["pending",   6, 11, 12],
+  ],
+  // c13 - Phạm Quốc Đại
+  [
+    ["delivered", 2, 8, 28],
+    ["delivered", 3, 5, 25],
+    ["cancelled", 4, 10, 20],
+    ["shipping",  6, 3, 8],
+    ["pending",   6, 12, 12],
+  ],
+  // c14 - Võ Tiến Hùng
+  [
+    ["delivered", 1, 10, 28],
+    ["delivered", 4, 5, 25],
+    ["shipping",  6, 2, 8],
+    ["confirmed", 6, 6, 11],
+    ["pending",   6, 12, 12],
+  ],
+  // c15 - Bùi Minh Tuấn
+  [
+    ["delivered", 2, 5, 25],
+    ["delivered", 5, 8, 28],
+    ["cancelled", 4, 15, 25],
+    ["confirmed", 6, 4, 9],
+    ["pending",   6, 11, 12],
+  ],
+  // c16 - Hoàng Đức Trung
+  [
+    ["delivered", 3, 5, 25],
+    ["delivered", 4, 8, 28],
+    ["shipping",  5, 20, 30],
+    ["shipping",  6, 3, 8],
+    ["pending",   6, 12, 12],
+  ],
+  // c17 - Đinh Quang Vinh
+  [
+    ["delivered", 2, 10, 25],
+    ["delivered", 5, 10, 28],
+    ["cancelled", 5, 10, 25],
+    ["confirmed", 6, 5, 10],
+    ["pending",   6, 11, 12],
+  ],
+  // c18 - Ngô Thành Phong
+  [
+    ["delivered", 3, 8, 28],
+    ["delivered", 4, 5, 25],
+    ["shipping",  6, 4, 9],
+    ["confirmed", 6, 7, 11],
+    ["pending",   6, 12, 12],
+  ],
+  // c19 - Lý Kim Sơn
+  [
+    ["delivered", 1, 8, 28],
+    ["delivered", 5, 5, 25],
+    ["shipping",  5, 18, 30],
+    ["shipping",  6, 3, 8],
+    ["pending",   6, 11, 12],
+  ],
+];
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
@@ -81,171 +280,79 @@ const run = async () => {
     await mongoose.connect(process.env.MONGODB_CONNECTIONSTRING);
     console.log("✅ Kết nối DB thành công\n");
 
-    const customers = await User.find({ role: "customer" });
+    const customers = await User.find({ role: "customer" }).sort({ createdAt: 1 });
     const products  = await Product.find({ isActive: true });
-    const combos    = await Combo.find({ isActive: true }).populate("products.product");
 
-    if (customers.length === 0) { console.error("❌ Chưa có khách hàng."); process.exit(1); }
+    if (customers.length === 0) { console.error("❌ Chưa có khách hàng. Chạy customerSeeder trước."); process.exit(1); }
     if (products.length  === 0) { console.error("❌ Chưa có sản phẩm.");   process.exit(1); }
 
-    // Tạo coupon test nếu chưa có
-    const existingCoupons = await Coupon.find({ isActive: true });
-    const coupons = existingCoupons.length > 0
-      ? existingCoupons
-      : await Coupon.insertMany([
-          { code: "WELCOME10", discountType: "percent", discountValue: 10, minOrderValue: 300000,  isActive: true, isPublic: true },
-          { code: "SALE20",    discountType: "percent", discountValue: 20, minOrderValue: 500000,  isActive: true, isPublic: true },
-          { code: "FREESHIP",  discountType: "fixed",   discountValue: 30000, minOrderValue: 0,    isActive: true, isPublic: true },
-          { code: "VIP15",     discountType: "percent", discountValue: 15, minOrderValue: 800000,  isActive: true, isPublic: false },
-        ]);
+    console.log(`👥 ${customers.length} khách hàng | 📦 ${products.length} sản phẩm\n`);
 
-    // Xóa đơn hàng cũ
-    const oldCount = await Order.countDocuments();
-    if (oldCount > 0) {
-      await Order.deleteMany({});
-      console.log(`🗑  Đã xóa ${oldCount} đơn hàng cũ\n`);
+    const allOrders = [];
+
+    for (let ci = 0; ci < Math.min(customers.length, ORDER_PLAN.length); ci++) {
+      const customer = customers[ci];
+      const plan     = ORDER_PLAN[ci];
+
+      // Bỏ qua khách đã có đơn hàng
+      const existingCount = await Order.countDocuments({ userId: customer._id });
+      if (existingCount > 0) {
+        console.log(`⏭  ${customer.displayName}: đã có ${existingCount} đơn, bỏ qua`);
+        continue;
+      }
+
+      for (const [status, month, dayMin, dayMax, couponCode = null] of plan) {
+        const itemCount = (status === "delivered" || status === "shipping") ? pick([2, 2, 3]) : pick([1, 1, 2]);
+        const chosenProducts = pickProducts(products, itemCount);
+        const qty = () => pick([1, 1, 1, 2]);
+        const items = chosenProducts.map((p) => makeItem(p, qty()));
+
+        const createdAt = randDate(month, dayMin, dayMax);
+        allOrders.push(buildOrder({
+          customer,
+          items,
+          status,
+          paymentMethod: pick(PAYMENT_METHODS),
+          couponCode,
+          createdAt,
+        }));
+      }
+
+      const couponOrders = plan.filter(([, , , , c]) => c).map(([, , , , c]) => c);
+      console.log(`✅ ${customer.displayName}: 5 đơn${couponOrders.length ? ` (coupon: ${couponOrders.join(", ")})` : ""}`);
     }
 
-    console.log(`👥 ${customers.length} khách hàng | 📦 ${products.length} sản phẩm | 🎁 ${combos.length} combo | 🎫 ${coupons.length} coupon\n`);
+    await Order.collection.insertMany(allOrders);
 
-    const c = (slug) => coupons.find((x) => x.code === slug);
-    const p = (slug) => bySlug(products, slug);
-    const u = (i)    => customers[i % customers.length];
-
-    const orders = [];
-
-    // ── 5 đơn PENDING ──────────────────────────────────────────────────────
-    orders.push(buildOrder({ customer: u(0), status: "pending", paymentMethod: "COD",
-      items: [makeItem(p("ao-thun-pulse-drive"), 2)] }));
-
-    orders.push(buildOrder({ customer: u(1), status: "pending", paymentMethod: "VNPAY",
-      items: [makeItem(p("quan-cargo-urban-core")), makeItem(p("ao-polo-urban-classic"))] }));
-
-    orders.push(buildOrder({ customer: u(2), status: "pending", paymentMethod: "COD",
-      coupon: c("WELCOME10"),
-      items: [makeItem(p("hoodie-neon-signal"))] }));
-
-    orders.push(buildOrder({ customer: u(3), status: "pending", paymentMethod: "MOMO",
-      items: [makeItem(p("sneaker-low-top-monochrome")), makeItem(p("non-bucket-urban"), 2)] }));
-
-    orders.push(buildOrder({ customer: u(4), status: "pending", paymentMethod: "COD",
-      coupon: c("SALE20"),
-      items: [makeItem(p("zip-hoodie-techwear-pro"))] }));
-
-    // ── 5 đơn CONFIRMED ────────────────────────────────────────────────────
-    orders.push(buildOrder({ customer: u(5), status: "confirmed", paymentMethod: "VNPAY",
-      coupon: c("VIP15"),
-      items: [makeItem(p("ao-so-mi-oxford-minimal")), makeItem(p("quan-jeans-slim-fit-dark"))] }));
-
-    orders.push(buildOrder({ customer: u(6), status: "confirmed", paymentMethod: "MOMO",
-      items: [makeItem(p("balo-den-techline"))] }));
-
-    orders.push(buildOrder({ customer: u(7), status: "confirmed", paymentMethod: "COD",
-      items: [makeItem(p("ao-khoac-bomber-basic")), makeItem(p("quan-kaki-straight-fit"))] }));
-
-    orders.push(buildOrder({ customer: u(8), status: "confirmed", paymentMethod: "VNPAY",
-      coupon: c("WELCOME10"),
-      items: [makeItem(p("giay-chelsea-boot-da"))] }));
-
-    orders.push(buildOrder({ customer: u(9), status: "confirmed", paymentMethod: "COD",
-      items: [makeItem(p("sweater-ribknit-camel")), makeItem(p("vi-da-slim-bifold"))] }));
-
-    // ── 5 đơn SHIPPING ─────────────────────────────────────────────────────
-    orders.push(buildOrder({ customer: u(0), status: "shipping", paymentMethod: "COD",
-      items: [makeItem(p("quan-jeans-baggy-wash"))] }));
-
-    orders.push(buildOrder({ customer: u(1), status: "shipping", paymentMethod: "MOMO",
-      coupon: c("FREESHIP"),
-      items: [makeItem(p("hoodie-acid-wash-drop")), makeItem(p("tui-tote-canvas-urban"))] }));
-
-    orders.push(buildOrder({ customer: u(2), status: "shipping", paymentMethod: "COD",
-      items: [makeItem(p("giay-high-top-canvas")), makeItem(p("mu-dad-hat-washed"))] }));
-
-    orders.push(buildOrder({ customer: u(3), status: "shipping", paymentMethod: "VNPAY",
-      coupon: c("SALE20"),
-      items: [makeItem(p("ao-polo-textured-pique"), 2)] }));
-
-    orders.push(buildOrder({ customer: u(4), status: "shipping", paymentMethod: "MOMO",
-      items: [makeItem(p("giay-loafer-da-minimal"))] }));
-
-    // ── 4 đơn COMBO ────────────────────────────────────────────────────────
-    const comboStatuses = ["delivered", "delivered", "shipping", "confirmed"];
-    for (let i = 0; i < Math.min(4, combos.length); i++) {
-      const combo = combos[i];
-      const comboProducts = combo.products.filter((cp) => cp.product);
-      if (comboProducts.length < 2) continue;
-      const qty = comboProducts.length;
-      const comboItems = comboProducts.map((cp) =>
-        makeItem(cp.product, 1, Math.round(combo.comboPrice / qty / 1000) * 1000)
-      );
-      orders.push(buildOrder({
-        customer: u(i),
-        status: comboStatuses[i],
-        paymentMethod: pick(PAYMENT_METHODS),
-        items: comboItems,
-      }));
-    }
-
-    // ── 8 đơn DELIVERED ────────────────────────────────────────────────────
-    orders.push(buildOrder({ customer: u(5), status: "delivered", paymentMethod: "COD",
-      items: [makeItem(p("ao-thun-basic-essential"), 3), makeItem(p("quan-short-denim-frayed"), 2)] }));
-
-    orders.push(buildOrder({ customer: u(6), status: "delivered", paymentMethod: "VNPAY",
-      coupon: c("VIP15"),
-      items: [makeItem(p("giay-platform-chunky-low"))] }));
-
-    orders.push(buildOrder({ customer: u(7), status: "delivered", paymentMethod: "MOMO",
-      tierDiscount: 12, tierLabel: "TIER 3",
-      items: [makeItem(p("hoodie-unisex-basic")), makeItem(p("quan-track-pants-retro")), makeItem(p("kinh-mat-rectangle-flat"))] }));
-
-    orders.push(buildOrder({ customer: u(8), status: "delivered", paymentMethod: "COD",
-      coupon: c("WELCOME10"),
-      items: [makeItem(p("ao-so-mi-oversize-denim")), makeItem(p("quan-wide-leg-linen"))] }));
-
-    orders.push(buildOrder({ customer: u(9), status: "delivered", paymentMethod: "VNPAY",
-      items: [makeItem(p("giay-derby-classic-brown"))] }));
-
-    orders.push(buildOrder({ customer: u(0), status: "delivered", paymentMethod: "MOMO",
-      tierDiscount: 5, tierLabel: "TIER 1",
-      coupon: c("FREESHIP"),
-      items: [makeItem(p("sweater-crewneck-essential"), 2), makeItem(p("balo-mini-daypack"))] }));
-
-    orders.push(buildOrder({ customer: u(1), status: "delivered", paymentMethod: "COD",
-      items: [makeItem(p("giay-slip-on-suede-grey"))] }));
-
-    orders.push(buildOrder({ customer: u(2), status: "delivered", paymentMethod: "VNPAY",
-      tierDiscount: 18, tierLabel: "TIER 4",
-      items: [makeItem(p("ao-thun-cropped-essential"), 2), makeItem(p("quan-jogger-essential")), makeItem(p("tui-clutch-nylon-urban"))] }));
-
-    // ── 4 đơn CANCELLED ────────────────────────────────────────────────────
-    orders.push(buildOrder({ customer: u(3), status: "cancelled", paymentMethod: "COD",
-      items: [makeItem(p("ao-thun-racing-stripe"))] }));
-
-    orders.push(buildOrder({ customer: u(4), status: "cancelled", paymentMethod: "MOMO",
-      coupon: c("SALE20"),
-      items: [makeItem(p("quan-cargo-ripstop-heavy")), makeItem(p("tui-messenger-nylon"))] }));
-
-    orders.push(buildOrder({ customer: u(5), status: "cancelled", paymentMethod: "VNPAY",
-      items: [makeItem(p("giay-oxford-minimal-white"))] }));
-
-    orders.push(buildOrder({ customer: u(6), status: "cancelled", paymentMethod: "COD",
-      items: [makeItem(p("dep-slide-foam-comfort"), 2)] }));
-
-    // Lọc đơn hợp lệ
-    const validOrders = orders.filter((o) => o.items.length > 0 && o.items.every((i) => i.productId));
-
-    await Order.insertMany(validOrders);
-
-    // Báo cáo
+    // ── Báo cáo ───────────────────────────────────────────────────────────────
     const STATUSES = ["pending", "confirmed", "shipping", "delivered", "cancelled"];
-    console.log(`✅ Đã tạo ${validOrders.length} đơn hàng:\n`);
-    STATUSES.forEach((s) => {
-      const n = validOrders.filter((o) => o.status === s).length;
-      console.log(`   ${s.padEnd(12)}: ${n} đơn`);
-    });
-    console.log(`\n   Có mã giảm giá : ${validOrders.filter((o) => o.couponCode).length}`);
-    console.log(`   Có tier discount: ${validOrders.filter((o) => o.tierDiscount > 0).length}`);
-    console.log(`   Nhiều sản phẩm  : ${validOrders.filter((o) => o.items.length > 1).length}`);
+    console.log(`\n📊 Đã tạo ${allOrders.length} đơn hàng:`);
+    for (const s of STATUSES) {
+      const n = allOrders.filter((o) => o.status === s).length;
+      if (n > 0) console.log(`   ${s.padEnd(12)}: ${n} đơn`);
+    }
+
+    const withCoupon = allOrders.filter((o) => o.couponCode);
+    console.log(`\n🎟  Đơn dùng coupon: ${withCoupon.length} đơn`);
+    const couponStats = {};
+    for (const o of withCoupon) {
+      couponStats[o.couponCode] = (couponStats[o.couponCode] || 0) + 1;
+    }
+    for (const [code, count] of Object.entries(couponStats)) {
+      console.log(`   ${code.padEnd(14)}: ${count} đơn`);
+    }
+
+    const deliveredRevenue = allOrders
+      .filter((o) => o.status === "delivered")
+      .reduce((sum, o) => sum + o.finalAmount, 0);
+    console.log(`\n💰 Doanh thu ước tính (delivered): ${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(deliveredRevenue)}`);
+
+    console.log("\n📅 Delivered theo tháng:");
+    for (let m = 1; m <= 6; m++) {
+      const n = allOrders.filter((o) => o.status === "delivered" && o.createdAt.getMonth() + 1 === m).length;
+      if (n > 0) console.log(`   T${m}/2026: ${n} đơn`);
+    }
+
     console.log("\n🎉 Order seed hoàn tất!");
     await mongoose.disconnect();
     process.exit(0);

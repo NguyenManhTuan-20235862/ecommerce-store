@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { reviewService } from "../../services/review.service";
 import { productService } from "../../services/product.service";
 import { useAuthStore } from "../../store/authStore";
+import { formatCurrency } from "../../utils/formatCurrency";
 import { getImageUrl } from "../../utils/getImageUrl";
 import { resolveColorHex } from "../../utils/colorMap";
 import {
@@ -84,6 +85,7 @@ export default function Product() {
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [reviews, setReviews] = useState([]);
+  const [relatedProducts, setRelatedProducts] = useState([]);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const fetchReviews = async (pid) => {
@@ -115,6 +117,13 @@ export default function Product() {
   useEffect(() => {
     if (product?._id) fetchReviews(product._id);
   }, [product?._id]);
+
+  useEffect(() => {
+    if (!product?.slug) return;
+    productService.related(product.slug)
+      .then((res) => setRelatedProducts(res.data?.products || []))
+      .catch(() => {});
+  }, [product?.slug]);
 
   if (isLoading) {
     return <ProductSkeleton />;
@@ -181,6 +190,8 @@ export default function Product() {
               sizes={sizes}
               defaultSize={sizes[0]}
               variants={product.variants || []}
+              sizeChart={product.sizeChart ?? null}
+              categorySlug={product.category?.slug ?? ""}
             />
           </motion.div>
         </div>
@@ -201,6 +212,63 @@ export default function Product() {
             onReviewSubmitted={() => fetchReviews(product._id)}
           />
         </motion.div>
+
+        {relatedProducts.length > 0 && (
+          <motion.div {...scrollFadeUp}>
+            <div className="border-t border-black/10 pt-16">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#94a3b8]">
+                // CŨNG CÓ THỂ BẠN SẼ THÍCH
+              </p>
+              <h2 className="mb-10 font-heading text-3xl font-extrabold uppercase tracking-tight text-[#0f172a] sm:text-4xl">
+                Người mua cũng mua
+              </h2>
+              <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
+                {relatedProducts.map((p) => {
+                  const img = p.images?.[0] ? getImageUrl(p.images[0]) : "https://placehold.co/400x500/e4e2e1/2f2f2e?text=No+Image";
+                  const isOnSale = p.compareAtPrice > p.price;
+                  return (
+                    <Link
+                      key={p._id}
+                      to={`/product/${p.slug}`}
+                      className="group flex flex-col"
+                    >
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-[#e4e2e1]">
+                        <img
+                          src={img}
+                          alt={p.name}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        {isOnSale && (
+                          <span className="absolute left-3 top-3 rounded-full bg-[#004be3] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                            SALE -{Math.round((1 - p.price / p.compareAtPrice) * 100)}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-3 space-y-1">
+                        <p className="text-xs font-bold uppercase tracking-widest text-[#94a3b8]">
+                          {p.category?.name || ""}
+                        </p>
+                        <p className="line-clamp-2 text-sm font-semibold text-[#2f2f2e] group-hover:text-[#004be3] transition-colors">
+                          {p.name}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          {isOnSale && (
+                            <span className="text-xs text-[#5c5b5b]/60 line-through">
+                              {formatCurrency(p.compareAtPrice)}
+                            </span>
+                          )}
+                          <span className="price text-sm font-bold text-[#004be3]">
+                            {formatCurrency(p.price)}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
     </section>
   );

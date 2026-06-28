@@ -7,7 +7,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuthStore } from "../store/authStore";
 import { useCartStore } from "../store/cartStore";
@@ -38,11 +38,65 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [activeDesktopSubmenu, setActiveDesktopSubmenu] = useState(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const searchRef = useRef(null);
+
+  useEffect(() => {
+    if (isSearchOpen) searchRef.current?.focus();
+  }, [isSearchOpen]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const q = searchInput.trim();
+    if (!q) return;
+    setIsSearchOpen(false);
+    setSearchInput("");
+    navigate(`/shop?search=${encodeURIComponent(q)}`);
+  };
+
+  const handleSearchClose = () => {
+    setIsSearchOpen(false);
+    setSearchInput("");
+  };
 
   const accountLink = "/profile/info";
 
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-white/95 backdrop-blur">
+      {/* Search overlay bar */}
+      {isSearchOpen && (
+        <div className="absolute inset-x-0 top-0 z-50 flex h-16 items-center gap-3 border-b border-black/5 bg-white px-4 sm:px-6 lg:px-10">
+          <Search className="h-4 w-4 shrink-0 text-[#004be3]" strokeWidth={1.9} />
+          <form onSubmit={handleSearchSubmit} className="flex flex-1 items-center">
+            <input
+              ref={searchRef}
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && handleSearchClose()}
+              placeholder="Tìm kiếm sản phẩm..."
+              className="flex-1 bg-transparent text-sm font-medium text-[#2f2f2e] placeholder:text-[#94a3b8] outline-none"
+            />
+            {searchInput && (
+              <button
+                type="submit"
+                className="ml-2 rounded-full bg-[#004be3] px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-700"
+              >
+                Tìm
+              </button>
+            )}
+          </form>
+          <button
+            type="button"
+            onClick={handleSearchClose}
+            className="rounded-full p-2 text-[#5c5b5b] transition hover:bg-[#f3f0ef] hover:text-[#2f2f2e]"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
         <button
           type="button"
@@ -150,6 +204,7 @@ export default function Header() {
         <div className="flex items-center gap-1 text-[#2f2f2e] sm:gap-2">
           <button
             type="button"
+            onClick={() => { setIsSearchOpen(true); setIsAccountMenuOpen(false); }}
             className="rounded-full p-2 transition hover:bg-[#f3f0ef]"
             aria-label="Tìm kiếm"
           >

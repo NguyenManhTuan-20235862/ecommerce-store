@@ -43,6 +43,11 @@ export const productService = {
     return api.delete(`/products/${id}`);
   },
 
+  // Xuất toàn bộ sản phẩm ra file Excel
+  exportToExcel() {
+    return api.get("/products/admin/export", { responseType: "blob" });
+  },
+
   // Upload ảnh sản phẩm (multipart/form-data)
   uploadImages(files) {
     const formData = new FormData();

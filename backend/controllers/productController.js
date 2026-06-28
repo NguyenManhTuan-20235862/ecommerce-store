@@ -1,3 +1,4 @@
+import * as XLSX from "xlsx";
 import Category from "../models/Category.js";
 import Product from "../models/Product.js";
 import {
@@ -276,6 +277,67 @@ export const getProductById = async (req, res) => {
     return res.status(200).json({ product });
   } catch (error) {
     console.error("Lỗi khi lấy sản phẩm theo ID:", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+// GET /api/products/admin/export — Xuất tất cả sản phẩm ra file Excel
+export const exportProducts = async (req, res) => {
+  try {
+    const products = await Product.find({})
+      .populate("category", "name")
+      .sort({ createdAt: -1 });
+
+    // Flatten: mỗi variant là 1 row
+    const rows = [];
+    for (const p of products) {
+      const base = {
+        "Tên sản phẩm": p.name,
+        "SKU": p.sku || "",
+        "Danh mục": p.category?.name || "",
+        "Giá vốn": p.costPrice ?? "",
+        "Giá bán": p.price,
+        "Giá gốc (so sánh)": p.compareAtPrice ?? "",
+        "Mô tả": p.description || "",
+        "Chất liệu": p.material || "",
+        "Nổi bật": p.isFeatured ? "Có" : "Không",
+        "Trạng thái": p.isActive ? "Đang bán" : "Ẩn",
+        "Ngày tạo": p.createdAt ? new Date(p.createdAt).toLocaleDateString("vi-VN") : "",
+      };
+
+      if (!p.variants || p.variants.length === 0) {
+        rows.push({ ...base, "Màu sắc": "", "Size": "", "Tồn kho variant": "" });
+      } else {
+        for (const v of p.variants) {
+          rows.push({
+            ...base,
+            "Màu sắc": v.color || "",
+            "Size": v.size || "",
+            "Tồn kho variant": v.stock ?? 0,
+          });
+        }
+      }
+    }
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sản phẩm");
+
+    // Đặt độ rộng cột
+    ws["!cols"] = [
+      { wch: 35 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 },
+      { wch: 18 }, { wch: 40 }, { wch: 15 }, { wch: 8 }, { wch: 10 },
+      { wch: 12 }, { wch: 12 }, { wch: 8 }, { wch: 14 },
+    ];
+
+    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+    const filename = `san-pham-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    return res.send(buf);
+  } catch (error) {
+    console.error("Lỗi khi xuất Excel:", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

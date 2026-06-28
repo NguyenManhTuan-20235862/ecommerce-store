@@ -51,6 +51,10 @@ const userSchema = new mongoose.Schema({
     enum: ["customer", "admin"],
     default: "customer",
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
   addresses: [addressSchema],
 }, {

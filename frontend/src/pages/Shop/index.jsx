@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { Search, X } from "lucide-react";
+import { Flame, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { fadeUpItem, staggerContainer } from "../../animations/variants";
 import { productService } from "../../services/product.service";
 import { getImageUrl } from "../../utils/getImageUrl";
@@ -23,22 +23,33 @@ const QUICK_SORTS = [
 
 export default function Shop() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [featuredOnly, setFeaturedOnly] = useState(searchParams.get("featured") === "true");
   const [priceLimit, setPriceLimit] = useState(maxPrice);
   const [debouncedPriceLimit, setDebouncedPriceLimit] = useState(maxPrice);
   const [sortBy, setSortBy] = useState("newest");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get("search") || "");
 
+  const [activeCategory, setActiveCategory] = useState("");
   const [products, setProducts] = useState([]);
   const [loadCursor, setLoadCursor] = useState(null); // null = fresh load, string = append
   const [nextCursor, setNextCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
 
-  // Khi click category trong sidebar → chuyển sang trang submenu riêng
   function handleCategoryChange(categoryKey) {
-    if (categoryKey) navigate(`/shop/${categoryKey}`);
+    setActiveCategory(categoryKey);
+    setLoadCursor(null);
   }
+
+  // Sync search query từ URL khi navigate từ Header search
+  const urlSearchParam = searchParams.get("search") || "";
+  useEffect(() => {
+    setSearchQuery(urlSearchParam);
+    setDebouncedSearch(urlSearchParam);
+    setLoadCursor(null);
+  }, [urlSearchParam]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -67,6 +78,8 @@ export default function Shop() {
           maxPrice: debouncedPriceLimit < maxPrice ? debouncedPriceLimit : undefined,
           sort: sortBy,
           search: debouncedSearch || undefined,
+          category: activeCategory || undefined,
+          featured: featuredOnly ? "true" : undefined,
         };
         const res = await productService.list(params);
         if (!cancelled && res.data) {
@@ -94,7 +107,7 @@ export default function Shop() {
     return () => {
       cancelled = true;
     };
-  }, [loadCursor, debouncedPriceLimit, sortBy, debouncedSearch]);
+  }, [loadCursor, debouncedPriceLimit, sortBy, debouncedSearch, activeCategory, featuredOnly]);
 
   const formattedProducts = useMemo(() => {
     return products.map((p) => {
@@ -143,8 +156,8 @@ export default function Shop() {
   }, [products]);
 
   const filterKey = useMemo(
-    () => `${debouncedPriceLimit}-${sortBy}-${debouncedSearch}`,
-    [debouncedPriceLimit, sortBy, debouncedSearch],
+    () => `${activeCategory}-${debouncedPriceLimit}-${sortBy}-${debouncedSearch}`,
+    [activeCategory, debouncedPriceLimit, sortBy, debouncedSearch],
   );
 
   const shown = formattedProducts.length;
@@ -213,7 +226,7 @@ export default function Shop() {
               // BỘ LỌC
             </p>
             <FilterSidebar
-              activeCategory=""
+              activeCategory={activeCategory}
               onCategoryChange={handleCategoryChange}
               priceLimit={priceLimit}
               onPriceLimitChange={setPriceLimit}
@@ -222,6 +235,26 @@ export default function Shop() {
 
           {/* Center Grid */}
           <div>
+            {featuredOnly && (
+              <div className="mb-4 flex items-center gap-3 rounded-2xl border border-[#004be3]/20 bg-[#004be3]/5 px-4 py-3">
+                <Flame className="h-4 w-4 shrink-0 text-[#004be3]" />
+                <span className="flex-1 text-xs font-bold uppercase tracking-widest text-[#004be3]">
+                  Đang xem: New Drops — Sản phẩm nổi bật
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeaturedOnly(false);
+                    setSearchParams({});
+                    setLoadCursor(null);
+                  }}
+                  className="text-[#004be3]/60 transition hover:text-[#004be3]"
+                  title="Bỏ filter"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="relative w-full max-w-sm flex-1">
                 <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />

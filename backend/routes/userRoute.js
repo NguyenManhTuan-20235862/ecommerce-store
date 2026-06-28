@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllUsers, authMe, updatePassword, updateProfile, uploadAvatar, getWishlist, addToWishlist, removeFromWishlist, getAddresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } from "../controllers/userController.js";
+import { getAllUsers, toggleUserStatus, authMe, updatePassword, updateProfile, uploadAvatar, getWishlist, addToWishlist, removeFromWishlist, getAddresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } from "../controllers/userController.js";
 import { adminRoute } from "../middlewares/authMiddleware.js";
 import { upload } from "../controllers/uploadController.js";
 
@@ -40,5 +40,8 @@ router.put("/me/addresses/:addressId/default", setDefaultAddress);
 // ====== ADMIN ROUTES ======
 // GET /api/users — Lấy danh sách tất cả users
 router.get("/", adminRoute, getAllUsers);
+
+// PATCH /api/users/:id/status — Khóa/mở tài khoản
+router.patch("/:id/status", adminRoute, toggleUserStatus);
 
 export default router;

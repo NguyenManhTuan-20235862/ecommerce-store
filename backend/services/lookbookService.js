@@ -12,7 +12,7 @@ const deleteImageFile = (imageId) => {
   fs.unlink(filePath, () => {});
 };
 
-const PRODUCT_FIELDS = "name slug price compareAtPrice images totalStock";
+const PRODUCT_FIELDS = "name slug price compareAtPrice images variants";
 
 export const getStories = () =>
   Lookbook.find({ isActive: true })

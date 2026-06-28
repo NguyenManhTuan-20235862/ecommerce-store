@@ -8,6 +8,7 @@ import {
   updateProduct,
   deleteProduct,
   getAdminProducts,
+  exportProducts,
 } from "../controllers/productController.js";
 import { protectedRoute, adminRoute } from "../middlewares/authMiddleware.js";
 import reviewRoute from "./reviewRoute.js";
@@ -27,6 +28,9 @@ router.get("/:slug/related", getRelatedProducts);
 // ====== ADMIN ROUTES (cần đăng nhập + role admin) ======
 // Lấy tất cả sản phẩm cho Admin (kể cả inactive)
 router.get("/admin/all", protectedRoute, adminRoute, getAdminProducts);
+
+// Xuất Excel toàn bộ sản phẩm
+router.get("/admin/export", protectedRoute, adminRoute, exportProducts);
 
 // Lấy chi tiết sản phẩm theo ID cho Admin
 router.get("/admin/:id", protectedRoute, adminRoute, getProductById);

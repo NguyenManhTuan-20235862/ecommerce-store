@@ -377,6 +377,11 @@ export const cancelOrder = async (orderId, userId) => {
     throw new Error("Chỉ có thể hủy đơn hàng khi ở trạng thái chờ xử lý");
   }
 
+  const CANCEL_WINDOW_MS = 12 * 60 * 60 * 1000;
+  if (Date.now() - new Date(order.createdAt).getTime() > CANCEL_WINDOW_MS) {
+    throw new Error("Đã quá 12 giờ kể từ khi đặt hàng, không thể hủy đơn");
+  }
+
   order.status = "cancelled";
   await order.save();
 

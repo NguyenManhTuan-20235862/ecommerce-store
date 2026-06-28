@@ -54,4 +54,7 @@ export const userService = {
   getAllUsers(params = {}) {
     return api.get("/users", { params });
   },
+  toggleUserStatus(userId) {
+    return api.patch(`/users/${userId}/status`);
+  },
 };

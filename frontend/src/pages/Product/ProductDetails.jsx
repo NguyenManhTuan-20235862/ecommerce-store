@@ -1,4 +1,4 @@
-import { Heart, ShieldCheck, Truck } from "lucide-react";
+import { Heart, Lock, Minus, Plus, ShieldCheck, Truck } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -6,6 +6,7 @@ import { useAuthStore } from "../../store/authStore.js";
 import { useCartStore } from "../../store/cartStore.js";
 import { useWishlistStore } from "../../store/wishlistStore.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
+import SizeGuideModal from "./SizeGuideModal.jsx";
 
 export default function ProductDetails({
   title,
@@ -19,12 +20,18 @@ export default function ProductDetails({
   productSlug,
   productImages,
   variants = [],
+  sizeChart = null,
+  categorySlug = "",
 }) {
   const [selectedColor, setSelectedColor] = useState(colors[0]);
   const [selectedSize, setSelectedSize] = useState(defaultSize);
+  const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+
+  const isAccessory = categorySlug === "phu-kien";
 
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
@@ -87,8 +94,8 @@ export default function ProductDetails({
       setIsLoading(true);
 
       const result = await addItem(
-        { productId, quantity: 1, selectedSize, selectedColor: selectedColor.name },
-        1,
+        { productId, quantity, selectedSize, selectedColor: selectedColor.name },
+        quantity,
       );
 
       if (result.success) {
@@ -173,9 +180,15 @@ export default function ProductDetails({
           <label className="block text-xs font-bold uppercase tracking-widest text-[#5c5b5b]">
             Chọn size
           </label>
-          <button className="text-xs font-bold uppercase tracking-widest text-[#004be3] underline">
-            Hướng dẫn chọn size
-          </button>
+          {!isAccessory && (
+            <button
+              type="button"
+              onClick={() => setIsSizeGuideOpen(true)}
+              className="text-xs font-bold uppercase tracking-widest text-[#004be3] underline transition hover:text-[#0039b3]"
+            >
+              Hướng dẫn chọn size
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-5 gap-2">
@@ -203,13 +216,42 @@ export default function ProductDetails({
       </div>
 
       <div className="space-y-3">
-        <button
-          onClick={handleAddToCart}
-          disabled={isLoading || isOutOfStock}
-          className="w-full rounded-full bg-linear-to-r from-[#004be3] to-[#819bff] py-4 font-heading text-lg font-bold uppercase tracking-wide text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+        <div
+          className={`flex h-14 w-full overflow-hidden rounded-full bg-linear-to-r from-[#004be3] to-[#819bff] transition ${isOutOfStock ? "opacity-50" : ""}`}
         >
-          {isLoading ? "Đang thêm..." : isOutOfStock ? "Hết hàng" : "Add to Pulse"}
-        </button>
+          {/* Quantity selector */}
+          <div className="flex items-center gap-3 bg-black/20 px-5">
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={isLoading || isOutOfStock || quantity <= 1}
+              className="flex h-6 w-6 items-center justify-center rounded-full text-white/80 transition hover:text-white disabled:opacity-40"
+            >
+              <Minus className="h-3.5 w-3.5" />
+            </button>
+            <span className="min-w-[1ch] text-center font-heading text-base font-bold text-white">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => q + 1)}
+              disabled={isLoading || isOutOfStock}
+              className="flex h-6 w-6 items-center justify-center rounded-full text-white/80 transition hover:text-white disabled:opacity-40"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          {/* Add to Pulse */}
+          <button
+            onClick={handleAddToCart}
+            disabled={isLoading || isOutOfStock}
+            className="flex flex-1 items-center justify-center gap-2 font-heading text-base font-bold uppercase tracking-wide text-white transition hover:brightness-110 disabled:cursor-not-allowed"
+          >
+            <Lock className="h-4 w-4" />
+            {isLoading ? "Đang thêm..." : isOutOfStock ? "Hết hàng" : "Add to Pulse"}
+          </button>
+        </div>
 
         <button
           onClick={handleWishlist}
@@ -252,6 +294,14 @@ export default function ProductDetails({
           </div>
         </div>
       </div>
+
+      <SizeGuideModal
+        isOpen={isSizeGuideOpen}
+        onClose={() => setIsSizeGuideOpen(false)}
+        categorySlug={categorySlug}
+        sizes={sizes}
+        sizeChart={sizeChart}
+      />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { ImageOff, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
 import { guessHex } from "../../../utils/colorMap";
 import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { categoryService } from "../../../services/category.service";
 import { productService } from "../../../services/product.service";
@@ -13,6 +13,8 @@ import { productSchema } from "./schemas";
 export default function ProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromPage = location.state?.fromPage || 1;
   const isEdit = Boolean(id);
   const fileInputRef = useRef(null);
 
@@ -173,7 +175,7 @@ export default function ProductForm() {
         await productService.create(payload);
         toast.success("Tạo sản phẩm thành công");
       }
-      navigate("/admin/products");
+      navigate(`/admin/products?page=${fromPage}`);
     } catch (err) {
       toast.error(err.response?.data?.message || "Lưu sản phẩm thất bại");
     } finally {

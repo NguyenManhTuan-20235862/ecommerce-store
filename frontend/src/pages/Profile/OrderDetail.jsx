@@ -167,7 +167,22 @@ export default function OrderDetail() {
     );
   }
 
-  const canCancel = order.status === "pending";
+  const CANCEL_WINDOW_MS = 12 * 60 * 60 * 1000;
+  const orderDate = new Date(order.createdAt);
+  const cancelDeadline = new Date(orderDate.getTime() + CANCEL_WINDOW_MS);
+  const now = new Date();
+  const withinCancelWindow = now < cancelDeadline;
+  const canCancel = order.status === "pending" && withinCancelWindow;
+  const showCancelArea = order.status === "pending";
+
+  const getRemainingTime = () => {
+    const diff = cancelDeadline - now;
+    if (diff <= 0) return null;
+    const hours = Math.floor(diff / (60 * 60 * 1000));
+    const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+    if (hours > 0) return `${hours}g ${minutes}p`;
+    return `${minutes} phút`;
+  };
 
   return (
     <div className="space-y-6">
@@ -193,26 +208,45 @@ export default function OrderDetail() {
             </p>
           </div>
 
-          <div className="text-right">
+          <div className="flex flex-col items-end gap-2">
             {getStatusBadge(order.status)}
-            {canCancel && (
-              <button
-                onClick={handleCancelOrder}
-                disabled={isCancelling}
-                className="mt-3 inline-flex items-center gap-2 rounded-full border-2 border-red-500 bg-white px-4 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isCancelling ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Đang hủy...
-                  </>
+            {showCancelArea && (
+              <div className="flex flex-col items-end gap-1">
+                <button
+                  onClick={handleCancelOrder}
+                  disabled={isCancelling || !canCancel}
+                  className={`inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-semibold transition ${
+                    canCancel
+                      ? "border-red-500 bg-white text-red-500 hover:bg-red-500 hover:text-white"
+                      : "cursor-not-allowed border-gray-300 bg-white text-gray-400"
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  {isCancelling ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Đang hủy...
+                    </>
+                  ) : (
+                    <>
+                      <X className="h-4 w-4" />
+                      Hủy đơn hàng
+                    </>
+                  )}
+                </button>
+                {canCancel ? (
+                  <p className="text-xs text-[#5c5b5b]">
+                    Còn{" "}
+                    <span className="font-semibold text-orange-500">
+                      {getRemainingTime()}
+                    </span>{" "}
+                    để hủy đơn
+                  </p>
                 ) : (
-                  <>
-                    <X className="h-4 w-4" />
-                    Hủy đơn hàng
-                  </>
+                  <p className="text-xs text-gray-400">
+                    Đã quá 12h, không thể hủy đơn
+                  </p>
                 )}
-              </button>
+              </div>
             )}
           </div>
         </div>
